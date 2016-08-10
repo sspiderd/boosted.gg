@@ -21,6 +21,13 @@ sed -i 's/\"set background=dark/set background=dark/' /etc/vim/vimrc
 
 
 #kafka
-curl -SL http://www-eu.apache.org/dist/kafka/$KAFKA_VERSION/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz | tar xz -C ~
+curl -SL http://www-eu.apache.org/dist/kafka/$KAFKA_VERSION/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz | tar xz -C /opt
+ln -s /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION}/ /opt/kafka
+
+mkdir -p /var/log/zookeeper /var/log/kafka
+
+sed -i 's@#listeners=PLAINTEXT://:9092@listeners=PLAINTEXT://10.0.0.3:9092@' /opt/kafka/config/server.properties
+
+
 
 #docker build -t kafka /dockerfiles/kafka-zookeeper && docker run -d -p 2181:2181 -p 9092:9092 kafka 

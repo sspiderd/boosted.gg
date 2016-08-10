@@ -13,16 +13,19 @@ Vagrant.configure(2) do |config|
   config.vm.provider "virtualbox" do |v|
    v.customize ["modifyvm", :id, "--nictype1", "virtio"]
    v.customize ["modifyvm", :id, "--cpuexecutioncap", "80"]
-   v.memory = 8192
+   v.memory = 4096
    v.cpus = 4
   end
 
-  config.vm.network "private_network", ip: "10.99.99.3", nic_type: "virtio"
+  config.vm.network "private_network", ip: "10.0.0.3", nic_type: "virtio"
   #config.vm.network "forwarded_port", guest: 9092, host: 9092
   #config.vm.network "forwarded_port", guest: 2181, host: 2181
 
   config.vm.synced_folder "dockerfiles", "/dockerfiles"
 
-  config.vm.provision "shell", path: "provision.sh"
+  config.vm.provision "shell", path: "provision/provision.sh"
+  config.vm.provision "file", source: "provision/zookeeper.conf", destination: "/tmp/zookeeper.conf"
+  config.vm.provision "file", source: "provision/kafka.conf", destination: "/tmp/kafka.conf"
+  config.vm.provision "shell", path: "provision/provision_late.sh"
 
 end
