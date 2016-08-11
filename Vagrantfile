@@ -7,7 +7,7 @@
 # you're doing.
 Vagrant.configure(2) do |config|
   
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "ubuntu/xenial64"
   #config.vm.box = "puppetlabs/debian-8.2-64-nocm"
 
   config.vm.provider "virtualbox" do |v|
@@ -20,8 +20,6 @@ Vagrant.configure(2) do |config|
   config.vm.network "private_network", ip: "10.0.0.3", nic_type: "virtio"
   #config.vm.network "forwarded_port", guest: 9092, host: 9092
   #config.vm.network "forwarded_port", guest: 2181, host: 2181
-
-  config.vm.synced_folder "dockerfiles", "/dockerfiles"
 
   config.vm.provision "shell", path: "provision/provision.sh"
   config.vm.provision "file", source: "provision/zookeeper.conf", destination: "/tmp/zookeeper.conf"
