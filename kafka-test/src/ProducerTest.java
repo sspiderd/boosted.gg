@@ -13,7 +13,7 @@ public class ProducerTest {
 
     public static void main(String[] args){
         Properties props = new Properties();
-        props.put("bootstrap.servers", "10.99.99.3:9092");
+        props.put("bootstrap.servers", "10.0.0.3:9092");
         props.put("acks", "all");
         props.put("retries", 0);
         props.put("batch.size", 16384);
