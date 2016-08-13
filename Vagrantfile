@@ -7,7 +7,7 @@
 # you're doing.
 Vagrant.configure(2) do |config|
   
-  config.vm.box = "ubuntu/xenial64"
+  config.vm.box = "ubuntu/trusty64"
   #config.vm.box = "puppetlabs/debian-8.2-64-nocm"
 
   config.vm.provider "virtualbox" do |v|

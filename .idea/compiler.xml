@@ -27,8 +27,8 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="data-maker" target="1.8" />
-      <module name="kafka-test" target="1.8" />
+      <module name="data-maker" target="1.5" />
+      <module name="kafka-test" target="1.7" />
     </bytecodeTargetLevel>
   </component>
 </project>
