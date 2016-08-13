@@ -5,8 +5,8 @@ package gg.masters
  */
 class SummonerGame {
 
-    String matchId ;
-    String summonerId ;
+    Long matchId ;
+    Long summonerId ;
     Integer championId;
     String role ;
     Boolean winner ;

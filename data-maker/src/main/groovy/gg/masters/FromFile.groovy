@@ -27,6 +27,7 @@ class FromFile {
             parsed.each {
                 KafkaSummonerGameProducer.send(it)
             }
+            sleep 500
         }
     }
 

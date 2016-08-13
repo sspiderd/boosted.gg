@@ -8,6 +8,7 @@
       <list>
         <option value="$PROJECT_DIR$/data-maker/pom.xml" />
         <option value="$PROJECT_DIR$/kafka-test/pom.xml" />
+        <option value="$PROJECT_DIR$/analyzers/pom.xml" />
       </list>
     </option>
   </component>
