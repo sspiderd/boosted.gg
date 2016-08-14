@@ -48,7 +48,7 @@ object MostBoostedChampionAtRole  {
 
     //Sort by winRate
     //val sorted = summonerChampionRoleToWinRatioMap.map(_.swap).sortByKey(false).map(_.swap)
-    val sorted = summonerChampionRoleToWinRatioMap.map(_.swap).transform(_.sortByKey()).map(_.swap)
+    val sorted = summonerChampionRoleToWinRatioMap.map(_.swap).transform(_.sortByKey(false)).map(_.swap)
 
     return sorted
 
@@ -102,11 +102,15 @@ object MostBoostedChampionAtRole  {
       SummonerGame(1, 4, 4, "BOTTOM", true),
       SummonerGame(1, 5, 5, "SUPPORT", true),
       SummonerGame(1, 6, 6, "TOP", false),
+
       SummonerGame(2, 1, 1, "TOP", false),
-      SummonerGame(2, 2, 2, "MIDDLE", true)
+      SummonerGame(2, 2, 2, "MIDDLE", true),
+
+      SummonerGame(3, 1, 1, "TOP", false)
     )
 
     val ssc = new StreamingContext("local[*]", "MostBoostedChampionAtRole", Seconds(1))
+    setupLogging()
     val rdd = ssc.sparkContext.parallelize(summonerGames)
     val stream = new ConstantInputDStream(ssc, rdd)
     summonerChampionRoleToWinrate(stream).print()
