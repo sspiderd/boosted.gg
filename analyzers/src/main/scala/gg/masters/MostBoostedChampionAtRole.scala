@@ -4,7 +4,7 @@ package gg.masters
 import kafka.serializer.StringDecoder
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
-import org.apache.spark.streaming.dstream.{DStream, InputDStream}
+import org.apache.spark.streaming.dstream.{ConstantInputDStream, DStream, InputDStream}
 import org.apache.spark.streaming.{Durations, Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.json4s._
@@ -29,7 +29,7 @@ object MostBoostedChampionAtRole  {
   }
 
   //Convert an rdd of type SummonerGame to an rdd of (summonerId, championId, Role) => (winRate)
-  def summonerChampionRoleToWinrate(rdd: RDD[SummonerGame]): RDD[SummonerChampionRoleToWinrate] = {
+  def summonerChampionRoleToWinrate(rdd: InputDStream[SummonerGame]): DStream[SummonerChampionRoleToWinrate] = {
     //Convert to a map of (summonerId, champion, role) => (wins, totalGames)
     //So we can calculate wins/totalGame later
     val intermediateMap = rdd.map(game => {
@@ -39,15 +39,16 @@ object MostBoostedChampionAtRole  {
       }
     })
 
-    val reduced = intermediateMap.reduceByKey((x, y) => ((x._1 + y._1), (x._2 + y._2)))
+    //val reduced = intermediateMap.reduceByKey((x, y) => ((x._1 + y._1), (x._2 + y._2)))
     //This should be it:
-    //val reduced = intermediateMap.reduceByKeyAndWindow((x, y) => ((x._1 + y._1), (x._2 + y._2)), Seconds(10))
+    val reduced = intermediateMap.reduceByKeyAndWindow((x, y) => ((x._1 + y._1), (x._2 + y._2)), Seconds(20))
 
     //Finally we get the ratio map
     val summonerChampionRoleToWinRatioMap = reduced.mapValues(x => x._1.toFloat/x._2)
 
     //Sort by winRate
-    val sorted = summonerChampionRoleToWinRatioMap.map(_.swap).sortByKey(false).map(_.swap)
+    //val sorted = summonerChampionRoleToWinRatioMap.map(_.swap).sortByKey(false).map(_.swap)
+    val sorted = summonerChampionRoleToWinRatioMap.map(_.swap).transform(_.sortByKey()).map(_.swap)
 
     return sorted
 
@@ -100,16 +101,18 @@ object MostBoostedChampionAtRole  {
       SummonerGame(1, 3, 3, "JUNGLE", true),
       SummonerGame(1, 4, 4, "BOTTOM", true),
       SummonerGame(1, 5, 5, "SUPPORT", true),
-      SummonerGame(1, 6, 6, "SUPPORT", true),
+      SummonerGame(1, 6, 6, "TOP", false),
       SummonerGame(2, 1, 1, "TOP", false),
       SummonerGame(2, 2, 2, "MIDDLE", true)
     )
 
-    val sc = new SparkContext("local[*]", "MostBoostedChampionAtRole", new SparkConf())
-    val rdd = sc.parallelize(summonerGames)
-    summonerChampionRoleToWinrate(rdd).collect().foreach {
-      print(_)
-    }
+    val ssc = new StreamingContext("local[*]", "MostBoostedChampionAtRole", Seconds(1))
+    val rdd = ssc.sparkContext.parallelize(summonerGames)
+    val stream = new ConstantInputDStream(ssc, rdd)
+    summonerChampionRoleToWinrate(stream).print()
+
+    ssc.start()
+    ssc.awaitTermination()
   }
 
   // The code below should've worked if there was a "combieneByKeyAndWindow" method in spark streaming
