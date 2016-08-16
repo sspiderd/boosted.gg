@@ -1,4 +1,4 @@
-package gg.masters
+package gg.boosted
 
 import groovy.json.JsonOutput
 import org.apache.kafka.clients.producer.KafkaProducer
