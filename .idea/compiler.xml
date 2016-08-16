@@ -25,14 +25,13 @@
         <module name="analyzers" />
         <module name="data-maker" />
         <module name="kafka-test" />
-        <module name="parent" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="analyzers" target="1.5" />
-      <module name="data-maker" target="1.5" />
-      <module name="kafka-test" target="1.7" />
-      <module name="parent" target="1.5" />
+      <module name="analyzers" target="1.8" />
+      <module name="data-maker" target="1.8" />
+      <module name="kafka-test" target="1.8" />
+      <module name="parent" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

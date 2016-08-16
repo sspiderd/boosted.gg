@@ -38,6 +38,24 @@ class MostBoostedSummonersPlayingChampionAtRoleTests extends FlatSpec with Befor
 
         assert(result.size === 1)
     }
+
+    "Second parameter to summonerChampionRoleToWinRate" should "filter out losers below threshold" in {
+        val rdd = sc.parallelize(Seq[SummonerGame] (SummonerGame(1,1,1,Role.TOP, true)))
+
+        val result = MostBoostedSummonersPlayingChampionAtRole.summonerChampionRoleToWinrate(rdd, 1).collect()
+
+        assert(result.size === 1)
+
+        val rdd2 = sc.parallelize(Seq[SummonerGame] (
+            SummonerGame(1,1,1,Role.TOP, true),
+            SummonerGame(1,1,1,Role.TOP, false)
+        ))
+
+        val result2 = MostBoostedSummonersPlayingChampionAtRole.summonerChampionRoleToWinrate(rdd2, 1).collect()
+
+        assert(result2.size === 1)
+
+    }
 //
 //    "This test" should "return summoner 2 is best at champion 1 at 'SUPPORT'" in {
 //        val summonerGames = Seq[SummonerGame] (
