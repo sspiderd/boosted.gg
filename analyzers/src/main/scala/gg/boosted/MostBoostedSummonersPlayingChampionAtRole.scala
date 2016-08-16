@@ -102,13 +102,13 @@ object MostBoostedSummonersPlayingChampionAtRole  {
 
   }
 
-  def championRoleToHighestWinrateSummoner(rdd: RDD[SummonerChampionRoleToWinrate], championId:Int, role: String):RDD[(Long, Float)] = {
+  def championRoleToHighestWinrateSummoner(rdd: RDD[SummonerChampionRoleToWinrate], championId:Int, role: Role):RDD[(Long, Float)] = {
 
     //Get only the chrole we want from this list
     //._1._2 is the championId for this rdd and ._1._3 is the role
     val filteredChrole = rdd.filter(line => line._1._2 == championId && line._1._3 == role)
 
-    val summonerIdToWinrateSorted = filteredChrole.map(line => (line._2, line._1._1)).sortByKey().map(_.swap)
+    val summonerIdToWinrateSorted = filteredChrole.map(line => (line._2, line._1._1)).sortByKey(false).map(_.swap)
 
     return summonerIdToWinrateSorted
   }
