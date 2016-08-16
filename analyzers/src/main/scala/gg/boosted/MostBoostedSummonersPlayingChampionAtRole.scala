@@ -1,11 +1,8 @@
 package gg.boosted
 
 
-import kafka.serializer.StringDecoder
 import org.apache.spark.rdd.RDD
-import org.apache.spark.streaming.dstream.{DStream, InputDStream}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import org.apache.spark.streaming.kafka.KafkaUtils
 
 
 object MostBoostedSummonersPlayingChampionAtRole  {
@@ -17,34 +14,6 @@ object MostBoostedSummonersPlayingChampionAtRole  {
 
   val MIN_GAMES_WITH_CHROLE = 8
 
-
-  //Convert an rdd of type SummonerGame to an rdd of (summonerId, championId, Role) => (winRate)
-  //def summonerChampionRoleToWinrate(rdd: DStream[SummonerGame]): DStream[SummonerChampionRoleToWinrate] = {
-//  def summonerChampionRoleToWinrateStream(rdd: DStream[SummonerGame]): DStream[SummonerChampionRoleToWinrate] = {
-//    //Convert to a map of (summonerId, champion, role) => (wins, totalGames)
-//    //So we can calculate wins/totalGame later
-//    val intermediateMap = rdd.map(game => {
-//      game.winner match {
-//        case false => ((game.summonerId, game.championId, game.role), (0, 1))
-//        case true => ((game.summonerId, game.championId, game.role), (1, 1))
-//      }
-//    })
-//
-//    //val reduced = intermediateMap.reduceByKey((x, y) => ((x._1 + y._1), (x._2 + y._2)))
-//    //This should be it:
-//    val reduced = intermediateMap.reduceByKeyAndWindow((x, y) => ((x._1 + y._1), (x._2 + y._2)), Seconds(2))
-//    //val reduced = intermediateMap.reduceByKey((x, y) => ((x._1 + y._1), (x._2 + y._2)))
-//
-//    //Finally we get the ratio map
-//    val summonerChampionRoleToWinRatioMap = reduced.mapValues(x => x._1.toFloat/x._2)
-//
-//    //Sort by winRate
-//    //val sorted = summonerChampionRoleToWinRatioMap.map(_.swap).sortByKey(false).map(_.swap)
-//    val sorted = summonerChampionRoleToWinRatioMap.map(_.swap).transform(_.sortByKey(false)).map(_.swap)
-//
-//    return sorted
-//
-//  }
 
   //Convert an rdd of type SummonerGame to an rdd of (summonerId, championId, Role) => (winRate)
   //def summonerChampionRoleToWinrate(rdd: DStream[SummonerGame]): DStream[SummonerChampionRoleToWinrate] = {
@@ -84,11 +53,7 @@ object MostBoostedSummonersPlayingChampionAtRole  {
 
   def main(args: Array[String]) {
 
-   //testWinrate()
-
     run()
-
-    //runStream()
   }
 
   def run(): Unit = {
@@ -110,25 +75,5 @@ object MostBoostedSummonersPlayingChampionAtRole  {
       ssc.start()
       ssc.awaitTermination()
   }
-
-//  def runStream(): Unit = {
-//    val ssc = new StreamingContext("local[*]", "MostBoostedChampionAtRole", Seconds(1))
-//
-//    val messages = getKafkaSparkContext(ssc)
-//
-//    val result = summonerChampionRoleToWinrateStream(messages.map(_._2).map(SummonerGame(_)))
-//
-//
-//    result.foreachRDD(rdd => {
-//      rdd.foreach(println)
-//      println("-----")
-//    })
-//
-//
-//    //ssc.checkpoint("/tmp")
-//    ssc.start()
-//    ssc.awaitTermination()
-//  }
-  
 
 }
