@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="49b2c4f1-cbd3-4713-9642-58546cee33af" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/analyzers/src/main/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRole.scala" afterPath="$PROJECT_DIR$/analyzers/src/main/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRole.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/analyzers/src/test/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRoleTests.scala" afterPath="$PROJECT_DIR$/analyzers/src/test/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRoleTests.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/parent/parent.iml" afterPath="$PROJECT_DIR$/parent/parent.iml" />
-    </list>
+    <list default="true" id="49b2c4f1-cbd3-4713-9642-58546cee33af" name="Default" comment="" />
     <ignored path="masters.gg.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path="$PROJECT_DIR$/data-maker/target/" />
@@ -29,10 +24,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="MostBoostedSummonersPlayingChampionAtRole.scala" pinned="false" current-in-tab="false">
+      <file leaf-file-name="MostBoostedSummonersPlayingChampionAtRole.scala" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/analyzers/src/main/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRole.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="299">
+            <state relative-caret-position="1671">
               <caret line="110" column="101" selection-start-line="110" selection-start-column="101" selection-end-line="110" selection-end-column="101" />
               <folding>
                 <element signature="e#21#58#0" expanded="true" />
@@ -41,10 +36,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MostBoostedSummonersPlayingChampionAtRoleTests.scala" pinned="false" current-in-tab="true">
+      <file leaf-file-name="MostBoostedSummonersPlayingChampionAtRoleTests.scala" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/analyzers/src/test/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRoleTests.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="505">
+            <state relative-caret-position="1369">
               <caret line="98" column="37" selection-start-line="98" selection-start-column="37" selection-end-line="98" selection-end-column="37" />
               <folding>
                 <element signature="e#20#69#0" expanded="true" />
@@ -189,8 +184,8 @@
         <option value="$PROJECT_DIR$/analyzers/src/main/java/gg/boosted/Role.java" />
         <option value="$PROJECT_DIR$/analyzers/src/main/scala/gg/boosted/SummerGame.scala" />
         <option value="$PROJECT_DIR$/analyzers/src/test/scala/gg/boosted/ChampionRoleWinrateTests.scala" />
-        <option value="$PROJECT_DIR$/analyzers/src/test/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRoleTests.scala" />
         <option value="$PROJECT_DIR$/analyzers/src/main/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRole.scala" />
+        <option value="$PROJECT_DIR$/analyzers/src/test/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRoleTests.scala" />
       </list>
     </option>
   </component>
@@ -1287,22 +1282,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/analyzers/src/main/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRole.scala">
+    <entry file="file://$PROJECT_DIR$/analyzers/src/test/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRoleTests.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="299">
-          <caret line="110" column="101" selection-start-line="110" selection-start-column="101" selection-end-line="110" selection-end-column="101" />
+        <state relative-caret-position="1369">
+          <caret line="98" column="37" selection-start-line="98" selection-start-column="37" selection-end-line="98" selection-end-column="37" />
           <folding>
-            <element signature="e#21#58#0" expanded="true" />
+            <element signature="e#20#69#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/analyzers/src/test/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRoleTests.scala">
+    <entry file="file://$PROJECT_DIR$/analyzers/src/main/scala/gg/boosted/MostBoostedSummonersPlayingChampionAtRole.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="505">
-          <caret line="98" column="37" selection-start-line="98" selection-start-column="37" selection-end-line="98" selection-end-column="37" />
+        <state relative-caret-position="1671">
+          <caret line="110" column="101" selection-start-line="110" selection-start-column="101" selection-end-line="110" selection-end-column="101" />
           <folding>
-            <element signature="e#20#69#0" expanded="true" />
+            <element signature="e#21#58#0" expanded="true" />
           </folding>
         </state>
       </provider>
