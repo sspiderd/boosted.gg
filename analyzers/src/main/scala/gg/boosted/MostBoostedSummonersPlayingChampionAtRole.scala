@@ -17,37 +17,6 @@ object MostBoostedSummonersPlayingChampionAtRole  {
 
   val MIN_GAMES_WITH_CHROLE = 8
 
-  /** Makes sure only ERROR messages get logged to avoid log spam. */
-  def setupLogging() = {
-    import org.apache.log4j.{Level, Logger}
-    val rootLogger = Logger.getRootLogger()
-    rootLogger.setLevel(Level.ERROR)
-  }
-
-  def getKafkaSparkContext(ssc: StreamingContext):InputDStream[(String, String)] = {
-
-    setupLogging()
-
-    val kafkaParams = Map[String, String](
-      "bootstrap.servers" -> "10.0.0.3:9092",
-      "group.id" -> "group1",
-      "enable.auto.commit" -> "true",
-      "auto.commit.interval.ms" -> "1000",
-      "session.timeout.ms" -> "30000",
-      "key.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",
-      "value.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer")
-
-    val topics = "mastersgg"
-
-    // Create direct kafka stream with brokers and topics
-    val topicsSet = topics.split(",").toSet
-
-    val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
-      ssc, kafkaParams, topicsSet)
-
-    return messages
-  }
-
 
   //Convert an rdd of type SummonerGame to an rdd of (summonerId, championId, Role) => (winRate)
   //def summonerChampionRoleToWinrate(rdd: DStream[SummonerGame]): DStream[SummonerChampionRoleToWinrate] = {
@@ -125,7 +94,7 @@ object MostBoostedSummonersPlayingChampionAtRole  {
   def run(): Unit = {
       val ssc = new StreamingContext("local[*]", "MostBoostedSummonersPlayingChampionAtRole", Seconds(1))
 
-      val messages = getKafkaSparkContext(ssc)
+      val messages = Utilities.getKafkaSparkContext(ssc)
 
       val result = messages.map(_._2).window(Seconds(10), Seconds(1))
               .map(SummonerGame(_))
@@ -160,34 +129,6 @@ object MostBoostedSummonersPlayingChampionAtRole  {
 //    ssc.start()
 //    ssc.awaitTermination()
 //  }
-
-//  def testWinrate(): Unit ={
-//    val summonerGames = Seq[SummonerGame] (
-//      SummonerGame(1, 1, 1, "TOP", false),
-//      SummonerGame(1, 2, 2, "MIDDLE", false)
-//    )
-//
-//    val summonerGame2 = Seq[SummonerGame] (
-//      SummonerGame(2, 1, 1, "TOP", false),
-//      SummonerGame(2, 2, 2, "MIDDLE", true)
-//    )
-//
-//
-//
-//    val ssc = new StreamingContext("local[*]", "MostBoostedChampionAtRole", Seconds(1))
-//    setupLogging()
-//
-//    val rdd1 = ssc.sparkContext.parallelize(summonerGames)
-//    val rdd2 = ssc.sparkContext.parallelize(summonerGame2)
-//
-//    val q = scala.collection.mutable.Queue[RDD[SummonerGame]] (rdd1, rdd2)
-//
-//    val stream = ssc.queueStream(q, true) ;
-//    //summonerChampionRoleToWinrate(stream).print()
-//    summonerChampionRoleToWinrate(rdd2, MIN_GAMES_WITH_CHROLE).foreach(println(_))
-//
-//    //ssc.start()
-//    //ssc.awaitTermination()
-//  }
+  
 
 }
