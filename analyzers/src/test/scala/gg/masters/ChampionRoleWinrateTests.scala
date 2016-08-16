@@ -2,7 +2,6 @@ package gg.masters
 
 import java.nio.file.Files
 
-import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.scalatest.concurrent.Eventually
@@ -11,31 +10,29 @@ import org.scalatest.{BeforeAndAfter, FlatSpec}
 /**
   * Created by ilan on 8/15/16.
   */
-class Testclass extends FlatSpec with BeforeAndAfter with Eventually {
+class ChampionRoleWinrateTests extends FlatSpec with BeforeAndAfter with Eventually {
 
     private val master = "local[*]"
-    private val appName = "example-spark-streaming"
-    private val batchDuration = Seconds(1)
-    private val checkpointDir = Files.createTempDirectory(appName).toString
+    private val appName = "ChampionRoleWinrateTests"
 
     private var sc: SparkContext = _
-    private var ssc: StreamingContext = _
 
     before {
         val conf = new SparkConf()
                 .setMaster(master)
                 .setAppName(appName)
 
-        ssc = new StreamingContext(conf, batchDuration)
-        ssc.checkpoint(checkpointDir)
-
-        sc = ssc.sparkContext
+        sc = new SparkContext(conf)
     }
 
     after {
-        if (ssc != null) {
-            ssc.stop()
+        if (sc != null) {
+            sc.stop()
         }
+    }
+
+    "This test" should "return summoner 2 is best at champion 1 at 'SUPPORT'" in {
+
     }
 
     "Some bullshit" should "do some bullshit" in {

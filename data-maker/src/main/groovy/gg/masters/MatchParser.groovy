@@ -19,7 +19,7 @@ class MatchParser {
             } else if (lane == "BOTTOM") {
                 //This is bot lane
                 if (it["timeline"]["role"] == "DUO_CARRY") {
-                    summonerGame.role = "ADC"
+                    summonerGame.role = "BOTTOM"
                 } else {
                     summonerGame.role = "SUPPORT"
                 }

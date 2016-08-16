@@ -10,15 +10,15 @@ object SparkConsumer {
 
     def main(args: Array[String]) {
 
-        val sparkConf = new SparkConf().setAppName("DirectKafkaWordCount");
-        val ssc = new StreamingContext(sparkConf, Durations.seconds(2));
-
-        // Create direct kafka stream with brokers and topics
-        val topicsSet = topics.split(",").toSet
-        val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers)
-
-        val directKafkaStream = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
-                ssc,  kafkaParams, topicsSet)
+//        val sparkConf = new SparkConf().setAppName("DirectKafkaWordCount");
+//        val ssc = new StreamingContext(sparkConf, Durations.seconds(2));
+//
+//        // Create direct kafka stream with brokers and topics
+//        val topicsSet = topics.split(",").toSet
+//        val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers)
+//
+//        val directKafkaStream = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
+//                ssc,  kafkaParams, topicsSet)
 
     }
 

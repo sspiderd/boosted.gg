@@ -8,10 +8,14 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.kafka.KafkaUtils
 
 
-object MostBoostedChampionAtRole  {
+object MostBoostedSummonersPlayingChampionAtRole  {
 
 
   type SummonerChampionRoleToWinrate = ((Long, Int, String), (Float))
+
+  type ChroleToSummonerWinrate = ((Int, String), (Long, Float))
+
+  val MIN_GAMES_WITH_CHROLE = 8
 
   /** Makes sure only ERROR messages get logged to avoid log spam. */
   def setupLogging() = {
@@ -19,6 +23,31 @@ object MostBoostedChampionAtRole  {
     val rootLogger = Logger.getRootLogger()
     rootLogger.setLevel(Level.ERROR)
   }
+
+  def getKafkaSparkContext(ssc: StreamingContext):InputDStream[(String, String)] = {
+
+    setupLogging()
+
+    val kafkaParams = Map[String, String](
+      "bootstrap.servers" -> "10.0.0.3:9092",
+      "group.id" -> "group1",
+      "enable.auto.commit" -> "true",
+      "auto.commit.interval.ms" -> "1000",
+      "session.timeout.ms" -> "30000",
+      "key.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",
+      "value.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer")
+
+    val topics = "mastersgg"
+
+    // Create direct kafka stream with brokers and topics
+    val topicsSet = topics.split(",").toSet
+
+    val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
+      ssc, kafkaParams, topicsSet)
+
+    return messages
+  }
+
 
   //Convert an rdd of type SummonerGame to an rdd of (summonerId, championId, Role) => (winRate)
   //def summonerChampionRoleToWinrate(rdd: DStream[SummonerGame]): DStream[SummonerChampionRoleToWinrate] = {
@@ -60,55 +89,29 @@ object MostBoostedChampionAtRole  {
       }
     })
 
-    //val reduced = intermediateMap.reduceByKey((x, y) => ((x._1 + y._1), (x._2 + y._2)))
-    //This should be it:
-    //val reduced = intermediateMap.reduceByKeyAndWindow((x, y) => ((x._1 + y._1), (x._2 + y._2)), Seconds(2))
+    //This will give us a map of summonerChrole -> (wins, total games)
     val reduced = intermediateMap.reduceByKey((x, y) => ((x._1 + y._1), (x._2 + y._2)))
 
-
-
-
-    //Let's see if this filtering works: (total games shold be > 3)
-    val filtered = reduced.filter(_._2._2 > 3)
-
-
+    //We are interested only in summoners that played that chrole more than ${min_games_with_chrole} times
+    val filtered = reduced.filter(_._2._2 > MIN_GAMES_WITH_CHROLE)
 
     //Finally we get the ratio map
     val summonerChampionRoleToWinRatioMap = filtered.mapValues(x => x._1.toFloat/x._2)
 
-    //Sort by winRate
-    val sorted = summonerChampionRoleToWinRatioMap.map(_.swap).sortByKey(false, 1).map(_.swap)
-    //val sorted = summonerChampionRoleToWinRatioMap.map(_.swap).transform(_.sortByKey(false)).map(_.swap)
-
-    return sorted
+    return summonerChampionRoleToWinRatioMap
 
   }
 
-  def getKafkaSparkContext(ssc: StreamingContext):InputDStream[(String, String)] = {
+  def championRoleToHighestWinrateSummoner(rdd: RDD[SummonerChampionRoleToWinrate], championId:Int, role: String):RDD[(Long, Float)] = {
 
+    //Get only the chrole we want from this list
+    //._1._2 is the championId for this rdd and ._1._3 is the role
+    val filteredChrole = rdd.filter(line => line._1._2 == championId && line._1._3 == role)
 
-    setupLogging()
+    val summonerIdToWinrateSorted = filteredChrole.map(line => (line._2, line._1._1)).sortByKey().map(_.swap)
 
-    val kafkaParams = Map[String, String](
-      "bootstrap.servers" -> "10.0.0.3:9092",
-      "group.id" -> "group1",
-      "enable.auto.commit" -> "true",
-      "auto.commit.interval.ms" -> "1000",
-      "session.timeout.ms" -> "30000",
-      "key.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",
-      "value.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer")
-
-    val topics = "mastersgg"
-
-    // Create direct kafka stream with brokers and topics
-    val topicsSet = topics.split(",").toSet
-
-    val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
-      ssc, kafkaParams, topicsSet)
-
-    return messages
+    return summonerIdToWinrateSorted
   }
-
 
   def main(args: Array[String]) {
 
@@ -116,17 +119,16 @@ object MostBoostedChampionAtRole  {
 
     run()
 
-
     //runStream()
   }
 
   def run(): Unit = {
-      val ssc = new StreamingContext("local[*]", "MostBoostedChampionAtRole", Seconds(1))
+      val ssc = new StreamingContext("local[*]", "MostBoostedSummonersPlayingChampionAtRole", Seconds(1))
 
       val messages = getKafkaSparkContext(ssc)
 
       val result = messages.map(_._2).window(Seconds(10), Seconds(1))
-              .map(Converter.toSummonerGame(_))
+              .map(SummonerGame(_))
               .transform ( rdd => summonerChampionRoleToWinrate(rdd))
 
       result.foreachRDD(rdd => {
@@ -145,7 +147,7 @@ object MostBoostedChampionAtRole  {
 
     val messages = getKafkaSparkContext(ssc)
 
-    val result = summonerChampionRoleToWinrateStream(messages.map(_._2).map(Converter.toSummonerGame(_)))
+    val result = summonerChampionRoleToWinrateStream(messages.map(_._2).map(SummonerGame(_)))
 
 
     result.foreachRDD(rdd => {
