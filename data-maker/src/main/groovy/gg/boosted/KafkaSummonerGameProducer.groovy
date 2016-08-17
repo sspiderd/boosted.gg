@@ -4,6 +4,7 @@ import groovy.json.JsonOutput
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.codehaus.groovy.control.messages.Message
 
 /**
  * Created by ilan on 8/11/16.
@@ -21,14 +22,14 @@ class KafkaSummonerGameProducer {
         props.put("linger.ms", 1);
         props.put("buffer.memory", 33554432);
         props.put("key.serializer", "org.apache.kafka.common.serialization.LongSerializer");
-        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
 
         producer = new KafkaProducer<>(props);
     }
 
     static send(SummonerGame summonerGame) {
-        String json = JsonOutput.toJson(summonerGame)
-        producer.send(new ProducerRecord<>("mastersgg", summonerGame.summonerId, json));
+
+        producer.send(new ProducerRecord<>("mastersgg", summonerGame.summonerId, MessagePacker.pack(summonerGame)));
     }
 
 }

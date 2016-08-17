@@ -2,6 +2,7 @@ package gg.boosted
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import org.msgpack.core.MessagePack
 
 /**
  * Created by ilan on 8/11/16.
@@ -23,8 +24,8 @@ class FromFile {
     public static void main(String[] args) {
         String matchesText = this.getClass().getResource( '/matches1.json' ).openStream().text
         new JsonSlurper().parseText(matchesText)['matches'].each { match ->
-            List<SummonerGame> parsed = MatchParser.parseMatch(match) ;
-            parsed.each {
+            List<SummonerGame> summonerGameList = MatchParser.parseMatch(match) ;
+            summonerGameList.each {
                 KafkaSummonerGameProducer.send(it)
             }
             sleep 500

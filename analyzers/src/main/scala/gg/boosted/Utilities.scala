@@ -1,9 +1,11 @@
 package gg.boosted
 
-import kafka.serializer.StringDecoder
+import io.netty.handler.codec.bytes.ByteArrayDecoder
+import kafka.serializer.{DefaultDecoder, StringDecoder}
 import org.apache.spark.streaming.StreamingContext
-import org.apache.spark.streaming.dstream.InputDStream
+import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka.KafkaUtils
+import org.msgpack.core.MessagePack
 
 /**
   * Created by ilan on 8/16/16.
@@ -17,7 +19,12 @@ object Utilities {
     rootLogger.setLevel(Level.ERROR)
   }
 
-  def getKafkaSparkContext(ssc: StreamingContext):InputDStream[(String, String)] = {
+  def unpackMessage(message: Array[Byte]):String = {
+    val unpacker =  MessagePack.newDefaultUnpacker(message);
+    unpacker.unpackString()
+  }
+
+  def getKafkaSparkContext(ssc: StreamingContext):DStream[(String, String)] = {
 
     setupLogging()
 
@@ -28,17 +35,19 @@ object Utilities {
       "auto.commit.interval.ms" -> "1000",
       "session.timeout.ms" -> "30000",
       "key.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",
-      "value.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer")
+      "value.deserializer" -> "org.apache.kafka.common.serialization.ByteArrayDeserializer")
 
     val topics = "mastersgg"
 
     // Create direct kafka stream with brokers and topics
     val topicsSet = topics.split(",").toSet
 
-    val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
+    val messages = KafkaUtils.createDirectStream[String, Array[Byte], StringDecoder, DefaultDecoder](
       ssc, kafkaParams, topicsSet)
 
-    return messages
+    val deseredMessages = messages.mapValues(unpackMessage)
+
+    return deseredMessages
   }
 
 }

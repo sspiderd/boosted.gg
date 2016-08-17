@@ -12,7 +12,7 @@ object MostBoostedSummonersPlayingChampionAtRole  {
 
   type ChroleToSummonerWinrate = ((Int, Role), (Long, Float))
 
-  val MIN_GAMES_WITH_CHROLE = 8
+  val MIN_GAMES_WITH_CHROLE = 1
 
 
   //Convert an rdd of type SummonerGame to an rdd of (summonerId, championId, Role) => (winRate)
