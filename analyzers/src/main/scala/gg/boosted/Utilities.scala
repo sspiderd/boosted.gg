@@ -12,13 +12,6 @@ import org.msgpack.core.MessagePack
   */
 object Utilities {
 
-  /** Makes sure only ERROR messages get logged to avoid log spam. */
-  def setupLogging() = {
-    import org.apache.log4j.{Level, Logger}
-    val rootLogger = Logger.getRootLogger()
-    rootLogger.setLevel(Level.ERROR)
-  }
-
   def unpackMessage(message: Array[Byte]):String = {
     val unpacker =  MessagePack.newDefaultUnpacker(message);
     unpacker.unpackString()
@@ -26,16 +19,10 @@ object Utilities {
 
   def getKafkaSparkContext(ssc: StreamingContext):DStream[(String, String)] = {
 
-    setupLogging()
-
     val kafkaParams = Map[String, String](
       "bootstrap.servers" -> "10.0.0.3:9092",
       "group.id" -> "group1",
-      "enable.auto.commit" -> "true",
-      "auto.commit.interval.ms" -> "1000",
-      "session.timeout.ms" -> "30000",
-      "key.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",
-      "value.deserializer" -> "org.apache.kafka.common.serialization.ByteArrayDeserializer")
+      "auto.commit.interval.ms" -> "1000")
 
     val topics = "mastersgg"
 

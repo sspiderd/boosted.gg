@@ -3,9 +3,12 @@ package gg.boosted
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.{Seconds, StreamingContext}
+import org.slf4j.LoggerFactory
 
 
 object MostBoostedSummonersPlayingChampionAtRole  {
+
+  val log = LoggerFactory.getLogger("gg.boosted.MostBoostedSummonersPlayingChampionAtRole")
 
 
   type SummonerChampionRoleToWinrate = ((Long, Int, Role), (Float))
@@ -60,6 +63,8 @@ object MostBoostedSummonersPlayingChampionAtRole  {
       val ssc = new StreamingContext("local[*]", "MostBoostedSummonersPlayingChampionAtRole", Seconds(1))
 
       val messages = Utilities.getKafkaSparkContext(ssc)
+
+      log.info("Let's get rolling!")
 
       val result = messages.map(_._2).window(Seconds(10), Seconds(1))
               .map(SummonerGame(_))
