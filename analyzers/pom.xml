@@ -6,7 +6,6 @@
         <artifactId>parent</artifactId>
         <groupId>gg.boosted</groupId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
     <artifactId>analyzers</artifactId>
@@ -89,6 +88,7 @@
                 <configuration>
                     <recompileMode>incremental</recompileMode>
                     <scalaVersion>${scala.version}</scalaVersion>
+                    <scalaCompatVersion>2.11</scalaCompatVersion>
                     <args>
                         <arg>-target:jvm-1.8</arg>
                     </args>

@@ -6,7 +6,6 @@
         <artifactId>parent</artifactId>
         <groupId>gg.boosted</groupId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
     <packaging>jar</packaging>

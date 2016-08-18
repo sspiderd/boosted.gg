@@ -24,7 +24,6 @@
         <processorPath useClasspath="true" />
         <module name="analyzers" />
         <module name="data-maker" />
-        <module name="kafka-test" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
