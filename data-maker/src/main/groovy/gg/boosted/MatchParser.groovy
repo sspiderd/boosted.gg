@@ -11,6 +11,8 @@ class MatchParser {
             summonerGame.championId = it["championId"]
             summonerGame.winner = it["stats"]["winner"]
             summonerGame.matchId = match["matchId"]
+            summonerGame.region = match["region"]
+            summonerGame.date = match["matchCreation"]
 
             //Ok, so these were easy, now the next 2 are a bit more difficuly
             String lane = it["timeline"]["lane"]

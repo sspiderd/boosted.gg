@@ -19,11 +19,15 @@ object MostBoostedSummonersPlayingChampionAtRole  {
 
 
   //Convert an rdd of type SummonerGame to an rdd of (summonerId, championId, Role) => (winRate)
-  //def summonerChampionRoleToWinrate(rdd: DStream[SummonerGame]): DStream[SummonerChampionRoleToWinrate] = {
-  def summonerChampionRoleToWinrate(rdd: RDD[SummonerGame], minGamesWithChrole:Int): RDD[SummonerChampionRoleToWinrate] = {
+
+  def summonerChampionRoleToWinrate(rdd: RDD[SummonerGame], minGamesWithChrole:Int, playedSince: Long): RDD[SummonerChampionRoleToWinrate] = {
+
+    //Filter only for games played from at least the given date
+    val timeFilteredMap = rdd.filter(game => game.date > playedSince)
+
     //Convert to a map of (summonerId, champion, role) => (wins, totalGames)
     //So we can calculate wins/totalGame later
-    val intermediateMap = rdd.map(game => {
+    val intermediateMap = timeFilteredMap.map(game => {
       game.winner match {
         case false => ((game.summonerId, game.championId, game.role), (0, 1))
         case true => ((game.summonerId, game.championId, game.role), (1, 1))
@@ -68,7 +72,7 @@ object MostBoostedSummonersPlayingChampionAtRole  {
 
       val result = messages.map(_._2).window(Seconds(10), Seconds(1))
               .map(SummonerGame(_))
-              .transform ( rdd => summonerChampionRoleToWinrate(rdd, MIN_GAMES_WITH_CHROLE))
+              .transform ( rdd => summonerChampionRoleToWinrate(rdd, MIN_GAMES_WITH_CHROLE, 0))
 
       result.foreachRDD(rdd => {
         rdd.foreach(println)

@@ -10,4 +10,6 @@ class SummonerGame {
     Integer championId;
     String role ;
     Boolean winner ;
+    String region ;
+    Long date ;
 }
