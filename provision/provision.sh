@@ -2,7 +2,7 @@
 
 
 SCALA_VERSION=2.11
-KAFKA_VERSION=0.10.0.0
+KAFKA_VERSION=0.10.0.1
 DEBIAN_FRONTEND=noninteractive
 
 echo updating and adding repositories
@@ -18,7 +18,6 @@ apt-get update && apt-get install -y ca-certificates apt-transport-https vim cur
 curl https://get.docker.com | sh > /dev/null
 usermod vagrant -a -G docker
 sed -i 's/\"set background=dark/set background=dark/' /etc/vim/vimrc
-
 
 #kafka
 curl -SL http://www-eu.apache.org/dist/kafka/$KAFKA_VERSION/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz | tar xz -C /opt

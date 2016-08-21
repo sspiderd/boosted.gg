@@ -22,8 +22,10 @@ Vagrant.configure(2) do |config|
   #config.vm.network "forwarded_port", guest: 2181, host: 2181
 
   config.vm.provision "shell", path: "provision/provision.sh"
-  config.vm.provision "file", source: "provision/zookeeper.conf", destination: "/tmp/zookeeper.conf"
-  config.vm.provision "file", source: "provision/kafka.conf", destination: "/tmp/kafka.conf"
+
+  ["zookeeper", "kafka", "docker-containers"].each do |service|
+	config.vm.provision "file", source: "provision/#{service}.conf", destination: "/tmp/#{service}.conf"
+  end
   config.vm.provision "shell", path: "provision/provision_late.sh"
 
 end
