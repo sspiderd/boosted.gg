@@ -13,6 +13,7 @@ class MatchParser {
             summonerMatch.matchId = match["matchId"]
             summonerMatch.region = match["region"]
             summonerMatch.date = match["matchCreation"]
+            summonerMatch.tier = it["highestAchievedSeasonTier"]
 
             //Ok, so these were easy, now the next 2 are a bit more difficuly
             String lane = it["timeline"]["lane"]

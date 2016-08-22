@@ -12,4 +12,5 @@ class SummonerMatch {
     Boolean winner ;
     String region ;
     Long date ;
+    String tier ;
 }

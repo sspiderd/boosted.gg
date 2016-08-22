@@ -8,7 +8,7 @@ import org.json4s.jackson.JsonMethods._
 /**
   * Created by ilan on 8/13/16.
   */
-case class SummonerMatch(matchId:Long, summonerId:Long, championId:Int, role:Role, winner:Boolean, region: String, date: Long)
+case class SummonerMatch(matchId:Long, summonerId:Long, championId:Int, role:Role, winner:Boolean, region: String, date: Long, tier: Tier)
 
 object SummonerMatch {
   def apply(json: String): SummonerMatch = {
@@ -22,6 +22,7 @@ object SummonerMatch {
       Role.valueOf((parsed \ "role").extract[String]),
       (parsed \ "winner").extract[Boolean],
       (parsed \ "region").extract[String],
-      (parsed \ "date").extract[Long])
+      (parsed \ "date").extract[Long],
+      Tier.valueOf((parsed \ "tier").extract[String]))
   }
 }
