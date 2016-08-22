@@ -8,14 +8,14 @@ import org.json4s.jackson.JsonMethods._
 /**
   * Created by ilan on 8/13/16.
   */
-case class SummonerGame(matchId:Long, summonerId:Long, championId:Int, role:Role, winner:Boolean, region: String, date: Long)
+case class SummonerMatch(matchId:Long, summonerId:Long, championId:Int, role:Role, winner:Boolean, region: String, date: Long)
 
-object SummonerGame {
-  def apply(json: String): SummonerGame = {
+object SummonerMatch {
+  def apply(json: String): SummonerMatch = {
     implicit val formats = DefaultFormats
 
     val parsed = parse(json)
-    SummonerGame.apply(
+    SummonerMatch.apply(
       (parsed \ "matchId").extract[Long],
       (parsed \ "summonerId").extract[Long],
       (parsed \ "championId").extract[Int],

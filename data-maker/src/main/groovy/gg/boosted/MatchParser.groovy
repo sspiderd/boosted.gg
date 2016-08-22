@@ -5,33 +5,34 @@ package gg.boosted
  */
 class MatchParser {
 
-    static List<SummonerGame> parseMatch(match) {
-        List<SummonerGame> summonerGameList  = match["participants"].collect {
-            SummonerGame summonerGame = new SummonerGame()
-            summonerGame.championId = it["championId"]
-            summonerGame.winner = it["stats"]["winner"]
-            summonerGame.matchId = match["matchId"]
-            summonerGame.region = match["region"]
-            summonerGame.date = match["matchCreation"]
+    static List<SummonerMatch> parseMatch(match) {
+        List<SummonerMatch> summonerMatchList  = match["participants"].collect {
+            SummonerMatch summonerMatch = new SummonerMatch()
+            summonerMatch.championId = it["championId"]
+            summonerMatch.winner = it["stats"]["winner"]
+            summonerMatch.matchId = match["matchId"]
+            summonerMatch.region = match["region"]
+            summonerMatch.date = match["matchCreation"]
 
             //Ok, so these were easy, now the next 2 are a bit more difficuly
             String lane = it["timeline"]["lane"]
             if (lane == "TOP" || lane == "MIDDLE" || lane == "JUNGLE") {
-                summonerGame.role = lane
+                summonerMatch.role = lane
             } else if (lane == "BOTTOM") {
                 //This is bot lane
                 if (it["timeline"]["role"] == "DUO_CARRY") {
-                    summonerGame.role = "BOTTOM"
+                    summonerMatch.role = "BOTTOM"
                 } else {
-                    summonerGame.role = "SUPPORT"
+                    summonerMatch.role = "SUPPORT"
                 }
             } else throw new RuntimeException("I Don't know this lane ${lane} !!")
 
             //And finally we extract The summonerId
             Integer participantId = it["participantId"]
-            summonerGame.summonerId = match["participantIdentities"].find {it["participantId"] == participantId}["player"]["summonerId"]
-            summonerGame
+            summonerMatch.summonerId = match["participantIdentities"].find {it["participantId"] == participantId}["player"]["summonerId"]
+            summonerMatch
         }
+        return summonerMatchList
     }
 
 }

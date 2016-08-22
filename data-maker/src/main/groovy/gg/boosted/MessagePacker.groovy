@@ -9,9 +9,9 @@ import org.msgpack.core.MessagePack
  */
 class MessagePacker {
 
-    static byte[] pack(SummonerGame summonerGame) {
+    static byte[] pack(SummonerMatch summonerMatch) {
         MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()
-        String json = JsonOutput.toJson(summonerGame)
+        String json = JsonOutput.toJson(summonerMatch)
         packer.packString(json)
         packer.close()
         return packer.toByteArray()

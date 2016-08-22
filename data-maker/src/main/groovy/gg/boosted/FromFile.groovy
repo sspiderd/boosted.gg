@@ -2,7 +2,6 @@ package gg.boosted
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
-import org.msgpack.core.MessagePack
 
 /**
  * Created by ilan on 8/11/16.
@@ -17,14 +16,14 @@ class FromFile {
      * Role
      * Win/Loss
     */
-    static List<SummonerGame> parseMatch(match) {
+    static List<SummonerMatch> parseMatch(match) {
         println JsonOutput.prettyPrint(JsonOutput.toJson(match))
     }
 
     public static void main(String[] args) {
         String matchesText = this.getClass().getResource( '/matches1.json' ).openStream().text
         new JsonSlurper().parseText(matchesText)['matches'].each { match ->
-            List<SummonerGame> summonerGameList = MatchParser.parseMatch(match) ;
+            List<SummonerMatch> summonerGameList = MatchParser.parseMatch(match) ;
             summonerGameList.each {
                 KafkaSummonerGameProducer.send(it)
             }

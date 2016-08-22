@@ -1,10 +1,8 @@
 package gg.boosted
 
-import groovy.json.JsonOutput
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.codehaus.groovy.control.messages.Message
 
 /**
  * Created by ilan on 8/11/16.
@@ -27,9 +25,9 @@ class KafkaSummonerGameProducer {
         producer = new KafkaProducer<>(props);
     }
 
-    static send(SummonerGame summonerGame) {
+    static send(SummonerMatch summonerMatch) {
 
-        producer.send(new ProducerRecord<>("mastersgg", summonerGame.summonerId, MessagePacker.pack(summonerGame)));
+        producer.send(new ProducerRecord<>("boostedgg", summonerMatch.summonerId, MessagePacker.pack(summonerMatch)));
     }
 
 }

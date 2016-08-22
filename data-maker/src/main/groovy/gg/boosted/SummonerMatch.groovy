@@ -3,7 +3,7 @@ package gg.boosted
 /**
  * Created by ilan on 8/11/16.
  */
-class SummonerGame {
+class SummonerMatch {
 
     Long matchId ;
     Long summonerId ;

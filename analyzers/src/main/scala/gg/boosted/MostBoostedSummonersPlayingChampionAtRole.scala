@@ -20,7 +20,7 @@ object MostBoostedSummonersPlayingChampionAtRole  {
 
   //Convert an rdd of type SummonerGame to an rdd of (summonerId, championId, Role) => (winRate)
 
-  def summonerChampionRoleToWinrate(rdd: RDD[SummonerGame], minGamesWithChrole:Int, playedSince: Long): RDD[SummonerChampionRoleToWinrate] = {
+  def summonerChampionRoleToWinrate(rdd: RDD[SummonerMatch], minGamesWithChrole:Int, playedSince: Long): RDD[SummonerChampionRoleToWinrate] = {
 
     //Filter only for games played from at least the given date
     val timeFilteredMap = rdd.filter(game => game.date > playedSince)
@@ -47,6 +47,7 @@ object MostBoostedSummonersPlayingChampionAtRole  {
 
   }
 
+  //This will convert the rdd to an rdd of (summonerId, winrate)
   def championRoleToHighestWinrateSummoner(rdd: RDD[SummonerChampionRoleToWinrate], championId:Int, role: Role):RDD[(Long, Float)] = {
 
     //Get only the chrole we want from this list
@@ -71,7 +72,7 @@ object MostBoostedSummonersPlayingChampionAtRole  {
       log.info("Let's get rolling!")
 
       val result = messages.map(_._2).window(Seconds(10), Seconds(1))
-              .map(SummonerGame(_))
+              .map(SummonerMatch(_))
               .transform ( rdd => summonerChampionRoleToWinrate(rdd, MIN_GAMES_WITH_CHROLE, 0))
 
       result.foreachRDD(rdd => {
