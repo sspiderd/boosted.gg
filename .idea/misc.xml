@@ -10,6 +10,7 @@
         <option value="$PROJECT_DIR$/kafka-test/pom.xml" />
         <option value="$PROJECT_DIR$/analyzers/pom.xml" />
         <option value="$PROJECT_DIR$/parent/pom.xml" />
+        <option value="$PROJECT_DIR$/pom.xml" />
       </list>
     </option>
   </component>

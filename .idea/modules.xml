@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/analyzers/analyzers.iml" filepath="$PROJECT_DIR$/analyzers/analyzers.iml" />
       <module fileurl="file://$PROJECT_DIR$/data-maker/data-maker.iml" filepath="$PROJECT_DIR$/data-maker/data-maker.iml" />
+      <module fileurl="file://$PROJECT_DIR$/parent.iml" filepath="$PROJECT_DIR$/parent.iml" />
     </modules>
   </component>
 </project>
