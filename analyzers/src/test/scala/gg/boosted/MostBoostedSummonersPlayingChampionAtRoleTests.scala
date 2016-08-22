@@ -32,7 +32,7 @@ class MostBoostedSummonersPlayingChampionAtRoleTests extends FlatSpec with Befor
     }
 
     "A list with one game" should "return just 1 result" in {
-        val rdd = sc.parallelize(Seq[SummonerMatch] (SummonerMatch(1,1,1,Role.TOP, true, "NA", now)))
+        val rdd = sc.parallelize(Seq[SummonerMatch] (SummonerMatch(1,1,1,Role.TOP, true, "NA", now, Tier.GOLD)))
 
         val result = MostBoostedSummonersPlayingChampionAtRole.summonerChampionRoleToWinrate(rdd, 0, 0).collect()
 
@@ -40,15 +40,15 @@ class MostBoostedSummonersPlayingChampionAtRoleTests extends FlatSpec with Befor
     }
 
     "Second parameter to summonerChampionRoleToWinRate" should "filter out losers below threshold" in {
-        val rdd = sc.parallelize(Seq[SummonerMatch] (SummonerMatch(1,1,1,Role.TOP, true, "NA", now)))
+        val rdd = sc.parallelize(Seq[SummonerMatch] (SummonerMatch(1,1,1,Role.TOP, true, "NA", now, Tier.GOLD)))
 
         val result = MostBoostedSummonersPlayingChampionAtRole.summonerChampionRoleToWinrate(rdd, 1, 0).collect()
 
         assert(result.length === 1)
 
         val rdd2 = sc.parallelize(Seq[SummonerMatch] (
-            SummonerMatch(1,1,1,Role.TOP, true, "NA", now),
-            SummonerMatch(1,1,1,Role.TOP, false, "NA", now)
+            SummonerMatch(1,1,1,Role.TOP, true, "NA", now, Tier.GOLD),
+            SummonerMatch(1,1,1,Role.TOP, false, "NA", now, Tier.GOLD)
         ))
 
         val result2 = MostBoostedSummonersPlayingChampionAtRole.summonerChampionRoleToWinrate(rdd2, 1, 0).collect()
@@ -58,12 +58,12 @@ class MostBoostedSummonersPlayingChampionAtRoleTests extends FlatSpec with Befor
 
     "Win rate for summoners 1, 2, 3" should "be 1/0.5/0 respectively" in {
       val rdd = sc.parallelize(Seq[SummonerMatch] (
-        SummonerMatch(1,1,1,Role.TOP, true, "NA", now),
-        SummonerMatch(1,2,2,Role.MIDDLE, true, "NA", now),
-        SummonerMatch(1,3,3,Role.JUNGLE, false, "NA", now),
-        SummonerMatch(2,1,1,Role.TOP, true, "NA", now),
-        SummonerMatch(2,2,2,Role.MIDDLE, false, "NA", now),
-        SummonerMatch(2,3,3,Role.JUNGLE, false, "NA", now)
+        SummonerMatch(1,1,1,Role.TOP, true, "NA", now, Tier.GOLD),
+        SummonerMatch(1,2,2,Role.MIDDLE, true, "NA", now, Tier.GOLD),
+        SummonerMatch(1,3,3,Role.JUNGLE, false, "NA", now, Tier.GOLD),
+        SummonerMatch(2,1,1,Role.TOP, true, "NA", now, Tier.GOLD),
+        SummonerMatch(2,2,2,Role.MIDDLE, false, "NA", now, Tier.GOLD),
+        SummonerMatch(2,3,3,Role.JUNGLE, false, "NA", now, Tier.GOLD)
       ))
 
       val result = MostBoostedSummonersPlayingChampionAtRole.summonerChampionRoleToWinrate(rdd, 1, 0).collect()
@@ -82,14 +82,14 @@ class MostBoostedSummonersPlayingChampionAtRoleTests extends FlatSpec with Befor
 
     "Summoners 2, 1, 3" should "be 1st, 2nd and 3rd as top supports respectively" in {
       val summonerGames = Seq[SummonerMatch] (
-          SummonerMatch(1, 1, 1, Role.TOP, true, "NA", now),
-          SummonerMatch(1, 2, 1, Role.SUPPORT, true, "NA", now),
-          SummonerMatch(2, 2, 1, Role.SUPPORT, true, "NA", now),
-          SummonerMatch(3, 2, 1, Role.SUPPORT, true, "NA", now),
-          SummonerMatch(4, 1, 1, Role.SUPPORT, true, "NA", now),
-          SummonerMatch(5, 1, 1, Role.SUPPORT, false, "NA", now),
-          SummonerMatch(6, 3, 1, Role.SUPPORT, false, "NA", now),
-          SummonerMatch(6, 2, 1, Role.TOP, true, "NA", now)
+          SummonerMatch(1, 1, 1, Role.TOP, true, "NA", now, Tier.GOLD),
+          SummonerMatch(1, 2, 1, Role.SUPPORT, true, "NA", now, Tier.GOLD),
+          SummonerMatch(2, 2, 1, Role.SUPPORT, true, "NA", now, Tier.GOLD),
+          SummonerMatch(3, 2, 1, Role.SUPPORT, true, "NA", now, Tier.GOLD),
+          SummonerMatch(4, 1, 1, Role.SUPPORT, true, "NA", now, Tier.GOLD),
+          SummonerMatch(5, 1, 1, Role.SUPPORT, false, "NA", now, Tier.GOLD),
+          SummonerMatch(6, 3, 1, Role.SUPPORT, false, "NA", now, Tier.GOLD),
+          SummonerMatch(6, 2, 1, Role.TOP, true, "NA", now, Tier.GOLD)
       )
 
       val rdd = sc.parallelize(summonerGames) ;
@@ -106,9 +106,9 @@ class MostBoostedSummonersPlayingChampionAtRoleTests extends FlatSpec with Befor
 
     "Games not in timespan" should "be filtered out" in {
       val summonerGames = Seq[SummonerMatch] (
-        SummonerMatch(1, 1, 1, Role.TOP, true, "NA", now),
-        SummonerMatch(2, 1, 1, Role.TOP, false, "NA", 0),
-        SummonerMatch(2, 2, 1, Role.SUPPORT, false, "NA", 0)
+        SummonerMatch(1, 1, 1, Role.TOP, true, "NA", now, Tier.GOLD),
+        SummonerMatch(2, 1, 1, Role.TOP, false, "NA", 0, Tier.GOLD),
+        SummonerMatch(2, 2, 1, Role.SUPPORT, false, "NA", 0, Tier.GOLD)
       )
 
       val rdd = sc.parallelize(summonerGames)
