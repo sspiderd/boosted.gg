@@ -1,0 +1,10 @@
+[Unit]
+Description=Zookeeper server
+
+[Service]
+#WorkingDirectory=/opt/kafka
+ExecStart=/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties 
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

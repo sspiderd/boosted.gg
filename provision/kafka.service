@@ -1,0 +1,13 @@
+[Unit]
+Description=Kafka server
+After=zookeeper.service
+Requires=zookeeper.service
+
+[Service]
+#Environment= MY_ENVIRONMENT_VAR =/path/to/file.config
+WorkingDirectory=/opt/kafka
+ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

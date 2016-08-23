@@ -1,0 +1,11 @@
+[Unit]
+Description=Start docker containers on reboot
+After=docker.service
+Requires=docker.service
+
+[Service]
+ExecStart=/usr/bin/docker ps -aq | xargs /usr/bin/docker start
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

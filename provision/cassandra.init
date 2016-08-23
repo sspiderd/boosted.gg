@@ -1,0 +1,27 @@
+CREATE KEYSPACE BoostedGG
+  WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+
+CREATE TABLE BoostedGG.MOST_BOOSTED_SUMMONERS_AT_CHROLES (
+  champion varchar,
+  role varchar,
+  position int,
+  winrate float,
+  summonerId int,
+  region varchar,
+  rank varchar,
+  matches list<int>,
+  PRIMARY KEY ((champion, role), position)
+)
+ 
+CREATE TABLE BoostedGG.HIGHEST_RATED_SUMMONERS_AT_CHROLES (
+  champion varchar,
+  role varchar,
+  position int,
+  winrate float,
+  summonerId int,
+  region varchar,
+  rank varchar,
+  matches list<int>,
+  PRIMARY KEY ((champion, role), position)
+)
+
