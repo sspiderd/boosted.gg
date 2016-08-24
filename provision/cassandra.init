@@ -11,7 +11,7 @@ CREATE TABLE BoostedGG.MOST_BOOSTED_SUMMONERS_AT_CHROLES (
   rank varchar,
   matches list<int>,
   PRIMARY KEY ((champion, role), position)
-)
+);
  
 CREATE TABLE BoostedGG.HIGHEST_RATED_SUMMONERS_AT_CHROLES (
   champion varchar,
@@ -23,5 +23,5 @@ CREATE TABLE BoostedGG.HIGHEST_RATED_SUMMONERS_AT_CHROLES (
   rank varchar,
   matches list<int>,
   PRIMARY KEY ((champion, role), position)
-)
+);
 
