@@ -2,6 +2,7 @@ package gg.boosted
 
 import java.util.Date
 
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.{BeforeAndAfter, FlatSpec}
 
@@ -18,11 +19,13 @@ class MostBoostedSummonersPlayingChampionAtRoleTests extends FlatSpec with Befor
     private var sc: SparkContext = _
 
     before {
-        val conf = new SparkConf()
-                .setMaster(master)
-                .setAppName(appName)
+        val spark = SparkSession
+                .builder()
+                .appName(appName)
+                .master(master)
+                .getOrCreate()
 
-        sc = new SparkContext(conf)
+        sc = spark.sparkContext
     }
 
     after {
