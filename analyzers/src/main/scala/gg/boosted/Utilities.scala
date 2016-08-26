@@ -1,7 +1,9 @@
 package gg.boosted
 
-import io.netty.handler.codec.bytes.ByteArrayDecoder
+import gg.boosted.posos.SummonerMatch
 import kafka.serializer.{DefaultDecoder, StringDecoder}
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.DataFrame
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka.KafkaUtils
@@ -34,6 +36,11 @@ object Utilities {
     val deseredMessages = messages.mapValues(unpackMessage)
 
     return deseredMessages
+  }
+
+  def smRDDToDF(rdd:RDD[SummonerMatch]):DataFrame = {
+    import Spark.spark.implicits._
+    rdd.toDF()
   }
 
 }

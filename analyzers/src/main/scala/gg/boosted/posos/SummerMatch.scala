@@ -17,7 +17,7 @@ object SummonerMatch {
       (parsed \ "matchId").extract[Long],
       (parsed \ "summonerId").extract[Long],
       (parsed \ "championId").extract[Int],
-      (parsed \ "role").extract[Int],
+      (parsed \ "roleId").extract[Int],
       (parsed \ "winner").extract[Boolean],
       (parsed \ "region").extract[String],
       (parsed \ "date").extract[Long],

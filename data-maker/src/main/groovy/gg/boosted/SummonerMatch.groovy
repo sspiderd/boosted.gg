@@ -8,9 +8,9 @@ class SummonerMatch {
     Long matchId ;
     Long summonerId ;
     Integer championId;
-    String role ;
+    Integer roleId ;
     Boolean winner ;
     String region ;
     Long date ;
-    String tier ;
+    Integer tier ;
 }
