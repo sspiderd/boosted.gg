@@ -1,6 +1,4 @@
-package gg.boosted
-
-import java.util.Date
+package gg.boosted.posos
 
 import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods._
@@ -8,7 +6,7 @@ import org.json4s.jackson.JsonMethods._
 /**
   * Created by ilan on 8/13/16.
   */
-case class SummonerMatch(matchId:Long, summonerId:Long, championId:Int, role:Role, winner:Boolean, region: String, date: Long, tier: Tier)
+case class SummonerMatch(matchId:Long, summonerId:Long, championId:Int, roleId:Int, winner:Boolean, region: String, date: Long, tier: Int)
 
 object SummonerMatch {
   def apply(json: String): SummonerMatch = {
@@ -19,10 +17,10 @@ object SummonerMatch {
       (parsed \ "matchId").extract[Long],
       (parsed \ "summonerId").extract[Long],
       (parsed \ "championId").extract[Int],
-      Role.valueOf((parsed \ "role").extract[String]),
+      (parsed \ "role").extract[Int],
       (parsed \ "winner").extract[Boolean],
       (parsed \ "region").extract[String],
       (parsed \ "date").extract[Long],
-      Tier.valueOf((parsed \ "tier").extract[String]))
+      (parsed \ "tier").extract[Int])
   }
 }

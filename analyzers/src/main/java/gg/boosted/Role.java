@@ -5,5 +5,24 @@ package gg.boosted;
  */
 public enum Role {
 
-    TOP,MIDDLE,JUNGLE,BOTTOM,SUPPORT
+    TOP(1),
+    MIDDLE(2),
+    JUNGLE(3),
+    BOTTOM(4),
+    SUPPORT(5) ;
+
+    public int roleId ;
+
+    Role(int roleId) {
+        this.roleId = roleId ;
+    }
+
+    Role byId(int roleId) {
+        for (Role role : Role.values()) {
+            if (role.roleId == roleId) {
+                return role ;
+            }
+        }
+        throw new RuntimeException("Unknown tierId " + roleId) ;
+    }
 }

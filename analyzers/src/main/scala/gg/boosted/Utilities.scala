@@ -13,8 +13,7 @@ import org.msgpack.core.MessagePack
 object Utilities {
 
   def unpackMessage(message: Array[Byte]):String = {
-    val unpacker =  MessagePack.newDefaultUnpacker(message);
-    unpacker.unpackString()
+    MessagePack.newDefaultUnpacker(message).unpackString()
   }
 
   def getKafkaSparkContext(ssc: StreamingContext):DStream[(String, String)] = {
@@ -24,7 +23,7 @@ object Utilities {
       "group.id" -> "group1",
       "auto.commit.interval.ms" -> "1000")
 
-    val topics = "mastersgg"
+    val topics = "boostedgg"
 
     // Create direct kafka stream with brokers and topics
     val topicsSet = topics.split(",").toSet
