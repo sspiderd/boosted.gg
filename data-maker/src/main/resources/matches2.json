@@ -1,0 +1,47 @@
+{"matches":[
+  {"matchId":1, "region":"NA", "matchCreation":1451603074200,"matchDuration":3067,"matchVersion":"5.24.0.256",
+    "participantIdentities":[
+      {"participantId":1, "player": {"summonerId": 1}}
+    ],
+    "participants":[
+      {"teamId":100,"championId":236,"highestAchievedSeasonTier":"GOLD","participantId":1,
+        "timeline":{"role":"SOLO","lane":"BOTTOM"},
+        "stats": {"winner": true}
+      }
+    ]
+  },
+  {"matchId":2, "region":"NA", "matchCreation":1451603074200,"matchDuration":3067,"matchVersion":"5.24.0.256",
+    "participantIdentities":[
+      {"participantId":1, "player": {"summonerId": 1}}
+    ],
+    "participants":[
+      {"teamId":100,"championId":236,"highestAchievedSeasonTier":"GOLD","participantId":1,
+        "timeline":{"role":"SOLO","lane":"BOTTOM"},
+        "stats": {"winner": true}
+      }
+    ]
+  },
+  {"matchId":3, "region":"NA", "matchCreation":1451603074200,"matchDuration":3067,"matchVersion":"5.24.0.256",
+    "participantIdentities":[
+      {"participantId":1, "player": {"summonerId": 1}}
+    ],
+    "participants":[
+      {"teamId":100,"championId":236,"highestAchievedSeasonTier":"GOLD","participantId":1,
+        "timeline":{"role":"SOLO","lane":"BOTTOM"},
+        "stats": {"winner": false}
+      }
+    ]
+  },
+  {"matchId":4, "region":"NA", "matchCreation":1451603074200,"matchDuration":3067,"matchVersion":"5.24.0.256",
+    "participantIdentities":[
+      {"participantId":1, "player": {"summonerId": 2}}
+    ],
+    "participants":[
+      {"teamId":100,"championId":236,"highestAchievedSeasonTier":"GOLD","participantId":1,
+        "timeline":{"role":"SOLO","lane":"BOTTOM"},
+        "stats": {"winner": true}
+      }
+    ]
+  }
+
+]}

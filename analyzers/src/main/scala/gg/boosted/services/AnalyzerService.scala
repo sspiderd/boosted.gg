@@ -1,7 +1,7 @@
 package gg.boosted.services
 
 import gg.boosted.{Spark, Utilities}
-import gg.boosted.analyzers.BoostedSummonersChrolesToWR
+import gg.boosted.analyzers.{BoostedSummonersChrolesToWR, DataFrameUtils}
 import gg.boosted.posos.SummonerMatch
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Seconds, StreamingContext}
@@ -17,30 +17,43 @@ object AnalyzerService {
 
     def boostedSummonersToChrole(stream:DStream[SummonerMatch]):Unit = {
         stream.foreachRDD(rdd => {
-            println("------")
-            val df = Utilities.smRDDToDF(rdd) ;
+            if (rdd != null && rdd.count() > 0) {
+                println("------")
+                val df = Utilities.smRDDToDF(rdd) ;
 
-            val calced = BoostedSummonersChrolesToWR.calc(df, 1, 0).cache()
+                val calced = BoostedSummonersChrolesToWR.calc(df, 1, 0).cache()
 
-            for (championId <- 1 to 131) {
-                for (roleId <- 1 to 5) {
-                    val chroleDf = BoostedSummonersChrolesToWR.filterByChrole(calced, championId, roleId)
+                val chroles = DataFrameUtils.findDistinctChampionAndRoleIds(calced) ;
+
+                println (chroles)
+
+                chroles.foreach(chrole => {
+                    val chroleDf = BoostedSummonersChrolesToWR.filterByChrole(calced, chrole.championId, chrole.roleId)
                     if (chroleDf.count() > 0) {
-                        println(s"-- $championId/$roleId --")
+                        println(s"-- $chrole --")
                         chroleDf.show()
                     }
-                }
+                })
             }
         })
     }
 
+    def functionToCreateContext():StreamingContext = {
+        val ssc = Spark.ssc
+        val stream = Utilities.getKafkaSparkContext(ssc).window(Seconds(180), Seconds(4)).map(value => SummonerMatch(value._2))
+        boostedSummonersToChrole(stream)
+        ssc.checkpoint("/tmp/kuku")
+        ssc
+    }
+
     def main(args: Array[String]): Unit = {
 
-        val stream = Utilities.getKafkaSparkContext(Spark.ssc).window(Seconds(180), Seconds(10)).map(value => SummonerMatch(value._2))
-        boostedSummonersToChrole(stream)
+        //val stream = Utilities.getKafkaSparkContext(Spark.ssc).window(Seconds(180), Seconds(4)).map(value => SummonerMatch(value._2))
 
-        Spark.ssc.start()
-        Spark.ssc.awaitTermination()
+        val ssc = StreamingContext.getOrCreate("/tmp/kuku", functionToCreateContext _)
+
+        ssc.start()
+        ssc.awaitTermination()
     }
 
 }
