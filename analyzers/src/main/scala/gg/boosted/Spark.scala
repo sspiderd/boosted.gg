@@ -11,16 +11,10 @@ object Spark {
     private val master = "local[*]"
     private val appName = "boostedGG"
 
-    val spark:SparkSession = SparkSession
+    val session:SparkSession = SparkSession
         .builder()
         .appName(appName)
         .master(master)
         .getOrCreate()
-
-    import spark.implicits._
-
-    val context = spark.sparkContext
-
-    val ssc = new StreamingContext(spark.sparkContext, Seconds(2))
 
 }

@@ -39,7 +39,7 @@ object Utilities {
   }
 
   def smRDDToDF(rdd:RDD[SummonerMatch]):DataFrame = {
-    import Spark.spark.implicits._
+    import Spark.session.implicits._
     rdd.toDF()
   }
 

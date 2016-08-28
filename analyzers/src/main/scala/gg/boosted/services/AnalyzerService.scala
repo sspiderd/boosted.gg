@@ -1,5 +1,7 @@
 package gg.boosted.services
 
+import java.util.Date
+
 import gg.boosted.{Spark, Utilities}
 import gg.boosted.analyzers.{BoostedSummonersChrolesToWR, DataFrameUtils}
 import gg.boosted.posos.SummonerMatch
@@ -12,11 +14,11 @@ import org.apache.spark.streaming.dstream.DStream
   */
 object AnalyzerService {
 
-    private val master = "local[*]"
-    private val appName = "BoostedSummonersChrolesToWR"
+    val checkPointDir = "/tmp/kuku4"
 
     def boostedSummonersToChrole(stream:DStream[SummonerMatch]):Unit = {
         stream.foreachRDD(rdd => {
+            println ("I AM HERE: " + new Date())
             if (rdd != null && rdd.count() > 0) {
                 println("------")
                 val df = Utilities.smRDDToDF(rdd) ;
@@ -38,19 +40,19 @@ object AnalyzerService {
         })
     }
 
-    def functionToCreateContext():StreamingContext = {
-        val ssc = Spark.ssc
-        val stream = Utilities.getKafkaSparkContext(ssc).window(Seconds(180), Seconds(4)).map(value => SummonerMatch(value._2))
+    def context():StreamingContext = {
+        val ssc = new StreamingContext(Spark.session.sparkContext, Seconds(5))
+
+        val stream = Utilities.getKafkaSparkContext(ssc).window(Seconds(180)).map(value => SummonerMatch(value._2))
         boostedSummonersToChrole(stream)
-        ssc.checkpoint("/tmp/kuku")
+
+        ssc.checkpoint(checkPointDir)
         ssc
     }
 
     def main(args: Array[String]): Unit = {
 
-        //val stream = Utilities.getKafkaSparkContext(Spark.ssc).window(Seconds(180), Seconds(4)).map(value => SummonerMatch(value._2))
-
-        val ssc = StreamingContext.getOrCreate("/tmp/kuku", functionToCreateContext _)
+        val ssc = StreamingContext.getOrCreate(checkPointDir, context _)
 
         ssc.start()
         ssc.awaitTermination()
