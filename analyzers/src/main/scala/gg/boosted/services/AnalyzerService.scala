@@ -4,6 +4,7 @@ import java.util.Date
 
 import gg.boosted.{Spark, Utilities}
 import gg.boosted.analyzers.{BoostedSummonersChrolesToWR, DataFrameUtils}
+import gg.boosted.dal.BoostedRepository
 import gg.boosted.posos.SummonerMatch
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Seconds, StreamingContext}
@@ -14,7 +15,9 @@ import org.apache.spark.streaming.dstream.DStream
   */
 object AnalyzerService {
 
-    val checkPointDir = "/tmp/kuku4"
+    val checkPointDir = "/tmp/kuku5"
+
+    val topXSummoners = 30
 
     def boostedSummonersToChrole(stream:DStream[SummonerMatch]):Unit = {
         stream.foreachRDD(rdd => {
@@ -27,12 +30,12 @@ object AnalyzerService {
 
                 val chroles = DataFrameUtils.findDistinctChampionAndRoleIds(calced) ;
 
-                println (chroles)
-
                 chroles.foreach(chrole => {
                     val chroleDf = BoostedSummonersChrolesToWR.filterByChrole(calced, chrole.championId, chrole.roleId)
                     if (chroleDf.count() > 0) {
                         println(s"-- $chrole --")
+                        val topSummonersForChroles = chroleDf.take(topXSummoners).map(Utilities.rowToSummonerChrole)
+                        BoostedRepository.insertMatches(topSummonersForChroles)
                         chroleDf.show()
                     }
                 })
