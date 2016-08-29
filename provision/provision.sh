@@ -35,16 +35,33 @@ sed -i 's@#listeners=PLAINTEXT://:9092@listeners=PLAINTEXT://10.0.0.3:9092@' /op
 mv /tmp/*service /usr/lib/systemd/system
 mv /tmp/cassandra.init /opt/cassandra-init
 
-systemctl enable zookeeper kafka docker-containers
+#Redis
+
+#Prepare
+echo "vm.overcommit_memory = 1" > /etc/sysctl.conf
+sysctl vm.overcommit_memory=1
+
+echo 'net.core.somaxconn = 65535' >> /etc/sysctl.conf
+sysctl -w net.core.somaxconn=65535
+
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+
+#Run
+docker run --name redis -d -v /var/lib/redis:/data -p 6379:6379 redis:alpine redis-server --appendonly yes
+
+systemctl enable zookeeper kafka docker-containers transparent_hugepage
 systemctl start zookeeper kafka
 
 docker run -d -v /var/lib/cassandra:/var/lib/cassandra -v /opt/cassandra-init:/opt/cassandra-init -p 9042:9042 --name cassandra cassandra
 
-#let the service start
-sleep 15
+#let the services start
+sleep 60
 
 #Create a topic
 /opt/kafka/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic boostedgg
 
 #Create cassandra keyspace and tables
 docker exec cassandra cqlsh -f /opt/cassandra-init/cassandra.init
+
+
+

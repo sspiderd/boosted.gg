@@ -13,7 +13,7 @@ Vagrant.configure(2) do |config|
    v.customize ["modifyvm", :id, "--nictype1", "virtio"]
    v.customize ["modifyvm", :id, "--cpuexecutioncap", "80"]
    v.memory = 4096
-   v.cpus = 4
+   v.cpus = 1
   end
 
   config.vm.network "private_network", ip: "10.0.0.3", nic_type: "virtio"
@@ -22,7 +22,7 @@ Vagrant.configure(2) do |config|
   #config.vm.network "forwarded_port", guest: 9092, host: 9092
   #config.vm.network "forwarded_port", guest: 2181, host: 2181
 
-  ["zookeeper", "kafka", "docker-containers"].each do |service|
+  ["zookeeper", "kafka", "docker-containers", "transparent_hugepage"].each do |service|
   #I have to copy it to /tmp and later copy it with the provision_late.sh since the "file" provisioner is done with the vagrant user, rather than root
     config.vm.provision "file", source: "provision/#{service}.service", destination: "/tmp/#{service}.service"
   end
