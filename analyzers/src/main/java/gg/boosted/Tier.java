@@ -18,7 +18,7 @@ public enum Tier {
         this.tierId = tierId;
     }
 
-    Tier byId(int tierId) {
+    public static Tier byId(int tierId) {
         for (Tier tier : Tier.values()) {
             if (tier.tierId == tierId) {
                 return tier ;

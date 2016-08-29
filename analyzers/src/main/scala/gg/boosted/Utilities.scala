@@ -45,7 +45,7 @@ object Utilities {
   }
 
   def rowToSummonerChrole(row: Row):SummonerChrole = {
-    SummonerChrole(row.getInt(0), row.getInt(1), row.getLong(2), row.getInt(3), row.getString(4), row.getInt(5), row.getDouble(6), row.getSeq[Long](7), 0)
+    SummonerChrole(row.getInt(0), row.getInt(1), row.getLong(2), row.getInt(3), row.getString(4), row.getLong(5), row.getDouble(6), row.getSeq[Long](7))
   }
 
 }

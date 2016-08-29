@@ -15,7 +15,7 @@ import org.apache.spark.streaming.dstream.DStream
   */
 object AnalyzerService {
 
-    val checkPointDir = "/tmp/kuku5"
+    val checkPointDir = "/tmp/kuku6"
 
     val topXSummoners = 30
 
@@ -31,7 +31,9 @@ object AnalyzerService {
                 val chroles = DataFrameUtils.findDistinctChampionAndRoleIds(calced) ;
 
                 chroles.foreach(chrole => {
+
                     val chroleDf = BoostedSummonersChrolesToWR.filterByChrole(calced, chrole.championId, chrole.roleId)
+                    chroleDf.show()
                     if (chroleDf.count() > 0) {
                         println(s"-- $chrole --")
                         val topSummonersForChroles = chroleDf.take(topXSummoners).map(Utilities.rowToSummonerChrole)
