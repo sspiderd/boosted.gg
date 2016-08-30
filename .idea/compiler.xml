@@ -26,10 +26,10 @@
         <module name="data-maker" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
+    <bytecodeTargetLevel target="1.8">
       <module name="analyzers" target="1.8" />
       <module name="data-maker" target="1.8" />
-      <module name="parent" target="1.5" />
+      <module name="parent" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
