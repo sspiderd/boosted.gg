@@ -5,11 +5,11 @@ CREATE TABLE BoostedGG.MOST_BOOSTED_SUMMONERS_AT_CHROLES (
   champion varchar,
   role varchar,
   position int,
-  winrate float,
-  summonerId int,
+  winrate double,
+  summonerId bigint,
   region varchar,
   rank varchar,
-  matches list<int>,
+  matches list<bigint>,
   PRIMARY KEY ((champion, role), position)
 );
  
@@ -17,11 +17,11 @@ CREATE TABLE BoostedGG.HIGHEST_RATED_SUMMONERS_AT_CHROLES (
   champion varchar,
   role varchar,
   position int,
-  winrate float,
-  summonerId int,
+  winrate double,
+  summonerId bigint,
   region varchar,
   rank varchar,
-  matches list<int>,
+  matches list<bigint>,
   PRIMARY KEY ((champion, role), position)
 );
 

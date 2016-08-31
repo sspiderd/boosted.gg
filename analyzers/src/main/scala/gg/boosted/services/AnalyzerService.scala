@@ -15,7 +15,7 @@ import org.apache.spark.streaming.dstream.DStream
   */
 object AnalyzerService {
 
-    val checkPointDir = "/tmp/kuku6"
+    val checkPointDir = "/tmp/kuku7"
 
     val topXSummoners = 30
 
@@ -46,9 +46,9 @@ object AnalyzerService {
     }
 
     def context():StreamingContext = {
-        val ssc = new StreamingContext(Spark.session.sparkContext, Seconds(5))
+        val ssc = new StreamingContext(Spark.session.sparkContext, Seconds(30))
 
-        val stream = Utilities.getKafkaSparkContext(ssc).window(Seconds(180)).map(value => SummonerMatch(value._2))
+        val stream = Utilities.getKafkaSparkContext(ssc).window(Seconds(6000)).map(value => SummonerMatch(value._2))
         boostedSummonersToChrole(stream)
 
         ssc.checkpoint(checkPointDir)

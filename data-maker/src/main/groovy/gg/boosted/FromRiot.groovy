@@ -1,8 +1,16 @@
 package gg.boosted
 
+import groovy.transform.CompileStatic
+
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Period
+import java.time.ZoneId
+import java.time.temporal.ChronoField
 import java.time.temporal.TemporalAmount
+import java.time.temporal.TemporalField
 
 /**
  * Created by ilan on 8/30/16.
@@ -10,32 +18,86 @@ import java.time.temporal.TemporalAmount
 class FromRiot {
 
     public static void main(String[] args) {
-        extract("EUW")
+        extract("euw")
+    }
+
+
+    static def extract(String region) {
+
+        //Forget that summoners and matches were ever processed
+        //Remove all summoners and matches from redis
+        RedisStore.reset() ;
+
+        //Create an empty set of summonerIds.. This is the queue to which we add new summoners that we find
+        //Get an initial seed of summoners
+        //List<String> summonerQueue = getInitialSummonerSeed(region)
+        //RedisStore.addSummonersToQueue(summonerQueue)
+        List<String> summonerQueue = getInitialSummonerSeed(region)
+        RedisStore.addSummonersToQueue(summonerQueue as String[])
+
+        //get the time at which we want to look matches from then on
+        long gamesPlayedSince = getDateToLookForwardFrom()
+
+        //While the queue is not empty
+        String summonerId = null
+        while ((summonerId = RedisStore.popSummonerFromQueue()) != null) {
+            //Get the next summoner (it's in summonerId)
+
+            //Check that we haven't seen him yet
+            if (RedisStore.wasSummonerProcessedAlready()) continue
+
+            //Get his matches since $gamesPlayedSince
+            List<String> matchIds = getSummonerMatchIds(summonerId, region, gamesPlayedSince)
+
+            //For each match:
+            matchIds.each {
+
+                //Check that we haven't seen this match yet
+                if (!RedisStore.wasMatchProcessedAlready(it.toString())) {
+
+                    //Get the match itself
+                    def match = RiotAPI.getMatch(it, region)
+
+                    //create "SummonerMatch" items for each summoner in the match
+                    List<SummonerMatch> summonerMatchList = MatchParser.parseMatch(match)
+
+                    //Send them all to the broker
+                    summonerMatchList.each {
+                        KafkaSummonerGameProducer.send(it)
+                    }
+
+                    //Add the match to "seen matches"
+                    RedisStore.addMatchesToProcessedMatches(it.toString())
+
+                    //Add all the summoners to the summoner queue
+                    summonerMatchList.each {RedisStore.addSummonersToQueue(it.summonerId.toString())}
+                }
+            }
+        }
+    }
+
+    static List<String> getSummonerMatchIds(String summonerId, String region, long since) {
+        return RiotAPI.getMatchlistForSummoner(summonerId, region, since)["matches"].collect {it["matchId"]}
+    }
+
+    static List<String> getInitialSummonerSeed(String region) {
+        List<String> seed = RiotAPI.getChallengerIds(region)
+
+        seed += RiotAPI.getMastersIds(region)
+
+        return seed
+    }
+
+    static long getDateToLookForwardFrom() {
+        //Two weeks ago
+        LocalDateTime twoWeeksAgo = (LocalDateTime.now() - Period.ofWeeks(2))
+        ZoneId zoneId = ZoneId.of("UTC")
+        long epoch = twoWeeksAgo.atZone(zoneId).toEpochSecond()
+        return epoch
     }
 
 
     static def extract1(region) {
-
-        //Forget that summoners and matches were ever processed
-        //Remove all summoners and matches from redis
-
-        //Create an empty set of summonerIds.. This is the queue to which we add new summoners that we find
-        Set<Long> summonerQueue = []
-
-        //Get an initial seed of summoners
-        //summonerQueue += getInitialSummonersSeed()
-
-        //get the time at which we want to look matches from then on
-        //long gamesPlayedSince = getDateToLookForwardFrom()
-
-        //While the queue is not empty (i'll continue tomorrow)
-
-
-
-    }
-
-
-    static def extract(region) {
 
         //Delete the initial summoner list from redis
         RedisStore.reset() ;

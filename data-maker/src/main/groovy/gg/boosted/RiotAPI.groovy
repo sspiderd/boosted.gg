@@ -41,7 +41,7 @@ class RiotAPI {
         return get("https://euw.api.pvp.net/api/lol/${region}/v2.5/league/challenger?type=RANKED_SOLO_5x5")
     }
 
-    static def getChallengerIds(region) {
+    static List<String> getChallengerIds(region) {
         return getChallengers(region)["entries"].collect { it["playerOrTeamId"]}
     }
 
@@ -49,7 +49,7 @@ class RiotAPI {
         return get("https://euw.api.pvp.net/api/lol/${region}/v2.5/league/master?type=RANKED_SOLO_5x5")
     }
 
-    static def getMastersIds(region) {
+    static List<String> getMastersIds(region) {
         return getMasters(region)["entries"].collect { it["playerOrTeamId"]}
     }
 
@@ -66,7 +66,7 @@ class RiotAPI {
      */
     static def getMatchlistForSummoner(summonerId, region, since) {
         return get("https://euw.api.pvp.net/api/lol/${region}/v2.2/matchlist/by-summoner/${summonerId}" +
-                "?rankedQueues=TEAM_BUILDER_DRAFT_RANKED_5x5,RANKED_SOLO_5X5" +
+                "?rankedQueues=TEAM_BUILDER_DRAFT_RANKED_5x5,RANKED_SOLO_5x5" +
                 "&beginTime=$since");
     }
 
