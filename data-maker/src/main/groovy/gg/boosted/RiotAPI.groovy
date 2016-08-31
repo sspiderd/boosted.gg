@@ -1,11 +1,15 @@
 package gg.boosted
 
 import groovy.json.JsonSlurper
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Created by ilan on 8/30/16.
  */
 class RiotAPI {
+
+    static Logger log = LoggerFactory.getLogger(RiotAPI.class)
 
     public static String API_KEY = "840016c5-d254-4048-a608-d2b28b10e816" ;
 
@@ -29,8 +33,7 @@ class RiotAPI {
                 retrieved = true ;
                 return resp ;
             } catch (Exception ex) {
-                println (ex.getMessage()) ;
-                println "Sleeping for ${sleep}"
+                log.debug("${ex.getMessage()} -> Sleepong for ${sleep}")
                 Thread.sleep(sleep) ;
                 sleep *= 2;
             }

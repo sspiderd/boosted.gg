@@ -6,6 +6,6 @@ appender("STDOUT", ConsoleAppender) {
     }
 }
 
-logger("gg.boosted", INFO)
+logger("gg.boosted", DEBUG)
 
 root(WARN, ["STDOUT"])

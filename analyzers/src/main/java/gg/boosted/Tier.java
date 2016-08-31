@@ -4,6 +4,7 @@ package gg.boosted;
  * Created by ilan on 8/22/16.
  */
 public enum Tier {
+    UNRANKED(-1),
     BRONZE(0),
     SILVER(500),
     GOLD(1000),

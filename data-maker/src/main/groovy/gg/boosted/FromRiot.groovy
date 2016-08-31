@@ -2,15 +2,10 @@ package gg.boosted
 
 import groovy.transform.CompileStatic
 
-import java.time.Duration
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Period
 import java.time.ZoneId
-import java.time.temporal.ChronoField
-import java.time.temporal.TemporalAmount
-import java.time.temporal.TemporalField
 
 /**
  * Created by ilan on 8/30/16.
@@ -22,6 +17,7 @@ class FromRiot {
     }
 
 
+    @CompileStatic
     static def extract(String region) {
 
         //Forget that summoners and matches were ever processed
@@ -44,7 +40,7 @@ class FromRiot {
             //Get the next summoner (it's in summonerId)
 
             //Check that we haven't seen him yet
-            if (RedisStore.wasSummonerProcessedAlready()) continue
+            if (RedisStore.wasSummonerProcessedAlready(summonerId)) continue
 
             //Get his matches since $gamesPlayedSince
             List<String> matchIds = getSummonerMatchIds(summonerId, region, gamesPlayedSince)
@@ -76,10 +72,12 @@ class FromRiot {
         }
     }
 
+    @CompileStatic
     static List<String> getSummonerMatchIds(String summonerId, String region, long since) {
-        return RiotAPI.getMatchlistForSummoner(summonerId, region, since)["matches"].collect {it["matchId"]}
+        return RiotAPI.getMatchlistForSummoner(summonerId, region, since)["matches"].collect {it["matchId"].toString()}
     }
 
+    @CompileStatic
     static List<String> getInitialSummonerSeed(String region) {
         List<String> seed = RiotAPI.getChallengerIds(region)
 
@@ -88,6 +86,7 @@ class FromRiot {
         return seed
     }
 
+    @CompileStatic
     static long getDateToLookForwardFrom() {
         //Two weeks ago
         LocalDateTime twoWeeksAgo = (LocalDateTime.now() - Period.ofWeeks(2))

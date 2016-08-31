@@ -2,45 +2,52 @@ package gg.boosted.services
 
 import java.util.Date
 
-import gg.boosted.{Spark, Utilities}
 import gg.boosted.analyzers.{BoostedSummonersChrolesToWR, DataFrameUtils}
 import gg.boosted.dal.BoostedRepository
 import gg.boosted.posos.SummonerMatch
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.streaming.{Seconds, StreamingContext}
+import gg.boosted.{Spark, Utilities}
 import org.apache.spark.streaming.dstream.DStream
+import org.apache.spark.streaming.{Seconds, StreamingContext}
+import org.slf4j.LoggerFactory
 
 /**
   * Created by ilan on 8/26/16.
   */
 object AnalyzerService {
 
-    val checkPointDir = "/tmp/kuku7"
+    val log = LoggerFactory.getLogger(AnalyzerService.getClass)
+
+    val checkPointDir = "/tmp/kuku8"
 
     val topXSummoners = 30
 
+    val gamesPlayed = 4
+
     def boostedSummonersToChrole(stream:DStream[SummonerMatch]):Unit = {
         stream.foreachRDD(rdd => {
-            println ("I AM HERE: " + new Date())
+            log.debug("Processing at: " + new Date())
             if (rdd != null && rdd.count() > 0) {
-                println("------")
                 val df = Utilities.smRDDToDF(rdd) ;
 
-                val calced = BoostedSummonersChrolesToWR.calc(df, 1, 0).cache()
+                val calced = BoostedSummonersChrolesToWR.calc(df, gamesPlayed, 0).cache()
 
                 val chroles = DataFrameUtils.findDistinctChampionAndRoleIds(calced) ;
+
+                BoostedRepository.truncateTable()
 
                 chroles.foreach(chrole => {
 
                     val chroleDf = BoostedSummonersChrolesToWR.filterByChrole(calced, chrole.championId, chrole.roleId)
-                    chroleDf.show()
+                    //chroleDf.show()
                     if (chroleDf.count() > 0) {
-                        println(s"-- $chrole --")
+                        //println(s"-- $chrole --")
                         val topSummonersForChroles = chroleDf.take(topXSummoners).map(Utilities.rowToSummonerChrole)
                         BoostedRepository.insertMatches(topSummonersForChroles)
-                        chroleDf.show()
+                        //chroleDf.show()
                     }
                 })
+            } else {
+                log.debug("RDD not found")
             }
         })
     }
