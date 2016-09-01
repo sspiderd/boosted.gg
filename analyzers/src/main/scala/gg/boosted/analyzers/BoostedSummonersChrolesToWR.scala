@@ -21,10 +21,10 @@ object BoostedSummonersChrolesToWR {
         df.createOrReplaceTempView("BoostedSummonersChrolesToWR_calc") ;
         df.sparkSession.sql(
             s"""
-               |SELECT championId, roleId, summonerId, tier, region, count(*) as gamesPlayed, (sum(if (winner=true,1,0))/count(winner)) as winrate, collect_list(matchId) as matches
+               |SELECT championId, roleId, summonerId, region, max(tier), count(*) as gamesPlayed, (sum(if (winner=true,1,0))/count(winner)) as winrate, collect_list(matchId) as matches
                |FROM BoostedSummonersChrolesToWR_calc
                |WHERE date >= $since
-               |GROUP BY championId, roleId, summonerId, tier, region
+               |GROUP BY championId, roleId, summonerId, region
                |HAVING winrate > 0.5 AND gamesPlayed >= $gamesPlayed
                |ORDER BY winrate desc
       """.stripMargin)

@@ -18,8 +18,8 @@ object BoostedRepository {
     val session = cluster.connect("boostedgg")
 
     val insertPS = session.prepare("INSERT INTO MOST_BOOSTED_SUMMONERS_AT_CHROLES " +
-            "(champion, role, winrate, summonerId, region, rank, matches, position) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+            "(champion, role, winrate, summoner_id, summoner_name, region, rank, matches, position) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
 
     val deletePS = session.prepare("DELETE FROM MOST_BOOSTED_SUMMONERS_AT_CHROLES where champion = ? and role = ? and position > ?")
 
@@ -44,6 +44,7 @@ object BoostedRepository {
                 role,
                 Double.box(row.winrate),
                 Long.box(row.summonerId),
+                row.summonerName,
                 row.region,
                 tier,
                 row.matches.asJava,

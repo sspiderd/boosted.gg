@@ -1,5 +1,8 @@
 package gg.boosted
 
+import com.robrua.orianna.`type`.core.common.Region
+import com.robrua.orianna.api.core.RiotAPI
+import gg.boosted.dal.RedisStore
 import gg.boosted.posos.{SummonerChrole, SummonerMatch}
 import kafka.serializer.{DefaultDecoder, StringDecoder}
 import org.apache.spark.rdd.RDD
@@ -8,12 +11,18 @@ import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.msgpack.core.MessagePack
+import org.slf4j.LoggerFactory
+
 import scala.collection.JavaConversions._
 
 /**
   * Created by ilan on 8/16/16.
   */
 object Utilities {
+
+  val log = LoggerFactory.getLogger(Utilities.getClass)
+
+  val RIOT_API_KEY = "840016c5-d254-4048-a608-d2b28b10e816"
 
   def unpackMessage(message: Array[Byte]):String = {
     MessagePack.newDefaultUnpacker(message).unpackString()
@@ -45,7 +54,18 @@ object Utilities {
   }
 
   def rowToSummonerChrole(row: Row):SummonerChrole = {
-    SummonerChrole(row.getInt(0), row.getInt(1), row.getLong(2), row.getInt(3), row.getString(4), row.getLong(5), row.getDouble(6), row.getSeq[Long](7))
+    val summonerId = row.getLong(2)
+    val summonerName = RedisStore.getSummonerNameById(summonerId).getOrElse({
+      //Did not find the summonerName in the map, get it from riot
+      RiotAPI.setAPIKey(RIOT_API_KEY)
+      RiotAPI.setRegion(Region.valueOf(row.getString(3)))
+      val summonerName = RiotAPI.getSummonerName(summonerId)
+      log.debug(s"Retrieved from riot, summoner: $summonerId -> $summonerName")
+      RedisStore.addSummonerName(summonerId, summonerName)
+      summonerName
+    })
+
+    SummonerChrole(row.getInt(0), row.getInt(1), row.getLong(2), summonerName, row.getString(3), row.getInt(4), row.getLong(5), row.getDouble(6), row.getSeq[Long](7))
   }
 
 }

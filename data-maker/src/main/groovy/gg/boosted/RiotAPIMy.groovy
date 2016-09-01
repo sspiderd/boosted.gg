@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory
 /**
  * Created by ilan on 8/30/16.
  */
-class RiotAPI {
+class RiotAPIMy {
 
-    static Logger log = LoggerFactory.getLogger(RiotAPI.class)
+    static Logger log = LoggerFactory.getLogger(RiotAPIMy.class)
 
     public static String API_KEY = "840016c5-d254-4048-a608-d2b28b10e816" ;
 
@@ -33,7 +33,7 @@ class RiotAPI {
                 retrieved = true ;
                 return resp ;
             } catch (Exception ex) {
-                log.debug("${ex.getMessage()} -> Sleepong for ${sleep}")
+                log.debug("${ex.getMessage()} -> Sleeping for ${sleep}")
                 Thread.sleep(sleep) ;
                 sleep *= 2;
             }

@@ -1,6 +1,13 @@
 package gg.boosted
 
+import com.robrua.orianna.api.core.RiotAPI
+import com.robrua.orianna.type.api.LoadPolicy
+import com.robrua.orianna.type.core.common.QueueType
+import com.robrua.orianna.type.core.common.Region
+import com.robrua.orianna.type.core.match.Match
 import groovy.transform.CompileStatic
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -12,17 +19,22 @@ import java.time.ZoneId
  */
 class FromRiot {
 
+    static Logger log = LoggerFactory.getLogger(FromRiot)
+
     public static void main(String[] args) {
-        extract("euw")
+        extract("EUW")
     }
 
 
     @CompileStatic
     static def extract(String region) {
+        RiotAPI.setAPIKey(RiotAPIMy.API_KEY)
+        RiotAPI.setRegion(Region.valueOf(region))
+        RiotAPI.setLoadPolicy(LoadPolicy.LAZY)
 
         //Forget that summoners and matches were ever processed
         //Remove all summoners and matches from redis
-        RedisStore.reset() ;
+        //RedisStore.reset() ;
 
         //Create an empty set of summonerIds.. This is the queue to which we add new summoners that we find
         //Get an initial seed of summoners
@@ -40,10 +52,17 @@ class FromRiot {
             //Get the next summoner (it's in summonerId)
 
             //Check that we haven't seen him yet
-            if (RedisStore.wasSummonerProcessedAlready(summonerId)) continue
+            if (RedisStore.wasSummonerProcessedAlready(summonerId)) {
+                log.debug("Summoner ${summonerId} was already processed...")
+                continue
+            }
+
+            long time = System.currentTimeMillis()
+
+            log.debug("Processing summoner ${summonerId}")
 
             //Get his matches since $gamesPlayedSince
-            List<String> matchIds = getSummonerMatchIds(summonerId, region, gamesPlayedSince)
+            List<Long> matchIds = getSummonerMatchIds(summonerId, gamesPlayedSince)
 
             //For each match:
             matchIds.each {
@@ -51,8 +70,11 @@ class FromRiot {
                 //Check that we haven't seen this match yet
                 if (!RedisStore.wasMatchProcessedAlready(it.toString())) {
 
+                    log.debug("Processing match ${it}")
+
                     //Get the match itself
-                    def match = RiotAPI.getMatch(it, region)
+                    Match match = RiotAPI.getMatch(it, false)
+                    //def match = RiotAPIMy.getMatch(it, region.toLowerCase())
 
                     //create "SummonerMatch" items for each summoner in the match
                     List<SummonerMatch> summonerMatchList = MatchParser.parseMatch(match)
@@ -67,21 +89,34 @@ class FromRiot {
 
                     //Add all the summoners to the summoner queue
                     summonerMatchList.each {RedisStore.addSummonersToQueue(it.summonerId.toString())}
+                } else {
+                    log.debug("Match ${it} was already processed...")
                 }
             }
+
+            log.debug("Time taken to process summoner = ${(System.currentTimeMillis() - time) / 1000}S")
         }
     }
 
     @CompileStatic
-    static List<String> getSummonerMatchIds(String summonerId, String region, long since) {
-        return RiotAPI.getMatchlistForSummoner(summonerId, region, since)["matches"].collect {it["matchId"].toString()}
+    static List<Long> getSummonerMatchIds(String summonerId, long since) {
+        RiotAPI.getMatchList(summonerId.toLong(), new Date(since)).collect {it.getID()}
+        //return RiotAPIMy.getMatchlistForSummoner(summonerId, region, since)["matches"].collect {it["matchId"].toString()}
     }
 
     @CompileStatic
     static List<String> getInitialSummonerSeed(String region) {
-        List<String> seed = RiotAPI.getChallengerIds(region)
+        //List<String> seed = RiotAPIMy.getChallengerIds(region)
+        List<String> seed = []
+        RiotAPI.getChallenger(QueueType.RANKED_SOLO_5x5).entries.each {
+            seed += it.getID()
+        }
+        RiotAPI.getMaster(QueueType.RANKED_SOLO_5x5).entries.each {
+            seed += it.getID()
+        }
 
-        seed += RiotAPI.getMastersIds(region)
+
+        //seed += RiotAPIMy.getMastersIds(region)
 
         return seed
     }
@@ -91,7 +126,7 @@ class FromRiot {
         //Two weeks ago
         LocalDateTime twoWeeksAgo = (LocalDateTime.now() - Period.ofWeeks(2))
         ZoneId zoneId = ZoneId.of("UTC")
-        long epoch = twoWeeksAgo.atZone(zoneId).toEpochSecond()
+        long epoch = twoWeeksAgo.atZone(zoneId).toEpochSecond() * 1000
         return epoch
     }
 
@@ -102,9 +137,9 @@ class FromRiot {
         RedisStore.reset() ;
 
         //Get the initial seed of summoners for this region (these are the challengers)
-        def summonersToBeProcessed = RiotAPI.getChallengerIds(region)[0..3]
+        def summonersToBeProcessed = RiotAPIMy.getChallengerIds(region)[0..3]
 
-        summonersToBeProcessed += RiotAPI.getMastersIds(region)[0..2]
+        summonersToBeProcessed += RiotAPIMy.getMastersIds(region)[0..2]
 
         //Initially add the seed to the set
         def numberOfSummonersToBeProcessed = RedisStore.addSummonersToQueue(summonersToBeProcessed as String[]);
@@ -140,7 +175,7 @@ class FromRiot {
         }
 
         //Now get his matches for the past 2 weeks
-        def summonerMatches = RiotAPI.getMatchlistForSummoner(summonerId, region, since)
+        def summonerMatches = RiotAPIMy.getMatchlistForSummoner(summonerId, region, since)
 
         //Extract the matchIds
         def summonerMatchesIds = summonerMatches.collect { it["matchId"] }
@@ -170,7 +205,7 @@ class FromRiot {
             return
         }
 
-        def match = RiotAPI.getMatch(matchId, region)
+        def match = RiotAPIMy.getMatch(matchId, region)
 
         List<SummonerMatch> summonerMatches = MatchParser.parseMatch(match)
 
@@ -190,7 +225,7 @@ class FromRiot {
 
     static def processMatchesForSummoner(summonerId, region) {
 
-        def fullMatchList = RiotAPI.getMatchlistForSummoner(summonerId, region);
+        def fullMatchList = RiotAPIMy.getMatchlistForSummoner(summonerId, region);
 
         def matchList = fullMatchList["matches"].collect() { it["matchId"]} ;
 
@@ -201,7 +236,7 @@ class FromRiot {
             def matchExists = RedisStore.wasMatchProcessedAlready(matchId as String) ;
 
             if (!matchExists) {
-                def match = RiotAPI.getMatch(matchId, region)
+                def match = RiotAPIMy.getMatch(matchId, region)
 
                 RedisStore.addMatchesToProcessedMatches(matchId as String)
             } else {

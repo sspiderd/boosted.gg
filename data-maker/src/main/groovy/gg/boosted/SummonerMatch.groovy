@@ -7,7 +7,7 @@ class SummonerMatch {
 
     Long matchId ;
     Long summonerId ;
-    Integer championId;
+    Long championId;
     Integer roleId ;
     Boolean winner ;
     String region ;
