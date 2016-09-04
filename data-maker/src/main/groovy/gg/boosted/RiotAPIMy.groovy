@@ -11,7 +11,7 @@ class RiotAPIMy {
 
     static Logger log = LoggerFactory.getLogger(RiotAPIMy.class)
 
-    public static String API_KEY = "RGAPI-30F1B978-7AC1-4B68-B016-A1975D1DDD94" ;
+    static API_KEY = ""
 
     static def get(String url) {
         return new JsonSlurper().parseText(getAsJson(url));

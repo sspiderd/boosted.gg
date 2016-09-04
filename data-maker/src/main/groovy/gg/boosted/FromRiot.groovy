@@ -27,7 +27,7 @@ class FromRiot {
 
     public static void main(String[] args) {
         ApiConfig config = new ApiConfig()
-        config.setKey(RiotAPIMy.API_KEY)
+        config.setKey(System.getenv("RIOT_API_KEY"))
         riotApi = new RiotApi(config)
 
         extract(Region.EUW)
@@ -40,7 +40,7 @@ class FromRiot {
 
         //Forget that summoners and matches were ever processed
         //Remove all summoners and matches from redis
-        RedisStore.reset() ;
+        //RedisStore.reset() ;
 
         //Create an empty set of summonerIds.. This is the queue to which we add new summoners that we find
         //Get an initial seed of summoners
@@ -108,7 +108,7 @@ class FromRiot {
     }
 
     static List<Long> getSummonerMatchIds(String summonerId, long since) {
-        riotApi.getMatchList(region, summonerId as long, null, null, null, since, -1L, -1, -1).getMatches().collect {it.matchId}
+        riotApi.getMatchList(region, summonerId as long, null, QueueType.TEAM_BUILDER_DRAFT_RANKED_5x5.toString() + "," + QueueType.RANKED_SOLO_5x5.toString(), null, since, -1L, -1, -1).getMatches().collect {it.matchId}
         //riotApi.getMatchList(summonerId.toLong(), new Date(since)).collect {it.getID()}
         //return RiotAPIMy.getMatchlistForSummoner(summonerId, region, since)["matches"].collect {it["matchId"].toString()}
     }

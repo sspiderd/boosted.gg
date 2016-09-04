@@ -22,7 +22,7 @@ case class BoostedEntity (
 
 object BoostedEntity {
 
-    val RIOT_API_KEY = "RGAPI-30F1B978-7AC1-4B68-B016-A1975D1DDD94"
+    val RIOT_API_KEY = System.getenv("RIOT_API_KEY")
 
     val log = LoggerFactory.getLogger(BoostedEntity.getClass)
 

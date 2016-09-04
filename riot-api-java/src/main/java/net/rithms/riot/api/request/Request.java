@@ -74,7 +74,7 @@ public class Request {
 
 	protected ApiConfig config;
 	protected ApiMethod object;
-	protected HttpsURLConnection connection = null;
+	protected HttpURLConnection connection = null;
 	private RiotApiException exception = null;
 
 	/**
@@ -92,6 +92,8 @@ public class Request {
 		boolean success = false ;
 		while (!success) {
 			try {
+				//Always sleep 1500 ms to avoid reaching the limit
+				sleep(1500);
 				execute();
 				if (state == RequestState.Succeeded) {
 					success = true;
@@ -152,7 +154,7 @@ public class Request {
 		try {
 			respectRateLimit();
 			URL url = new URL(object.getUrl());
-			connection = (HttpsURLConnection) url.openConnection();
+			connection = (HttpURLConnection) url.openConnection();
 			setTimeout();
 			connection.setDoInput(true);
 			connection.setInstanceFollowRedirects(false);

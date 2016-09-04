@@ -17,7 +17,7 @@ object AnalyzerService {
 
     val log = LoggerFactory.getLogger(AnalyzerService.getClass)
 
-    val checkPointDir = "/tmp/kuku3"
+    val checkPointDir = "/tmp/kuku4"
 
     val topXSummoners = 30
 
