@@ -16,6 +16,16 @@
 
 package net.rithms.riot.api.request;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import net.rithms.riot.api.*;
+import net.rithms.riot.api.request.ratelimit.RateLimit;
+import net.rithms.riot.api.request.ratelimit.RateLimitException;
+import net.rithms.riot.api.request.ratelimit.RateLimitList;
+import net.rithms.riot.api.request.ratelimit.RespectedRateLimitException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -29,21 +39,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-
-import net.rithms.riot.api.ApiConfig;
-import net.rithms.riot.api.ApiMethod;
-import net.rithms.riot.api.HttpHeadParameter;
-import net.rithms.riot.api.RiotApi;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.request.ratelimit.RateLimit;
-import net.rithms.riot.api.request.ratelimit.RateLimitException;
-import net.rithms.riot.api.request.ratelimit.RateLimitList;
-import net.rithms.riot.api.request.ratelimit.RespectedRateLimitException;
-
-import javax.net.ssl.HttpsURLConnection;
-
 import static java.lang.Thread.sleep;
 
 /**
@@ -54,6 +49,9 @@ import static java.lang.Thread.sleep;
  * @see RiotApi
  */
 public class Request {
+
+	static Logger log = LoggerFactory.getLogger(Request.class);
+
 	public static final int CODE_SUCCESS_OK = 200;
 	public static final int CODE_SUCCESS_NO_CONTENT = 204;
 	public static final int CODE_ERROR_BAD_REQUEST = 400;
@@ -87,7 +85,7 @@ public class Request {
 	 * @see ApiConfig
 	 * @see ApiMethod
 	 */
-	public Request(ApiConfig config, ApiMethod object) throws RateLimitException, RiotApiException {
+	public Request(ApiConfig config, ApiMethod object) throws RiotApiException {
 		init(config, object);
 		boolean success = false ;
 		while (!success) {
@@ -107,12 +105,17 @@ public class Request {
 					if (retryAfter > 0) {
 						sleep = retryAfter * 1000;
 					}
-					System.out.println(ex.getMessage() + " -> Sleeping for " + sleep);
+					log.debug(ex.getMessage() + " -> Sleeping for " + sleep);
 					try {
 						Thread.sleep(sleep);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
+				} else if (ex instanceof RiotApiException) {
+					RiotApiException rae = (RiotApiException)ex ;
+					log.error(object.getUrl() + ": ErrorCode="+ rae.getErrorCode() + ", Message=" + rae.getMessage());
+				} else {
+					log.error("Error: " + ex.getMessage());
 				}
 
 			}
