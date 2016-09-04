@@ -17,7 +17,7 @@ case class BoostedEntity (
     tier:Int,
     gamesPlayed:Long,
     winrate:Double,
-    matches:Seq[Long]
+    matches:List[Long]
                          )
 
 object BoostedEntity {
@@ -39,7 +39,7 @@ object BoostedEntity {
             RedisStore.addSummonerName(from.summonerId, summonerName)
             summonerName
         })
-        val matches = from.matches.toArray
+        val matches = from.matches.toArray.toList
         BoostedEntity(
             from.championId,
             from.roleId,

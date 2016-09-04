@@ -40,7 +40,7 @@ object AnalyzerService {
                     log.debug(s"Running for ${chrole.championId} / ${chrole.roleId}")
 
                     val chroleDf = BoostedSummonersChrolesToWR.filterByChrole(calced, chrole.championId, chrole.roleId)
-                    import chroleDf.sparkSession.implicits._
+
                     //chroleDf.show()
                     if (chroleDf.count() > 0) {
                         //println(s"-- $chrole --")

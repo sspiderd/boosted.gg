@@ -27,7 +27,8 @@ object BoostedSummonersChrolesToWR {
       * @return df of type [SummonerChrole]
       */
     def calc(df: DataFrame, gamesPlayed:Int, since:Long):DataFrame = {
-        df.createOrReplaceTempView("BoostedSummonersChrolesToWR_calc") ;
+        //Use "distinct" so that in case a match got in more than once it will count just once
+        df.distinct().createOrReplaceTempView("BoostedSummonersChrolesToWR_calc") ;
         df.sparkSession.sql(
             s"""
                |SELECT championId, roleId, summonerId, region, count(*) as gamesPlayed, (sum(if (winner=true,1,0))/count(winner)) as winrate, collect_list(matchId) as matches
@@ -60,7 +61,7 @@ object BoostedSummonersChrolesToWR {
             row.getString(3),
             row.getLong(4),
             row.getDouble(5),
-            row.getSeq(6)
+            row.getSeq[Long](6)
         )
     }
 

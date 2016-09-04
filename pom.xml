@@ -14,6 +14,7 @@
     <modules>
         <module>data-maker</module>
         <module>analyzers</module>
+        <module>riot-api-java</module>
     </modules>
 
     <properties>

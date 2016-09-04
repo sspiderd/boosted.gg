@@ -147,4 +147,16 @@ class BoostedSummonersChrolesToWRTest extends FlatSpec with BeforeAndAfter{
         assert(filteredByChamp2(0).championId === 2)
     }
 
+    "When the same summoner-match is encountered more than once it" should "be counted just once" in {
+        val df = spark.createDataFrame[SummonerMatch](List(
+            SummonerMatch(1,1,1,Role.TOP.roleId, true, "NA", now, Tier.GOLD.tierId),
+            SummonerMatch(1,1,1,Role.TOP.roleId, true, "NA", now, Tier.GOLD.tierId)
+        ))
+
+        val calcResult = BoostedSummonersChrolesToWR.calc(df, 1, 0).collect()
+        assert (calcResult.length === 1)
+        assert (BoostedSummonersChrolesToWR(calcResult(0)).gamesPlayed === 1)
+
+    }
+
 }

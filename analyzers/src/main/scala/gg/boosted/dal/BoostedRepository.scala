@@ -1,5 +1,7 @@
 package gg.boosted.dal
 
+import java.util
+
 import com.datastax.driver.core.{BatchStatement, Cluster}
 import gg.boosted.{Champions, Role, Tier}
 import org.slf4j.LoggerFactory
@@ -32,6 +34,7 @@ object BoostedRepository {
 
         val champion = Champions.byId(rows(0).championId)
         val role = Role.byId(rows(0).roleId).toString
+        import collection.JavaConverters._
 
         for (position <- 0 to rows.length - 1) {
             val row = rows(position)
@@ -44,7 +47,7 @@ object BoostedRepository {
                 row.summonerName,
                 row.region,
                 tier,
-                row.matches,
+                row.matches.asJava,
                 Int.box(position + 1)))
         }
         batch.add(deletePS.bind(champion, role, Int.box(rows.length)))
