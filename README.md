@@ -1,1 +1,1 @@
-# masters.gg
+# boosted.gg

@@ -1,11 +1,8 @@
 package gg.boosted.dal
 
 import com.datastax.driver.core.{BatchStatement, Cluster}
-import gg.boosted.posos.SummonerChrole
 import gg.boosted.{Champions, Role, Tier}
 import org.slf4j.LoggerFactory
-
-import collection.JavaConverters._
 
 /**
   * Created by ilan on 8/28/16.
@@ -29,7 +26,7 @@ object BoostedRepository {
     }
 
 
-    def insertMatches(rows: Array[SummonerChrole]):Unit = {
+    def insertMatches(rows: Array[BoostedEntity]):Unit = {
 
         val batch = new BatchStatement()
 
@@ -47,7 +44,7 @@ object BoostedRepository {
                 row.summonerName,
                 row.region,
                 tier,
-                row.matches.asJava,
+                row.matches,
                 Int.box(position + 1)))
         }
         batch.add(deletePS.bind(champion, role, Int.box(rows.length)))

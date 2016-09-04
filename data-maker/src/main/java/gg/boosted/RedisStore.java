@@ -26,7 +26,7 @@ public class RedisStore {
     }
 
     public static Long addSummonersToQueue(String... summonerIds) {
-        return jedis.lpush(summonersInQueue, summonerIds) ;
+        return jedis.rpush(summonersInQueue, summonerIds) ;
     }
 
     public static String popSummonerFromQueue() {

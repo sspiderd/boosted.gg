@@ -2,7 +2,7 @@ package gg.boosted.analyzers
 
 import java.util.Date
 
-import gg.boosted.posos.{SummonerChrole, SummonerMatch}
+import gg.boosted.posos.SummonerMatch
 import gg.boosted.{Role, Tier}
 import org.apache.spark.sql.SparkSession
 import org.scalatest.{BeforeAndAfter, FlatSpec}
@@ -111,7 +111,7 @@ class BoostedSummonersChrolesToWRTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(14,4,1,Role.TOP.roleId, false, "NA", now, Tier.GOLD.tierId)
         ))
 
-        val result = BoostedSummonersChrolesToWR.calc(df, 1, 0).as[SummonerChrole].collect()
+        val result = BoostedSummonersChrolesToWR.calc(df, 1, 0).as[BoostedSummonersChrolesToWR].collect()
         assert(result.length === 3)
 
         assert(result(0).summonerId === 1)
@@ -137,8 +137,8 @@ class BoostedSummonersChrolesToWRTest extends FlatSpec with BeforeAndAfter{
 
         assert (calcResult.collect().length === 2)
 
-        val filteredByChamp1 = BoostedSummonersChrolesToWR.filterByChrole(calcResult, 1, Role.TOP.roleId).as[SummonerChrole].collect()
-        val filteredByChamp2 = BoostedSummonersChrolesToWR.filterByChrole(calcResult, 2, Role.TOP.roleId).as[SummonerChrole].collect()
+        val filteredByChamp1 = BoostedSummonersChrolesToWR.filterByChrole(calcResult, 1, Role.TOP.roleId).as[BoostedSummonersChrolesToWR].collect()
+        val filteredByChamp2 = BoostedSummonersChrolesToWR.filterByChrole(calcResult, 2, Role.TOP.roleId).as[BoostedSummonersChrolesToWR].collect()
 
         assert(filteredByChamp1.length === 1)
         assert(filteredByChamp1(0).championId === 1)

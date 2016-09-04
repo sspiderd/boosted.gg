@@ -80,9 +80,9 @@
             <version>3.2</version>
         </dependency>
         <dependency>
-            <groupId>com.robrua</groupId>
-            <artifactId>orianna</artifactId>
-            <version>2.4.3</version>
+            <groupId>com.github.rithms</groupId>
+            <artifactId>riot-api-java</artifactId>
+            <version>3.9.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>

@@ -1,7 +1,16 @@
 package gg.boosted.analyzers
 
-import gg.boosted.posos.{SummonerChrole, SummonerMatch}
-import org.apache.spark.sql.{DataFrame, Dataset}
+import org.apache.spark.sql.{DataFrame, Row}
+
+case class BoostedSummonersChrolesToWR(
+                                         championId: Int,
+                                         roleId: Int,
+                                         summonerId: Long,
+                                         region: String,
+                                         gamesPlayed: Long,
+                                         winrate: Double,
+                                         matches: Seq[Long]
+)
 
 /**
   * Created by ilan on 8/26/16.
@@ -21,7 +30,7 @@ object BoostedSummonersChrolesToWR {
         df.createOrReplaceTempView("BoostedSummonersChrolesToWR_calc") ;
         df.sparkSession.sql(
             s"""
-               |SELECT championId, roleId, summonerId, region, max(tier), count(*) as gamesPlayed, (sum(if (winner=true,1,0))/count(winner)) as winrate, collect_list(matchId) as matches
+               |SELECT championId, roleId, summonerId, region, count(*) as gamesPlayed, (sum(if (winner=true,1,0))/count(winner)) as winrate, collect_list(matchId) as matches
                |FROM BoostedSummonersChrolesToWR_calc
                |WHERE date >= $since
                |GROUP BY championId, roleId, summonerId, region
@@ -41,6 +50,18 @@ object BoostedSummonersChrolesToWR {
       */
     def filterByChrole(df: DataFrame, championId:Int, roleId: Int):DataFrame = {
         df.filter(s"championId = $championId and roleId = $roleId")
+    }
+
+    def apply(row: Row):BoostedSummonersChrolesToWR = {
+        BoostedSummonersChrolesToWR(
+            row.getInt(0),
+            row.getInt(1),
+            row.getLong(2),
+            row.getString(3),
+            row.getLong(4),
+            row.getDouble(5),
+            row.getSeq(6)
+        )
     }
 
 }

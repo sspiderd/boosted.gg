@@ -10,12 +10,8 @@ import scala.collection.mutable.ListBuffer
   */
 object DataFrameUtils {
 
-    def findDistinctChampionAndRoleIds(df:DataFrame):List[Chrole] = {
-        val chroles = new ListBuffer[Chrole]
-        df.select("championId", "roleId").distinct().collect().foreach(row => {
-            chroles += new Chrole(row.get(0).asInstanceOf[Int], row.get(1).asInstanceOf[Int])
-        })
-        return chroles.toList
+    def findDistinctChampionAndRoleIds(df:DataFrame):Array[Chrole] = {
+        df.select("championId", "roleId").distinct().collect().map(row => Chrole(row.getInt(0), row.getInt(1)))
     }
 
 }

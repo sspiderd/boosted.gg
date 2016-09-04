@@ -3,7 +3,7 @@ package gg.boosted.services
 import java.util.Date
 
 import gg.boosted.analyzers.{BoostedSummonersChrolesToWR, DataFrameUtils}
-import gg.boosted.dal.BoostedRepository
+import gg.boosted.dal.{BoostedEntity, BoostedRepository}
 import gg.boosted.posos.SummonerMatch
 import gg.boosted.{Spark, Utilities}
 import org.apache.spark.streaming.dstream.DStream
@@ -17,7 +17,7 @@ object AnalyzerService {
 
     val log = LoggerFactory.getLogger(AnalyzerService.getClass)
 
-    val checkPointDir = "/tmp/kuku1"
+    val checkPointDir = "/tmp/kuku2"
 
     val topXSummoners = 30
 
@@ -37,11 +37,17 @@ object AnalyzerService {
 
                 chroles.foreach(chrole => {
 
+                    log.debug(s"Running for ${chrole.championId} / ${chrole.roleId}")
+
                     val chroleDf = BoostedSummonersChrolesToWR.filterByChrole(calced, chrole.championId, chrole.roleId)
+                    import chroleDf.sparkSession.implicits._
                     //chroleDf.show()
                     if (chroleDf.count() > 0) {
                         //println(s"-- $chrole --")
-                        val topSummonersForChroles = chroleDf.take(topXSummoners).map(Utilities.rowToSummonerChrole)
+                        val topSummonersForChroles = chroleDf
+                            .take(topXSummoners)
+                            .map(row => BoostedSummonersChrolesToWR(row))
+                            .map(BoostedEntity(_))
                         BoostedRepository.insertMatches(topSummonersForChroles)
                         //chroleDf.show()
                     }
