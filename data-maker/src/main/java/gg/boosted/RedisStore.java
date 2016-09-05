@@ -15,10 +15,10 @@ public class RedisStore {
 
     private static String matchesProcessed = "matchesProcessed" ;
 
-    public static void reset() {
-        jedis.del(summonersInQueue) ;
-        jedis.del(summonersProcessed) ;
-        jedis.del(matchesProcessed) ;
+    public static void reset(String region) {
+        jedis.del(summonersInQueue + "-" + region) ;
+        jedis.del(summonersProcessed + "-" + region) ;
+        jedis.del(matchesProcessed + "-" + region) ;
     }
 
     public static void addMatchesToProcessedMatches(String region, String... matchIds) {

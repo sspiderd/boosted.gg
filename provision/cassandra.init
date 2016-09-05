@@ -11,6 +11,7 @@ CREATE TABLE BoostedGG.MOST_BOOSTED_SUMMONERS_AT_CHROLES (
   region varchar,
   rank varchar,
   matches list<bigint>,
+  last_updated timestamp,
   PRIMARY KEY ((champion, role), position)
 );
  
@@ -24,6 +25,8 @@ CREATE TABLE BoostedGG.HIGHEST_RATED_SUMMONERS_AT_CHROLES (
   region varchar,
   rank varchar,
   matches list<bigint>,
+  last_updated timestamp,
   PRIMARY KEY ((champion, role), position)
 );
+
 

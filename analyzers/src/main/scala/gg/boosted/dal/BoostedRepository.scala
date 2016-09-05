@@ -1,6 +1,7 @@
 package gg.boosted.dal
 
 import java.util
+import java.util.Date
 
 import com.datastax.driver.core.{BatchStatement, Cluster}
 import gg.boosted.{Champions, Role, Tier}
@@ -17,8 +18,8 @@ object BoostedRepository {
     val session = cluster.connect("boostedgg")
 
     val insertPS = session.prepare("INSERT INTO MOST_BOOSTED_SUMMONERS_AT_CHROLES " +
-            "(champion, role, winrate, summoner_id, summoner_name, region, rank, matches, position) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            "(champion, role, winrate, summoner_id, summoner_name, region, rank, matches, position, last_updated) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 
     val deletePS = session.prepare("DELETE FROM MOST_BOOSTED_SUMMONERS_AT_CHROLES where champion = ? and role = ? and position > ?")
 
@@ -28,7 +29,7 @@ object BoostedRepository {
     }
 
 
-    def insertMatches(rows: Array[BoostedEntity]):Unit = {
+    def insertMatches(rows: Array[BoostedEntity], timestamp:Date):Unit = {
 
         val batch = new BatchStatement()
 
@@ -48,7 +49,9 @@ object BoostedRepository {
                 row.region,
                 tier,
                 row.matches.asJava,
-                Int.box(position + 1)))
+                Int.box(position + 1),
+                timestamp)
+            )
         }
         batch.add(deletePS.bind(champion, role, Int.box(rows.length)))
         session.execute(batch)

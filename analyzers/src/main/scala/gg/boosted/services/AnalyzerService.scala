@@ -17,7 +17,7 @@ object AnalyzerService {
 
     val log = LoggerFactory.getLogger(AnalyzerService.getClass)
 
-    val checkPointDir = "/tmp/kuku4"
+    val checkPointDir = "/tmp/kuku5"
 
     val topXSummoners = 30
 
@@ -27,13 +27,14 @@ object AnalyzerService {
         stream.foreachRDD(rdd => {
             log.debug("Processing at: " + new Date())
             if (rdd != null && rdd.count() > 0) {
+
+                val timestamp = new Date()
+
                 val df = Utilities.smRDDToDF(rdd) ;
 
                 val calced = BoostedSummonersChrolesToWR.calc(df, gamesPlayed, 0).cache()
 
                 val chroles = DataFrameUtils.findDistinctChampionAndRoleIds(calced) ;
-
-                BoostedRepository.truncateTable()
 
                 chroles.foreach(chrole => {
 
@@ -48,10 +49,11 @@ object AnalyzerService {
                             .take(topXSummoners)
                             .map(row => BoostedSummonersChrolesToWR(row))
                             .map(BoostedEntity(_))
-                        BoostedRepository.insertMatches(topSummonersForChroles)
+                        BoostedRepository.insertMatches(topSummonersForChroles, timestamp)
                         //chroleDf.show()
                     }
                 })
+
             } else {
                 log.debug("RDD not found")
             }
@@ -59,9 +61,9 @@ object AnalyzerService {
     }
 
     def context():StreamingContext = {
-        val ssc = new StreamingContext(Spark.session.sparkContext, Seconds(30))
+        val ssc = new StreamingContext(Spark.session.sparkContext, Seconds(60))
 
-        val stream = Utilities.getKafkaSparkContext(ssc).window(Seconds(6000)).map(value => SummonerMatch(value._2))
+        val stream = Utilities.getKafkaSparkContext(ssc).window(Seconds(600000)).map(value => SummonerMatch(value._2))
         boostedSummonersToChrole(stream)
 
         ssc.checkpoint(checkPointDir)
