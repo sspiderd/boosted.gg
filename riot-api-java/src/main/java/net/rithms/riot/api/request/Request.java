@@ -90,8 +90,8 @@ public class Request {
 		boolean success = false ;
 		while (!success) {
 			try {
-				//Always sleep 1500 ms to avoid reaching the limit
-				sleep(1500);
+				//Always sleep 1200 ms to avoid reaching the limit
+				sleep(1200);
 				execute();
 				if (state == RequestState.Succeeded) {
 					success = true;
@@ -100,7 +100,7 @@ public class Request {
 				//log.debug("${ex.getMessage()} -> Sleeping for ${sleep}")
 
 				if (ex instanceof RateLimitException) {
-					int sleep = 1500;
+					int sleep = 1200;
 					int retryAfter = ((RateLimitException)ex).getRetryAfter() ;
 					if (retryAfter > 0) {
 						sleep = retryAfter * 1000;

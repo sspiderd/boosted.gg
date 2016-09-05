@@ -21,32 +21,32 @@ public class RedisStore {
         jedis.del(matchesProcessed) ;
     }
 
-    public static void addMatchesToProcessedMatches(String... matchIds) {
-        jedis.sadd(matchesProcessed, matchIds) ;
+    public static void addMatchesToProcessedMatches(String region, String... matchIds) {
+        jedis.sadd(matchesProcessed + "-" + region, matchIds) ;
     }
 
-    public static Long addSummonersToQueue(String... summonerIds) {
-        return jedis.rpush(summonersInQueue, summonerIds) ;
+    public static Long addSummonersToQueue(String region, String... summonerIds) {
+        return jedis.rpush(summonersInQueue + "-" + region, summonerIds) ;
     }
 
-    public static String popSummonerFromQueue() {
-        return jedis.lpop(summonersInQueue) ;
+    public static String popSummonerFromQueue(String region) {
+        return jedis.lpop(summonersInQueue + "-" + region) ;
     }
 
     public static Long numberOfSummonersInQueue() {
         return jedis.llen(summonersInQueue) ;
     }
 
-    public static void addSummonersProcessed(String... summonerIds) {
-        jedis.sadd(summonersProcessed, summonerIds) ;
+    public static void addSummonersProcessed(String region, String... summonerIds) {
+        jedis.sadd(summonersProcessed + "-" + region, summonerIds) ;
     }
 
-    public static boolean wasMatchProcessedAlready(String matchId) {
-        return jedis.smembers(matchesProcessed).contains(matchId) ;
+    public static boolean wasMatchProcessedAlready(String region, String matchId) {
+        return jedis.smembers(matchesProcessed + "-" + region).contains(matchId) ;
     }
 
-    public static boolean wasSummonerProcessedAlready(String summonerId) {
-        return jedis.smembers(summonersProcessed).contains(summonerId) ;
+    public static boolean wasSummonerProcessedAlready(String region, String summonerId) {
+        return jedis.smembers(summonersProcessed + "-" + region).contains(summonerId) ;
     }
 
 }

@@ -47,18 +47,18 @@ class FromRiot {
         //List<String> summonerQueue = getInitialSummonerSeed(region)
         //RedisStore.addSummonersToQueue(summonerQueue)
         List<String> summonerQueue = getInitialSummonerSeed(region)
-        RedisStore.addSummonersToQueue(summonerQueue as String[])
+        RedisStore.addSummonersToQueue(region.toString(), summonerQueue as String[])
 
         //get the time at which we want to look matches from then on
         long gamesPlayedSince = getDateToLookForwardFrom()
 
         //While the queue is not empty
         String summonerId = null
-        while ((summonerId = RedisStore.popSummonerFromQueue()) != null) {
+        while ((summonerId = RedisStore.popSummonerFromQueue(region.toString())) != null) {
             //Get the next summoner (it's in summonerId)
 
             //Check that we haven't seen him yet
-            if (RedisStore.wasSummonerProcessedAlready(summonerId)) {
+            if (RedisStore.wasSummonerProcessedAlready(region.toString(), summonerId)) {
                 log.debug("Summoner ${summonerId} was already processed...")
                 continue
             }
@@ -74,7 +74,7 @@ class FromRiot {
             matchIds.each {
 
                 //Check that we haven't seen this match yet
-                if (!RedisStore.wasMatchProcessedAlready(it.toString())) {
+                if (!RedisStore.wasMatchProcessedAlready(region.toString(), it.toString())) {
 
                     log.debug("Processing match ${it}")
 
@@ -91,17 +91,17 @@ class FromRiot {
                     }
 
                     //Add the match to "seen matches"
-                    RedisStore.addMatchesToProcessedMatches(it.toString())
+                    RedisStore.addMatchesToProcessedMatches(region.toString(), it.toString())
 
                     //Add all the summoners to the summoner queue
-                    summonerMatchList.each {RedisStore.addSummonersToQueue(it.summonerId.toString())}
+                    summonerMatchList.each {RedisStore.addSummonersToQueue(region.toString(), it.summonerId.toString())}
                 } else {
                     log.debug("Match ${it} was already processed...")
                 }
             }
 
             //The summoner is now processed. Add her to the queue
-            RedisStore.addSummonersProcessed(summonerId)
+            RedisStore.addSummonersProcessed(region.toString(), summonerId)
 
             log.debug("Time taken to process summoner = ${(System.currentTimeMillis() - time) / 1000}S")
         }
