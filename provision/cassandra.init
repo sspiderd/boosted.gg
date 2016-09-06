@@ -4,29 +4,29 @@ CREATE KEYSPACE BoostedGG
 CREATE TABLE BoostedGG.MOST_BOOSTED_SUMMONERS_AT_CHROLES (
   champion varchar,
   role varchar,
-  position int,
+  rank int,
   winrate double,
   summoner_id bigint,
   summoner_name varchar,
   region varchar,
-  rank varchar,
+  tier varchar,
   matches list<bigint>,
   last_updated timestamp,
-  PRIMARY KEY ((champion, role), position)
+  PRIMARY KEY ((champion, role), rank)
 );
  
 CREATE TABLE BoostedGG.HIGHEST_RATED_SUMMONERS_AT_CHROLES (
   champion varchar,
   role varchar,
-  position int,
+  rank int,
   winrate double,
   summoner_id bigint,
   summoner_name varchar,
   region varchar,
-  rank varchar,
+  tier varchar,
   matches list<bigint>,
   last_updated timestamp,
-  PRIMARY KEY ((champion, role), position)
+  PRIMARY KEY ((champion, role), rank)
 );
 
 

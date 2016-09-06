@@ -19,7 +19,7 @@ object AnalyzerService {
 
     val checkPointDir = "/tmp/kuku5"
 
-    val topXSummoners = 30
+    val maxRank = 30
 
     val gamesPlayed = 4
 
@@ -28,31 +28,19 @@ object AnalyzerService {
             log.debug("Processing at: " + new Date())
             if (rdd != null && rdd.count() > 0) {
 
-                val timestamp = new Date()
-
                 val df = Utilities.smRDDToDF(rdd) ;
 
-                val calced = BoostedSummonersChrolesToWR.calc(df, gamesPlayed, 0).cache()
+                val calced = BoostedSummonersChrolesToWR.calc(df, gamesPlayed, 0, maxRank)
 
-                val chroles = DataFrameUtils.findDistinctChampionAndRoleIds(calced) ;
+                val topSummonersForChroles = calced
+                    .collect()
+                    .map(BoostedSummonersChrolesToWR(_))
+                    .map(BoostedEntity(_))
 
-                chroles.foreach(chrole => {
+                if (topSummonersForChroles.length > 0) {
+                    BoostedRepository.insertMatches(topSummonersForChroles, new Date())
+                }
 
-                    log.debug(s"Running for ${chrole.championId} / ${chrole.roleId}")
-
-                    val chroleDf = BoostedSummonersChrolesToWR.filterByChrole(calced, chrole.championId, chrole.roleId)
-
-                    //chroleDf.show()
-                    if (chroleDf.count() > 0) {
-                        //println(s"-- $chrole --")
-                        val topSummonersForChroles = chroleDf
-                            .take(topXSummoners)
-                            .map(row => BoostedSummonersChrolesToWR(row))
-                            .map(BoostedEntity(_))
-                        BoostedRepository.insertMatches(topSummonersForChroles, timestamp)
-                        //chroleDf.show()
-                    }
-                })
 
             } else {
                 log.debug("RDD not found")
@@ -61,7 +49,7 @@ object AnalyzerService {
     }
 
     def context():StreamingContext = {
-        val ssc = new StreamingContext(Spark.session.sparkContext, Seconds(60))
+        val ssc = new StreamingContext(Spark.session.sparkContext, Seconds(30))
 
         val stream = Utilities.getKafkaSparkContext(ssc).window(Seconds(600000)).map(value => SummonerMatch(value._2))
         boostedSummonersToChrole(stream)

@@ -1,5 +1,6 @@
 package gg.boosted.dal
 
+import gg.boosted.{Champions, Role, Tier}
 import gg.boosted.analyzers.BoostedSummonersChrolesToWR
 import net.rithms.riot.api.{ApiConfig, RiotApi}
 import net.rithms.riot.constant.Region
@@ -9,15 +10,16 @@ import org.slf4j.LoggerFactory
   * Created by ilan on 9/1/16.
   */
 case class BoostedEntity (
-    championId:Int,
-    roleId:Int,
+    champion:String,
+    role:String,
     summonerId:Long,
     summonerName:String,
     region:String,
-    tier:Int,
+    tier:String,
     gamesPlayed:Long,
     winrate:Double,
-    matches:List[Long]
+    matches:List[Long],
+    rank:Int
                          )
 
 object BoostedEntity {
@@ -41,15 +43,16 @@ object BoostedEntity {
         })
         val matches = from.matches.toArray.toList
         BoostedEntity(
-            from.championId,
-            from.roleId,
+            Champions.byId(from.championId),
+            Role.byId(from.roleId).toString,
             from.summonerId,
             summonerName,
             from.region,
-            -1,
+            Tier.UNRANKED.toString,
             from.gamesPlayed,
             from.winrate,
-            matches
+            matches,
+            from.rank
         )
     }
 }
