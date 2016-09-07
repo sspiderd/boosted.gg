@@ -11,12 +11,12 @@ object RedisStore {
 
     val summonerIdToNameMap = "summonerIdToName"
 
-    def getSummonerNameById(summonerId:Long):Option[String] = {
-        rc.hget(summonerIdToNameMap, summonerId)
+    def getSummonerNameById(region:String, summonerId:Long):Option[String] = {
+        rc.hget(s"$summonerIdToNameMap-$region", summonerId)
     }
 
-    def addSummonerName(summonerId:Long, summonerName:String):Unit = {
-        rc.hset(summonerIdToNameMap, summonerId, summonerName)
+    def addSummonerName(region:String, summonerId:Long, summonerName:String):Unit = {
+        rc.hset(s"$summonerIdToNameMap-$region", summonerId, summonerName)
     }
 
 }

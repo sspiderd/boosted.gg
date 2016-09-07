@@ -30,7 +30,7 @@ object BoostedEntity {
 
     def apply(from: BoostedSummonersChrolesToWR):BoostedEntity = {
 
-        val summonerName = RedisStore.getSummonerNameById(from.summonerId).getOrElse({
+        val summonerName = RedisStore.getSummonerNameById(from.region, from.summonerId).getOrElse({
             //Did not find the summonerName in the map, get it from riot
             val region = Region.valueOf(from.region)
             val config = new ApiConfig() ;
@@ -38,7 +38,7 @@ object BoostedEntity {
             val riotApi = new RiotApi(config)
             val summonerName = riotApi.getSummonerById(region, from.summonerId).getName()
             log.debug(s"Retrieved from riot, summoner: ${from.summonerId} -> $summonerName")
-            RedisStore.addSummonerName(from.summonerId, summonerName)
+            RedisStore.addSummonerName(from.region, from.summonerId, summonerName)
             summonerName
         })
         val matches = from.matches.toArray.toList

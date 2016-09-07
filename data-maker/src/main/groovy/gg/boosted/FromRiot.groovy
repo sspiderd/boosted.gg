@@ -30,7 +30,7 @@ class FromRiot {
         config.setKey(System.getenv("RIOT_API_KEY"))
         riotApi = new RiotApi(config)
 
-        extract(Region.KR)
+        extract(Region.EUW)
     }
 
 
