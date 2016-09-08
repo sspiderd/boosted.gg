@@ -2,6 +2,7 @@ package gg.boosted.dal
 
 import gg.boosted.{Champions, Role, Tier}
 import gg.boosted.analyzers.BoostedSummonersChrolesToWR
+import gg.boosted.utils.SummonerIdToName
 import net.rithms.riot.api.{ApiConfig, RiotApi}
 import net.rithms.riot.constant.Region
 import org.slf4j.LoggerFactory
@@ -30,17 +31,7 @@ object BoostedEntity {
 
     def apply(from: BoostedSummonersChrolesToWR):BoostedEntity = {
 
-        val summonerName = RedisStore.getSummonerNameById(from.region, from.summonerId).getOrElse({
-            //Did not find the summonerName in the map, get it from riot
-            val region = Region.valueOf(from.region)
-            val config = new ApiConfig() ;
-            config.setKey(RIOT_API_KEY)
-            val riotApi = new RiotApi(config)
-            val summonerName = riotApi.getSummonerById(region, from.summonerId).getName()
-            log.debug(s"Retrieved from riot, summoner: ${from.summonerId} -> $summonerName")
-            RedisStore.addSummonerName(from.region, from.summonerId, summonerName)
-            summonerName
-        })
+        val summonerName = SummonerIdToName(from.region, from.summonerId)
         val matches = from.matches.toArray.toList
         BoostedEntity(
             Champions.byId(from.championId),

@@ -16,7 +16,9 @@
 
 package net.rithms.util;
 
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public final class Convert {
 
@@ -29,18 +31,18 @@ public final class Convert {
 	 * @throws NullPointerException
 	 *             If {@code elements} is {@code null}
 	 */
-	public static String longToString(long... elements) {
+	public static String[] longToString(long... elements) {
 		Objects.requireNonNull(elements);
 		// Java 8
-		// return Arrays.stream(elements).mapToObj(l -> ((Long) l).toString()).collect(Collectors.joining(","));
+		return Arrays.stream(elements).mapToObj(l -> ((Long) l).toString()).collect(Collectors.toList()).toArray(new String[0]);
 
-		// Java 7
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < elements.length - 1; i++) {
-			sb.append(elements[i]).append(',');
-		}
-		sb.append(elements[elements.length - 1]);
-		return sb.toString();
+//		// Java 7
+//		StringBuilder sb = new StringBuilder();
+//		for (int i = 0; i < elements.length - 1; i++) {
+//			sb.append(elements[i]).append(',');
+//		}
+//		sb.append(elements[elements.length - 1]);
+//		return sb.toString();
 	}
 
 	/**

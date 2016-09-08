@@ -16,9 +16,7 @@
 
 package net.rithms.riot.api;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Logger;
 
 import net.rithms.riot.api.endpoints.champion.dto.Champion;
@@ -2086,6 +2084,22 @@ public class RiotApi implements Cloneable {
 		return getSummonerName(region, String.valueOf(summonerId));
 	}
 
+	public static String[][] chunkArray(String[] array, int chunkSize) {
+		int numOfChunks = (int)Math.ceil((double)array.length / chunkSize);
+		String[][] output = new String[numOfChunks][];
+
+		for(int i = 0; i < numOfChunks; ++i) {
+			int start = i * chunkSize;
+			int length = Math.min(array.length - start, chunkSize);
+
+			String[] temp = new String[length];
+			System.arraycopy(array, start, temp, 0, length);
+			output[i] = temp;
+		}
+
+		return output;
+	}
+
 	/**
 	 * Get summoner objects mapped by summoner ID for a given list of {@code summonerIds}.
 	 *
@@ -2103,8 +2117,17 @@ public class RiotApi implements Cloneable {
 	public Map<String, Summoner> getSummonersById(Region region, String... summonerIds) throws RiotApiException {
 		Objects.requireNonNull(region);
 		Objects.requireNonNull(summonerIds);
-		ApiMethod method = new GetSummonersById(getConfig(), region, Convert.joinString(",", summonerIds));
-		return endpointManager.callMethodAndReturnDto(method);
+
+		//We need to break this to groups of 10
+		Map<String, Summoner> map = new HashMap<>();
+		String[][] chunckedArray = chunkArray(summonerIds, 40) ;
+
+		for (String[] array : chunckedArray) {
+			ApiMethod method = new GetSummonersById(getConfig(), region, Convert.joinString(",", array));
+			Map<String, Summoner> mapped = endpointManager.callMethodAndReturnDto(method);
+			map.putAll(mapped);
+		}
+		return map ;
 	}
 
 	/**
@@ -2125,6 +2148,30 @@ public class RiotApi implements Cloneable {
 		Objects.requireNonNull(region);
 		Objects.requireNonNull(summonerIds);
 		return getSummonersById(region, Convert.longToString(summonerIds));
+	}
+
+	public static long[] unboxed(final Long[] array) {
+		return Arrays.stream(array).filter(Objects::nonNull).mapToLong(Long::longValue).toArray();
+	}
+
+	/**
+	 * Get summoner objects mapped by summoner ID for a given list of {@code summonerIds}.
+	 *
+	 * @param region
+	 *            Region where to retrieve the data.
+	 * @param summonerIds
+	 *            List of summoner IDs associated with summoners to retrieve. Maximum allowed at once is 40.
+	 * @return A map of desired summoners
+	 * @throws NullPointerException
+	 *             If {@code region} or {@code summonerIds} is {@code null}
+	 * @throws RiotApiException
+	 *             If the API returns an error or unparsable result
+	 * @see Summoner
+	 */
+	public Map<String, Summoner> getSummonersById(Region region, List<Long> summonerIds) throws RiotApiException {
+		Objects.requireNonNull(region);
+		Objects.requireNonNull(summonerIds);
+		return getSummonersById(region, unboxed(summonerIds.toArray(new Long[0])));
 	}
 
 	/**
@@ -2187,7 +2234,7 @@ public class RiotApi implements Cloneable {
 	 *             If the API returns an error or unparsable result
 	 * @see Team
 	 */
-	public List<Team> getTeamsBySummonerId(Region region, String summonerId) throws RiotApiException {
+	public List<Team> getTeamsBySummonerId(Region region, String... summonerId) throws RiotApiException {
 		Objects.requireNonNull(region);
 		Objects.requireNonNull(summonerId);
 		Map<String, List<Team>> teams = getTeamsBySummonerIds(region, summonerId);

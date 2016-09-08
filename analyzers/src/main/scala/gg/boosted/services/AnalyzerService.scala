@@ -5,7 +5,9 @@ import java.util.Date
 import gg.boosted.analyzers.{BoostedSummonersChrolesToWR, DataFrameUtils}
 import gg.boosted.dal.{BoostedEntity, BoostedRepository}
 import gg.boosted.posos.SummonerMatch
+import gg.boosted.utils.SummonerIdToName
 import gg.boosted.{Spark, Utilities}
+import net.rithms.riot.api.{ApiConfig, RiotApi}
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.slf4j.LoggerFactory
@@ -30,15 +32,20 @@ object AnalyzerService {
 
                 val df = Utilities.smRDDToDF(rdd) ;
 
+                //Get the boosted summoner by champion and role
                 val calced = BoostedSummonersChrolesToWR.calc(df, gamesPlayed, 0, maxRank)
 
-                val topSummonersForChroles = calced
+                //Map it boosted entity
+                val topSummoners = calced
                     .collect()
                     .map(BoostedSummonersChrolesToWR(_))
-                    .map(BoostedEntity(_))
 
-                if (topSummonersForChroles.length > 0) {
-                    BoostedRepository.insertMatches(topSummonersForChroles, new Date())
+                SummonerIdToName.populateSummonerNamesByIds(topSummoners.groupBy(_.region).mapValues(_.map(_.summonerId)))
+
+                val topSummonersEntities = topSummoners.map(BoostedEntity(_))
+
+                if (topSummoners.length > 0) {
+                    BoostedRepository.insertMatches(topSummonersEntities, new Date())
                 }
 
 
