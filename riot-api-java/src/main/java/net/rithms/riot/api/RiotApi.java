@@ -115,6 +115,7 @@ import net.rithms.riot.constant.Region;
 import net.rithms.riot.constant.Season;
 import net.rithms.riot.constant.SpectatorType;
 import net.rithms.riot.constant.TournamentMap;
+import net.rithms.util.ArrayChunker;
 import net.rithms.util.Convert;
 
 /**
@@ -560,7 +561,7 @@ public class RiotApi implements Cloneable {
 	 *            used.
 	 * @param version
 	 *            Data dragon version for returned data. If not specified, the latest version for the region is used. List of valid versions
-	 *            can be obtained from the {@link #getDataVersions()} method.
+	 *            can be obtained from the method.
 	 * @param champData
 	 *            Tags to return additional data. Only {@code id}, {@code key}, {@code name}, and {@code title} are returned by default if
 	 *            this parameter isn't specified. To return all additional data, use {@code ChampData.ALL}.
@@ -1138,23 +1139,8 @@ public class RiotApi implements Cloneable {
 	}
 
 	/**
-	 * Retrieve version data.
-	 * 
-	 * @param region
-	 *            Region from which to retrieve data.
-	 * @return A list with versions
-	 * @throws RiotApiException
-	 *             If the API returns an error or unparsable result
-	 */
-	public List<String> getDataVersions(Region region) throws RiotApiException {
-		Objects.requireNonNull(region);
-		ApiMethod method = new GetDataVersions(getConfig(), region);
-		return endpointManager.callMethodAndReturnDto(method);
-	}
-
-	/**
 	 * Get list of featured games.
-	 * 
+	 *
 	 * @param region
 	 *            Region from which to retrieve data.
 	 * @return Featured games
@@ -1167,6 +1153,21 @@ public class RiotApi implements Cloneable {
 	public FeaturedGames getFeaturedGames(Region region) throws RiotApiException {
 		Objects.requireNonNull(region);
 		ApiMethod method = new GetFeaturedGames(getConfig(), region);
+		return endpointManager.callMethodAndReturnDto(method);
+	}
+
+	/**
+	 * Retrieve version data.
+	 *
+	 * @param region
+	 *            Region from which to retrieve data.
+	 * @return A list with versions
+	 * @throws RiotApiException
+	 *             If the API returns an error or unparsable result
+	 */
+	public List<String> getDataVersions(Region region) throws RiotApiException {
+		Objects.requireNonNull(region);
+		ApiMethod method = new GetDataVersions(getConfig(), region);
 		return endpointManager.callMethodAndReturnDto(method);
 	}
 
@@ -2083,23 +2084,6 @@ public class RiotApi implements Cloneable {
 		Objects.requireNonNull(region);
 		return getSummonerName(region, String.valueOf(summonerId));
 	}
-
-	public static String[][] chunkArray(String[] array, int chunkSize) {
-		int numOfChunks = (int)Math.ceil((double)array.length / chunkSize);
-		String[][] output = new String[numOfChunks][];
-
-		for(int i = 0; i < numOfChunks; ++i) {
-			int start = i * chunkSize;
-			int length = Math.min(array.length - start, chunkSize);
-
-			String[] temp = new String[length];
-			System.arraycopy(array, start, temp, 0, length);
-			output[i] = temp;
-		}
-
-		return output;
-	}
-
 	/**
 	 * Get summoner objects mapped by summoner ID for a given list of {@code summonerIds}.
 	 *
@@ -2120,7 +2104,7 @@ public class RiotApi implements Cloneable {
 
 		//We need to break this to groups of 10
 		Map<String, Summoner> map = new HashMap<>();
-		String[][] chunckedArray = chunkArray(summonerIds, 40) ;
+		List<String[]> chunckedArray = ArrayChunker.split(summonerIds, 40) ;
 
 		for (String[] array : chunckedArray) {
 			ApiMethod method = new GetSummonersById(getConfig(), region, Convert.joinString(",", array));

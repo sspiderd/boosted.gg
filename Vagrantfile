@@ -9,6 +9,8 @@ Vagrant.configure(2) do |config|
   
   config.vm.box = "ubuntu/xenial64"
 
+  config.vm.box_version = "20160830.0.0"
+
   config.vm.provider "virtualbox" do |v|
    v.customize ["modifyvm", :id, "--nictype1", "virtio"]
    v.customize ["modifyvm", :id, "--cpuexecutioncap", "80"]

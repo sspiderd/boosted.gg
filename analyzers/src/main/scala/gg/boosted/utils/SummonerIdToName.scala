@@ -18,7 +18,7 @@ object SummonerIdToName {
     def +=(region:String, summonerId:Long, summonerName:String):Unit = {
         map.get(region) match {
             case Some(m) => m += (summonerId -> summonerName)
-            case None => map += (region ->  collection.mutable.HashMap.empty[Long, String])
+            case None => map += (region ->  collection.mutable.HashMap(summonerId -> summonerName))
         }
     }
 
@@ -58,10 +58,6 @@ object SummonerIdToName {
                 +=(region._1, summonerId.toLong, summoner.getName)
             }
             log.debug(s"Mapped additional ${summonerIdToSummonerMap.size} summoner ids to names for region '${region._1}'")
-            val idsString = unknownIds.mkString(",")
-            log.debug(s"The ids were: ${idsString}")
-            val mappedIds = map(region._1).keySet.mkString(",")
-            log.debug(s"The ids in the map are: ${mappedIds} with size ${map(region._1).keySet.size}")
         })
     }
 

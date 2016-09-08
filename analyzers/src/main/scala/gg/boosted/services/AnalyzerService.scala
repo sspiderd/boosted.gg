@@ -19,7 +19,7 @@ object AnalyzerService {
 
     val log = LoggerFactory.getLogger(AnalyzerService.getClass)
 
-    val checkPointDir = "/tmp/kuku6"
+    val checkPointDir = "/tmp/kuku1"
 
     val maxRank = 30
 
