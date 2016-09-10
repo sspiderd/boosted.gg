@@ -14,17 +14,20 @@ object BoostedRepository {
 
     val log = LoggerFactory.getLogger(BoostedRepository.getClass)
 
+    val BOOSTED_TABLE_NAME = "BOOSTED_SUMMONERS_BY_CHAMPION_AND_ROLE"
+
     val cluster = Cluster.builder().addContactPoint("10.0.0.3").build()
     val session = cluster.connect("boostedgg")
 
-    val insertPS = session.prepare("INSERT INTO MOST_BOOSTED_SUMMONERS_AT_CHROLES " +
-            "(champion, role, winrate, summoner_id, summoner_name, region, tier, matches, rank, last_updated) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    val insertPS = session.prepare(s"INSERT INTO $BOOSTED_TABLE_NAME " +
+            "(champion, role, winrate, summoner_id, summoner_name, region, tier, division, league_points, lol_score, matches, rank, last_updated) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 
-    val deletePS = session.prepare("DELETE FROM MOST_BOOSTED_SUMMONERS_AT_CHROLES where champion = ? and role = ? and rank > ?")
+    val deletePS = session.prepare(s"DELETE FROM $BOOSTED_TABLE_NAME " +
+        "where champion = ? and role = ? and rank > ?")
 
     def truncateTable():Unit = {
-        session.execute("TRUNCATE MOST_BOOSTED_SUMMONERS_AT_CHROLES")
+        session.execute(s"TRUNCATE $BOOSTED_TABLE_NAME")
     }
 
     def insertMatches(rows: Array[BoostedEntity], timestamp:Date):Unit = {
@@ -48,6 +51,9 @@ object BoostedRepository {
                     row.summonerName,
                     row.region,
                     row.tier,
+                    row.division,
+                    Int.box(row.leaguePoints),
+                    Int.box(row.lolScore),
                     row.matches.asJava,
                     Int.box(row.rank),
                     timestamp)
@@ -56,6 +62,6 @@ object BoostedRepository {
             session.execute(batch)
         })
 
-        log.debug(s"Updated MOST_BOOSTED_SUMMONERS_AT_CHROLES table")
+        log.debug(s"Updated $BOOSTED_TABLE_NAME table")
     }
 }

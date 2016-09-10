@@ -4,8 +4,8 @@ import java.util.Date
 
 import gg.boosted.analyzers.{BoostedSummonersChrolesToWR, DataFrameUtils}
 import gg.boosted.dal.{BoostedEntity, BoostedRepository}
+import gg.boosted.maps.{SummonerIdToLoLScore, SummonerIdToName}
 import gg.boosted.posos.SummonerMatch
-import gg.boosted.utils.SummonerIdToName
 import gg.boosted.{Spark, Utilities}
 import net.rithms.riot.api.{ApiConfig, RiotApi}
 import org.apache.spark.streaming.dstream.DStream
@@ -41,6 +41,7 @@ object AnalyzerService {
                     .map(BoostedSummonersChrolesToWR(_))
 
                 SummonerIdToName.populateSummonerNamesByIds(topSummoners.groupBy(_.region).mapValues(_.map(_.summonerId)))
+                SummonerIdToLoLScore.populateLoLScoresByIds(topSummoners.groupBy(_.region).mapValues(_.map(_.summonerId)))
 
                 val topSummonersEntities = topSummoners.map(BoostedEntity(_))
 

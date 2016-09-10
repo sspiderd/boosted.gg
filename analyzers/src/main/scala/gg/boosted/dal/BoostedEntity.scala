@@ -2,7 +2,7 @@ package gg.boosted.dal
 
 import gg.boosted.{Champions, Role, Tier}
 import gg.boosted.analyzers.BoostedSummonersChrolesToWR
-import gg.boosted.utils.SummonerIdToName
+import gg.boosted.maps.{SummonerIdToLoLScore, SummonerIdToName}
 import net.rithms.riot.api.{ApiConfig, RiotApi}
 import net.rithms.riot.constant.Region
 import org.slf4j.LoggerFactory
@@ -17,6 +17,9 @@ case class BoostedEntity (
     summonerName:String,
     region:String,
     tier:String,
+    division:String,
+    leaguePoints:Int,
+    lolScore:Int,
     gamesPlayed:Long,
     winrate:Double,
     matches:List[Long],
@@ -32,6 +35,7 @@ object BoostedEntity {
     def apply(from: BoostedSummonersChrolesToWR):BoostedEntity = {
 
         val summonerName = SummonerIdToName(from.region, from.summonerId)
+        val lolScore = SummonerIdToLoLScore(from.region, from.summonerId)
         val matches = from.matches.toArray.toList
         BoostedEntity(
             Champions.byId(from.championId),
@@ -39,7 +43,10 @@ object BoostedEntity {
             from.summonerId,
             summonerName,
             from.region,
-            Tier.UNRANKED.toString,
+            lolScore.tier,
+            lolScore.division,
+            lolScore.leaguePoints,
+            lolScore.lolScore,
             from.gamesPlayed,
             from.winrate,
             matches,

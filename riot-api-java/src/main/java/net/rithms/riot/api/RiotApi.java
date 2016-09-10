@@ -34,7 +34,9 @@ import net.rithms.riot.api.endpoints.featured_game.dto.FeaturedGames;
 import net.rithms.riot.api.endpoints.featured_game.methods.GetFeaturedGames;
 import net.rithms.riot.api.endpoints.game.dto.RecentGames;
 import net.rithms.riot.api.endpoints.game.methods.GetRecentGames;
+import net.rithms.riot.api.endpoints.league.dto.ExtendedLeagueEntry;
 import net.rithms.riot.api.endpoints.league.dto.League;
+import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.league.methods.GetChallengerLeague;
 import net.rithms.riot.api.endpoints.league.methods.GetLeagueBySummoners;
 import net.rithms.riot.api.endpoints.league.methods.GetLeagueByTeams;
@@ -1360,6 +1362,26 @@ public class RiotApi implements Cloneable {
 		return getLeagueEntryBySummoner(region, String.valueOf(summonerId));
 	}
 
+    /**
+     * Get a list of league entries mapped by summoner ID for a given list of {@code summonerIds}.
+     *
+     * @param region
+     *            The region of the leagues.
+     * @param summonerIds
+     *            List of summoner IDs. Maximum allowed at once is 10.
+     * @return A map, mapping each summoner ID to a list of leagues
+     * @throws NullPointerException
+     *             If {@code region} or {@code summonerIds} is {@code null}
+     * @throws RiotApiException
+     *             If the API returns an error or unparsable result
+     * @see League
+     */
+    public Map<String, List<League>> getLeagueEntryBySummoners(Region region, List<Long> summonerIds) throws RiotApiException {
+        Objects.requireNonNull(region);
+        Objects.requireNonNull(summonerIds);
+        return getLeagueEntryBySummoners(region, unboxed(summonerIds.toArray(new Long[0])));
+    }
+
 	/**
 	 * Get a list of league entries mapped by summoner ID for a given list of {@code summonerIds}.
 	 * 
@@ -1377,8 +1399,99 @@ public class RiotApi implements Cloneable {
 	public Map<String, List<League>> getLeagueEntryBySummoners(Region region, String... summonerIds) throws RiotApiException {
 		Objects.requireNonNull(region);
 		Objects.requireNonNull(summonerIds);
-		ApiMethod method = new GetLeagueEntryBySummoners(getConfig(), region, Convert.joinString(",", summonerIds));
-		return endpointManager.callMethodAndReturnDto(method);
+
+        //We need to break this to groups of 40
+        Map<String, List<League>> map = new HashMap<>();
+        List<String[]> chunckedArray = ArrayChunker.split(summonerIds, 40) ;
+
+        for (String[] array : chunckedArray) {
+            ApiMethod method = new GetLeagueEntryBySummoners(getConfig(), region, Convert.joinString(",", array));
+            Map<String, List<League>> mapped = endpointManager.callMethodAndReturnDto(method);
+            map.putAll(mapped);
+        }
+        return map ;
+
+	}
+
+
+	/**
+	 * Get a list of league entries mapped by summoner ID for a given list of {@code summonerIds}.
+	 *
+	 * @param region
+	 *            The region of the leagues.
+	 * @param summonerIds
+	 *            List of summoner IDs. Maximum allowed at once is 10.
+	 * @return A map, mapping each summoner ID to a list of leagues
+	 * @throws NullPointerException
+	 *             If {@code region} or {@code summonerIds} is {@code null}
+	 * @throws RiotApiException
+	 *             If the API returns an error or unparsable result
+	 * @see League
+	 */
+	public Map<String, ExtendedLeagueEntry> getExtendedLeagueEntryBySummoners(Region region, List<Long> summonerIds) throws RiotApiException {
+		Objects.requireNonNull(region);
+		Objects.requireNonNull(summonerIds);
+		return getExtendedLeagueEntryBySummoners(region, unboxed(summonerIds.toArray(new Long[0])));
+	}
+
+	/**
+	 * Get a list of league entries mapped by summoner ID for a given list of {@code summonerIds}.
+	 *
+	 * @param region
+	 *            The region of the leagues.
+	 * @param summonerIds
+	 *            List of summoner IDs. Maximum allowed at once is 10.
+	 * @return A map, mapping each summoner ID to a list of leagues
+	 * @throws NullPointerException
+	 *             If {@code region} or {@code summonerIds} is {@code null}
+	 * @throws RiotApiException
+	 *             If the API returns an error or unparsable result
+	 * @see League
+	 */
+	public Map<String, ExtendedLeagueEntry> getExtendedLeagueEntryBySummoners(Region region, long... summonerIds) throws RiotApiException {
+		Objects.requireNonNull(region);
+		Objects.requireNonNull(summonerIds);
+		return getExtendedLeagueEntryBySummoners(region, Convert.longToString(summonerIds));
+	}
+
+	/**
+	 * Get a list of league entries mapped by summoner ID for a given list of {@code summonerIds}.
+	 *
+	 * @param region
+	 *            The region of the leagues.
+	 * @param summonerIds
+	 *            List of summoner IDs. Maximum allowed at once is 10.
+	 * @return A map, mapping each summoner ID to a list of leagues
+	 * @throws NullPointerException
+	 *             If {@code region} or {@code summonerIds} is {@code null}
+	 * @throws RiotApiException
+	 *             If the API returns an error or unparsable result
+	 * @see League
+	 */
+	public Map<String, ExtendedLeagueEntry> getExtendedLeagueEntryBySummoners(Region region, String... summonerIds) throws RiotApiException {
+		Objects.requireNonNull(region);
+		Objects.requireNonNull(summonerIds);
+
+		//We need to break this to groups of 40
+		Map<String, ExtendedLeagueEntry> map = new HashMap<>();
+		List<String[]> chunckedArray = ArrayChunker.split(summonerIds, 10) ;
+
+		for (String[] array : chunckedArray) {
+			ApiMethod method = new GetLeagueEntryBySummoners(getConfig(), region, Convert.joinString(",", array));
+			Map<String, List<League>> leagueList = endpointManager.callMethodAndReturnDto(method);
+
+			for (Map.Entry<String, List<League>> entry : leagueList.entrySet()) {
+				//Find the League object associated with every summonerId
+				League summonersLeague = entry.getValue().stream()
+						.filter(league -> league.getEntries().get(0).getPlayerOrTeamId().equals(entry.getKey()))
+						.findFirst().get() ;
+
+				map.put(entry.getKey(), new ExtendedLeagueEntry(summonersLeague)) ;
+			}
+
+		}
+		return map ;
+
 	}
 
 	/**
@@ -2102,7 +2215,7 @@ public class RiotApi implements Cloneable {
 		Objects.requireNonNull(region);
 		Objects.requireNonNull(summonerIds);
 
-		//We need to break this to groups of 10
+		//We need to break this to groups of 40
 		Map<String, Summoner> map = new HashMap<>();
 		List<String[]> chunckedArray = ArrayChunker.split(summonerIds, 40) ;
 

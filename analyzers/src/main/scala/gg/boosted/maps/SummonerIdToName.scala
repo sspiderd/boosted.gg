@@ -1,4 +1,4 @@
-package gg.boosted.utils
+package gg.boosted.maps
 
 import net.rithms.riot.api.{ApiConfig, RiotApi}
 import net.rithms.riot.constant.Region
