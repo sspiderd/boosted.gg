@@ -2,7 +2,7 @@ package gg.boosted.services
 
 import java.util.Date
 
-import gg.boosted.analyzers.{BoostedSummonersChrolesToWR, DataFrameUtils}
+import gg.boosted.analyzers.BoostedSummonersChrolesToWR
 import gg.boosted.dal.{BoostedEntity, BoostedRepository}
 import gg.boosted.maps.{SummonerIdToLoLScore, SummonerIdToName}
 import gg.boosted.posos.SummonerMatch
