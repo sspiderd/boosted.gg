@@ -127,26 +127,6 @@ class BoostedSummonersChrolesToWRTest extends FlatSpec with BeforeAndAfter{
         assert(result(2).winrate === 2.0/3)
     }
 
-    "Lists with multiple chroles" should "be filtered correctly" in {
-        val df = spark.createDataFrame[SummonerMatch](List(
-            SummonerMatch(1,1,1,Role.TOP.roleId, true, "NA", now, Tier.GOLD.tierId),
-            SummonerMatch(2,2,2,Role.TOP.roleId, true, "NA", now, Tier.GOLD.tierId)
-        ))
-
-        val calcResult = BoostedSummonersChrolesToWR.calc(df, 1, 0, 100).cache()
-
-        assert (calcResult.collect().length === 2)
-
-        val filteredByChamp1 = BoostedSummonersChrolesToWR.filterByChrole(calcResult, 1, Role.TOP.roleId).as[BoostedSummonersChrolesToWR].collect()
-        val filteredByChamp2 = BoostedSummonersChrolesToWR.filterByChrole(calcResult, 2, Role.TOP.roleId).as[BoostedSummonersChrolesToWR].collect()
-
-        assert(filteredByChamp1.length === 1)
-        assert(filteredByChamp1(0).championId === 1)
-
-        assert(filteredByChamp2.length === 1)
-        assert(filteredByChamp2(0).championId === 2)
-    }
-
     "When the same summoner-match is encountered more than once it" should "be counted just once" in {
         val df = spark.createDataFrame[SummonerMatch](List(
             SummonerMatch(1,1,1,Role.TOP.roleId, true, "NA", now, Tier.GOLD.tierId),
