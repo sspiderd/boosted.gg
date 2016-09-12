@@ -46,19 +46,6 @@ object BoostedSummonersChrolesToWR {
       """.stripMargin)
     }
 
-    /**
-      * The basic idea is to run the above "calc" method, cache it, and then run it through this method
-      * for each champion and role
-      *
-      * @param df of type [SummonerChrole]
-      * @param championId
-      * @param roleId
-      * @return df of type [SummonerChrole], but filtered
-      */
-    def filterByChrole(df: DataFrame, championId:Int, roleId: Int):DataFrame = {
-        df.filter(s"championId = $championId and roleId = $roleId")
-    }
-
     def apply(row: Row):BoostedSummonersChrolesToWR = {
         BoostedSummonersChrolesToWR(
             row.getInt(0),
