@@ -9,14 +9,16 @@ object RedisStore {
 
     val rc = new RedisClient("10.0.0.3", 6379)
 
-    val summonerIdToNameMap = "summonerIdToName"
+    val summonerIdToNameKey = "summonerIdToName"
+
+    val TTL = 60*60*24*14
 
     def getSummonerNameById(region:String, summonerId:Long):Option[String] = {
-        rc.hget(s"$summonerIdToNameMap-$region", summonerId)
+        rc.get(s"$summonerIdToNameKey:$region:$summonerId")
     }
 
     def addSummonerName(region:String, summonerId:Long, summonerName:String):Unit = {
-        rc.hset(s"$summonerIdToNameMap-$region", summonerId, summonerName)
+        rc.setex(s"$summonerIdToNameKey:$region:$summonerId", TTL, summonerName)
     }
 
 }
