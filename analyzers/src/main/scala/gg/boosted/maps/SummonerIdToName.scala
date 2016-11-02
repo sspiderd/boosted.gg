@@ -22,13 +22,19 @@ object SummonerIdToName {
         }
     }
 
+    /**
+      * Returns summoner name by region and id
+      * @param region
+      * @param summonerId
+      * @return a summoner name
+      */
     def apply(region:String, summonerId:Long):String = {
         map(region)(summonerId)
     }
 
     /**
       *
-      * @param regionToSummonerIds
+      * @param regionToSummonerIds this is what we populate
       * @return a map of region to a map of (summonerId, summonerName)
       */
     def populateSummonerNamesByIds(regionToSummonerIds:Map[String, Array[Long]]):Unit = {
