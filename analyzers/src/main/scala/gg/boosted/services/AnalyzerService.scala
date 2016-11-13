@@ -21,27 +21,32 @@ object AnalyzerService {
 
     val checkPointDir = "/tmp/kuku1"
 
-    val maxRank = 30
+    val maxRank = 1000
 
-    val gamesPlayed = 4
+    val minGamesPlayed = 4
 
     def boostedSummonersToChrole(stream:DStream[SummonerMatch]):Unit = {
         stream.foreachRDD(rdd => {
             log.debug("Processing at: " + new Date())
             if (rdd != null && rdd.count() > 0) {
 
+                //Convert the rdd to df so we can use Spark SQL on it
                 val df = Utilities.smRDDToDF(rdd) ;
 
-                //Get the boosted summoner by champion and role
-                val calced = BoostedSummonersChrolesToWR.calc(df, gamesPlayed, 0, maxRank)
+                //Get the boosted summoner DF by champion and role
+                val calced = BoostedSummonersChrolesToWR.calc(df, minGamesPlayed, 0, maxRank)
 
                 //Map it boosted entity
                 val topSummoners = calced
                     .collect()
                     .map(BoostedSummonersChrolesToWR(_))
 
-                SummonerIdToName.populateSummonerNamesByIds(topSummoners.groupBy(_.region).mapValues(_.map(_.summonerId)))
-                SummonerIdToLoLScore.populateLoLScoresByIds(topSummoners.groupBy(_.region).mapValues(_.map(_.summonerId)))
+                //I don't know whether different regions can share summoner ids or not, since that is the case
+                //I'm assuming that the answer is "no" and so i need to keep a map of region->summonerIds
+                val regionToSummonerIds = topSummoners.groupBy(_.region).mapValues(_.map(_.summonerId))
+
+                SummonerIdToName.populateSummonerNamesByIds(regionToSummonerIds)
+                SummonerIdToLoLScore.populateLoLScoresByIds(regionToSummonerIds)
 
                 val topSummonersEntities = topSummoners.map(BoostedEntity(_))
 

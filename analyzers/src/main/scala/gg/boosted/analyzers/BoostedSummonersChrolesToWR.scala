@@ -27,11 +27,11 @@ object BoostedSummonersChrolesToWR {
       * The inner subquery
       *
       * @param df of type [SummonerMatch]
-      * @param gamesPlayed
+      * @param minGamesPlayed
       * @param since
       * @return df of type [SummonerChrole]
       */
-    def calc(df: DataFrame, gamesPlayed:Int, since:Long, maxRank:Int):DataFrame = {
+    def calc(df: DataFrame, minGamesPlayed:Int, since:Long, maxRank:Int):DataFrame = {
         //Use "distinct" so that in case a match got in more than once it will count just once
         df.distinct().createOrReplaceTempView("BoostedSummonersChrolesToWR_calc") ;
         df.sparkSession.sql(
@@ -41,7 +41,7 @@ object BoostedSummonersChrolesToWR {
                |FROM BoostedSummonersChrolesToWR_calc
                |WHERE date >= $since
                |GROUP BY championId, roleId, summonerId, region
-               |HAVING winrate > 0.5 AND gamesPlayed >= $gamesPlayed
+               |HAVING winrate > 0.5 AND gamesPlayed >= $minGamesPlayed
                |) having rank <= $maxRank
       """.stripMargin)
     }
