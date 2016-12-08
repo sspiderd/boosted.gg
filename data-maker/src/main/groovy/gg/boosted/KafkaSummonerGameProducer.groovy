@@ -1,5 +1,6 @@
 package gg.boosted
 
+import groovy.transform.CompileStatic
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -7,6 +8,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 /**
  * Created by ilan on 8/11/16.
  */
+@CompileStatic
 class KafkaSummonerGameProducer {
 
     static Producer<String, String> producer ;

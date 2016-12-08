@@ -1,10 +1,8 @@
 package gg.boosted.dal
 
-import gg.boosted.{Champions, Role, Tier}
-import gg.boosted.analyzers.BoostedSummonersChrolesToWR
-import gg.boosted.maps.{SummonerIdToLoLScore, SummonerIdToName}
-import net.rithms.riot.api.{ApiConfig, RiotApi}
-import net.rithms.riot.constant.Region
+import gg.boosted.analyzers.MostBoostedSummoners
+import gg.boosted.maps.{Champions, SummonerIdToLoLScore, SummonerIdToName}
+import gg.boosted.Role
 import org.slf4j.LoggerFactory
 
 /**
@@ -32,7 +30,7 @@ object BoostedEntity {
 
     val log = LoggerFactory.getLogger(BoostedEntity.getClass)
 
-    def apply(from: BoostedSummonersChrolesToWR):BoostedEntity = {
+    def apply(from: MostBoostedSummoners):BoostedEntity = {
 
         val summonerName = SummonerIdToName(from.region, from.summonerId)
         val lolScore = SummonerIdToLoLScore(from.region, from.summonerId)

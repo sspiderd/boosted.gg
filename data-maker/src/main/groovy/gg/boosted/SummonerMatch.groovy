@@ -1,16 +1,18 @@
 package gg.boosted
 
+import groovy.transform.CompileStatic
+
 /**
  * Created by ilan on 8/11/16.
  */
+@CompileStatic
 class SummonerMatch {
 
-    Long matchId ;
-    Long summonerId ;
-    Long championId;
-    Integer roleId ;
-    Boolean winner ;
-    String region ;
-    Long date ;
-    Integer tier ;
+    Long matchId
+    Long summonerId
+    Long championId
+    Integer roleId
+    Boolean winner
+    String region
+    Long date
 }

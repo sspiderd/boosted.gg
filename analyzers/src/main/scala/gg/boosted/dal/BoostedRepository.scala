@@ -4,7 +4,7 @@ import java.util
 import java.util.Date
 
 import com.datastax.driver.core.{BatchStatement, Cluster}
-import gg.boosted.{Champions, Role, Tier}
+import gg.boosted.{Role, Tier}
 import org.slf4j.LoggerFactory
 
 /**

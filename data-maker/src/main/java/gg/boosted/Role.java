@@ -17,12 +17,4 @@ public enum Role {
         this.roleId = roleId ;
     }
 
-    Role byId(int roleId) {
-        for (Role role : Role.values()) {
-            if (role.roleId == roleId) {
-                return role ;
-            }
-        }
-        throw new RuntimeException("Unknown tierId " + roleId) ;
-    }
 }

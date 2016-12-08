@@ -2,8 +2,8 @@ package gg.boosted.services
 
 import java.util.Date
 
-import gg.boosted.{Application, Utilities}
-import gg.boosted.analyzers.BoostedSummonersChrolesToWR
+import gg.boosted.Application
+import gg.boosted.analyzers.MostBoostedSummoners
 import gg.boosted.dal.{BoostedEntity, BoostedRepository}
 import gg.boosted.maps.{SummonerIdToLoLScore, SummonerIdToName}
 import gg.boosted.posos.SummonerMatch
@@ -44,7 +44,7 @@ object AnalyzerService {
 
     def analyze(ds:Dataset[SummonerMatch]):Unit = {
         //Get the boosted summoner DF by champion and role
-        val topSummoners = BoostedSummonersChrolesToWR.calc(ds, minGamesPlayed, 0, maxRank).collect()
+        val topSummoners = MostBoostedSummoners.calculate(ds, minGamesPlayed, 0, maxRank).collect()
 
         //I don't know whether different regions can share summoner ids or not, since that is the case
         //I'm assuming that the answer is "no" and so i need to keep a map of region->summonerIds
