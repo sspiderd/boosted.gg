@@ -1,6 +1,8 @@
 package gg.boosted.analyzers
 
-import org.apache.spark.sql.{DataFrame, Row}
+import gg.boosted.Application
+import gg.boosted.posos.SummonerMatch
+import org.apache.spark.sql.{DataFrame, Dataset, Row}
 
 case class BoostedSummonersChrolesToWR(
                                          championId: Int,
@@ -26,15 +28,16 @@ object BoostedSummonersChrolesToWR {
       *
       * The inner subquery
       *
-      * @param df of type [SummonerMatch]
+      * @param ds of type [SummonerMatch]
       * @param minGamesPlayed
       * @param since
       * @return df of type [SummonerChrole]
       */
-    def calc(df: DataFrame, minGamesPlayed:Int, since:Long, maxRank:Int):DataFrame = {
+    def calc(ds: Dataset[SummonerMatch], minGamesPlayed:Int, since:Long, maxRank:Int):Dataset[BoostedSummonersChrolesToWR] = {
         //Use "distinct" so that in case a match got in more than once it will count just once
-        df.distinct().createOrReplaceTempView("BoostedSummonersChrolesToWR_calc") ;
-        df.sparkSession.sql(
+        import Application.session.implicits._
+        ds.distinct().createOrReplaceTempView("BoostedSummonersChrolesToWR_calc") ;
+        ds.sparkSession.sql(
             s"""SELECT championId, roleId, summonerId, region, gamesPlayed, winrate, matches,
                |rank() OVER (PARTITION BY championId, roleId ORDER BY winrate DESC, gamesPlayed DESC, summonerId DESC) as rank FROM (
                |SELECT championId, roleId, summonerId, region, count(*) as gamesPlayed, (sum(if (winner=true,1,0))/count(winner)) as winrate, collect_list(matchId) as matches
@@ -43,20 +46,8 @@ object BoostedSummonersChrolesToWR {
                |GROUP BY championId, roleId, summonerId, region
                |HAVING winrate > 0.5 AND gamesPlayed >= $minGamesPlayed
                |) having rank <= $maxRank
-      """.stripMargin)
+      """.stripMargin).as[BoostedSummonersChrolesToWR]
     }
 
-    def apply(row: Row):BoostedSummonersChrolesToWR = {
-        BoostedSummonersChrolesToWR(
-            row.getInt(0),
-            row.getInt(1),
-            row.getLong(2),
-            row.getString(3),
-            row.getLong(4),
-            row.getDouble(5),
-            row.getSeq[Long](6),
-            row.getInt(7)
-        )
-    }
 
 }

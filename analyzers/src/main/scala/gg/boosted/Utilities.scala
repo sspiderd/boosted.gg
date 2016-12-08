@@ -43,10 +43,4 @@ object Utilities {
     return deseredMessages
   }
 
-  def smRDDToDF(rdd:RDD[SummonerMatch]):DataFrame = {
-    import Spark.session.implicits._
-    rdd.toDF()
-  }
-
-
 }

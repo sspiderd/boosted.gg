@@ -1,10 +1,12 @@
 package gg.boosted;
 
+import groovy.transform.CompileStatic;
 import redis.clients.jedis.Jedis;
 
 /**
  * Created by ilan on 8/30/16.
  */
+@CompileStatic
 public class RedisStore {
 
     private static Jedis jedis = new Jedis("10.0.0.3");
