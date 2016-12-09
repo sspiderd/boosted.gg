@@ -7,11 +7,10 @@
 # you're doing.
 Vagrant.configure(2) do |config|
   
-  config.vm.box = "ubuntu/xenial-cloud"
-  config.vm.box_url = "http://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-vagrant.box"
+  config.vm.box = "ubuntu/xenial64"
 
-  #config.vm.box = "geerlingguy/ubuntu1604"
-  #config.vm.box_url = "https://atlas.hashicorp.com/geerlingguy/boxes/ubuntu1604
+  #config.vm.box = "ubuntu/xenial-cloud"
+  #config.vm.box_url = "http://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-vagrant.box"
 
   #config.vm.box_version = "20160830.0.0"
 
@@ -22,7 +21,7 @@ Vagrant.configure(2) do |config|
    v.cpus = 1
   end
 
-  config.vm.network "private_network", ip: "10.0.0.3", nic_type: "virtio"
+  config.vm.network "private_network", ip: "10.0.0.3" #, nic_type: "virtio"
 
   #For the day i'll be using docker for kafka and zk
   #config.vm.network "forwarded_port", guest: 9092, host: 9092
