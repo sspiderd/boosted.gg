@@ -1,43 +1,32 @@
 package gg.boosted.maps
 
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
-
-import scala.io.Source
+import gg.boosted.{Region, RiotApi}
 
 /**
-  * Created by ilan on 8/28/16.
+  * Created by ilan on 12/9/16.
   */
 object Champions {
 
-    val championsJsonLocation = "/champions.json"
+    var champions = collection.mutable.HashMap.empty[Int, String]
 
-    var map:Map[Int,String] = Map()
-
-    def jsonStrToMap(jsonStr: String): Map[Int, String] = {
-        implicit val formats = org.json4s.DefaultFormats
-
-        val map = parse(jsonStr).extract[Map[Int, String]]
-        return map
-    }
-
-    def populateMap():Unit = {
-        val json = Source.fromInputStream(getClass.getResourceAsStream(championsJsonLocation)).mkString
-        map = jsonStrToMap(json)
+    private def populateMap(): Unit = {
+        import collection.JavaConverters._
+        val riotApi = new RiotApi(Region.EUW)
+        riotApi.getChampionsList.asScala.foreach(champ => champions(champ.id) = champ.name)
     }
 
     def byId(id:Int):String = {
-        if (!map.contains(id)) {
-            populateMap()
+        champions.get(id) match {
+            case Some(name) => name
+            case None =>
+                //We can't find the id, load it from riot
+                populateMap()
+                champions.get(id).getOrElse("UNKNOWN CHAMPION")
         }
-        if (!map.contains(id)) {
-            return "UNKNOWN CHAMP"
-        }
-        return map(id)
     }
 
-    def main(args: Array[String]) {
-        populateMap()
-    }
 
+    def main(args: Array[String]): Unit = {
+        print (Champions.byId(23))
+    }
 }

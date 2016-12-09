@@ -24,6 +24,7 @@
         <processorPath useClasspath="true" />
         <module name="analyzers" />
         <module name="data-maker" />
+        <module name="riot-api" />
         <module name="riot-api-java" />
       </profile>
     </annotationProcessing>
@@ -32,6 +33,7 @@
       <module name="analyzers-groovy" target="1.8" />
       <module name="data-maker" target="1.8" />
       <module name="parent" target="1.5" />
+      <module name="riot-api" target="1.8" />
       <module name="riot-api-java" target="1.8" />
     </bytecodeTargetLevel>
   </component>

@@ -1,8 +1,8 @@
 package gg.boosted.dal
 
+import gg.boosted.Role
 import gg.boosted.analyzers.MostBoostedSummoners
 import gg.boosted.maps.{Champions, SummonerIdToLoLScore, SummonerIdToName}
-import gg.boosted.Role
 import org.slf4j.LoggerFactory
 
 /**

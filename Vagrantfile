@@ -7,10 +7,10 @@
 # you're doing.
 Vagrant.configure(2) do |config|
   
-  #config.vm.box = "ubuntu/xenial-cloud"
-  #config.vm.box_url = "http://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-vagrant.box"
+  config.vm.box = "ubuntu/xenial-cloud"
+  config.vm.box_url = "http://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-vagrant.box"
 
-  config.vm.box = "geerlingguy/ubuntu1604"
+  #config.vm.box = "geerlingguy/ubuntu1604"
   #config.vm.box_url = "https://atlas.hashicorp.com/geerlingguy/boxes/ubuntu1604
 
   #config.vm.box_version = "20160830.0.0"
