@@ -21,7 +21,7 @@ object AnalyzerService {
 
     val maxRank = 1000
 
-    val minGamesPlayed = 4
+    val minGamesPlayed = 1
 
     def analyze(stream:DStream[SummonerMatch]):Unit = {
 

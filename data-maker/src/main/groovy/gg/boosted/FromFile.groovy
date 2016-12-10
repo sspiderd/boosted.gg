@@ -23,7 +23,7 @@ class FromFile {
     }
 
 //    public static void main(String[] args) {
-//        String matchesText = FromFile.getClass().getResource( '/matches2.json' ).openStream().text
+//        String matchesText = FromFile.getClass().getResource( '/matches1.json' ).openStream().text
 //        new JsonSlurper().parseText(matchesText)['matches'].each { match ->
 //            List<SummonerMatch> summonerGameList = MatchParser.parseMatch(match) ;
 //            summonerGameList.each {
