@@ -1,10 +1,10 @@
 package gg.boosted
 
+import gg.boosted.dtos.match.MatchDetail
 import groovy.json.JsonSlurper
+import groovy.transform.CompileStatic
 import net.rithms.riot.api.ApiConfig
 import net.rithms.riot.api.RiotApi
-import net.rithms.riot.api.endpoints.match.dto.MatchDetail
-import net.rithms.riot.constant.QueueType
 import net.rithms.riot.constant.Region
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,6 +16,7 @@ import java.time.ZoneId
 /**
  * Created by ilan on 8/30/16.
  */
+@CompileStatic
 class FromRiot {
 
     static Logger log = LoggerFactory.getLogger(FromRiot)
@@ -82,7 +83,7 @@ class FromRiot {
                     log.debug("Processing match ${it}")
 
                     //Get the match itself
-                    MatchDetail match = riotApi.getMatch(region, it, false)
+                    MatchDetail match = riotApi1.getMatch(it, false)
                     //def match = RiotAPIMy.getMatch(it, region.toLowerCase())
 
                     //create "SummonerMatch" items for each summoner in the match
@@ -132,10 +133,10 @@ class FromRiot {
         if (seed.size() == 0) {
             List<String> summonerNames = []
             new JsonSlurper().parseText(riotApi1.getFeaturedGames())["gameList"].each {match ->
-                match["participants"].each {participant -> summonerNames += participant["summonerName"]} ;
+                match["participants"].each {participant -> summonerNames += (String)participant["summonerName"]}
             }
-            Map<String, String> namesToIds = riotApi1.getSummonerIdsByNames(summonerNames.toArray(new String[0])) ;
-            seed = namesToIds.values() ;
+            Map<String, String> namesToIds = riotApi1.getSummonerIdsByNames(summonerNames.toArray(new String[0]))
+            seed.addAll(namesToIds.values())
         }
 
         return seed

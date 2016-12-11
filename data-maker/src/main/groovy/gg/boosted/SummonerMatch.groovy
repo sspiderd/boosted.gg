@@ -10,7 +10,7 @@ class SummonerMatch {
 
     Long matchId
     Long summonerId
-    Long championId
+    Integer championId
     Integer roleId
     Boolean winner
     String region

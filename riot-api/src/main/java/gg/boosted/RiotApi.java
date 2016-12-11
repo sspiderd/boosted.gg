@@ -1,5 +1,6 @@
 package gg.boosted;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import gg.boosted.constants.QueueType;
 import gg.boosted.dtos.Champion;
 import gg.boosted.dtos.MatchReference;
+import gg.boosted.dtos.match.MatchDetail;
 import gg.boosted.throttlers.IThrottler;
 import gg.boosted.throttlers.SimpleThrottler;
 import gg.boosted.utilities.ArrayChunker;
@@ -65,6 +67,11 @@ public class RiotApi {
                     String retryAfter = cer.getResponse().getHeaderString("Retry-After") ;
                     if (retryAfter != null) {
                         error = error.concat(" : retryAfter {" + retryAfter + "}") ;
+                        try {
+                            Thread.sleep(Long.parseLong(retryAfter) * 1000);
+                        } catch (InterruptedException e) {
+                            log.error("I shouldn't really be here");
+                        }
                     }
                 }
                 log.error(error);
@@ -161,16 +168,29 @@ public class RiotApi {
         return challengerIds ;
     }
 
+    public MatchDetail getMatch(long matchId, boolean includeTimeline) {
+        String endpoint = String.format("%s/v2.2/match/%s?includeTimeline=%s&api_key=%s", regionEndpoint, matchId, includeTimeline, riotApiKey) ;
+        JsonNode root = callApi(endpoint);
+        try {
+            return om.treeToValue(root, MatchDetail.class) ;
+        } catch (JsonProcessingException e) {
+            log.error("Processing exception", e);
+            throw new RuntimeException(e) ;
+        }
+    }
+
 
     public static void main(String[] args) throws IOException {
         //new RiotApi(Region.EUW).getChampionsList() ;
         //new RiotApi(Region.KR).getMatchList(2035958L, 1) ;
-        for (String s : new RiotApi(Region.EUW).getMastersIds()) {
-            System.out.println(s);
-        }
-        for (String s : new RiotApi(Region.EUW).getChallengersIds()) {
-            System.out.println(s);
-        }
+//        for (String s : new RiotApi(Region.EUW).getMastersIds()) {
+//            System.out.println(s);
+//        }
+//        for (String s : new RiotApi(Region.EUW).getChallengersIds()) {
+//            System.out.println(s);
+//        }
+
+        new RiotApi(Region.EUW).getMatch(2969769203L, false) ;
     }
 
 

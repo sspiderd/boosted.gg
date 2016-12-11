@@ -1,7 +1,7 @@
 package gg.boosted
 
+import gg.boosted.dtos.match.MatchDetail
 import groovy.transform.CompileStatic
-import net.rithms.riot.api.endpoints.match.dto.MatchDetail
 
 /**
  * Created by ilan on 8/11/16.
