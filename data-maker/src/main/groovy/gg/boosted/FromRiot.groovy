@@ -3,9 +3,6 @@ package gg.boosted
 import gg.boosted.dtos.match.MatchDetail
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
-import net.rithms.riot.api.ApiConfig
-import net.rithms.riot.api.RiotApi
-import net.rithms.riot.constant.Region
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -23,16 +20,11 @@ class FromRiot {
 
     static RiotApi riotApi
 
-    static gg.boosted.RiotApi riotApi1 ;
-
     static Region region
 
-    public static void main(String[] args) {
-        ApiConfig config = new ApiConfig()
-        config.setKey(System.getenv("RIOT_API_KEY"))
-        riotApi = new RiotApi(config)
+    static void main(String[] args) {
 
-        riotApi1 = new gg.boosted.RiotApi(gg.boosted.Region.EUW) ;
+        riotApi = new RiotApi(Region.EUW) ;
 
         extract(Region.EUW)
     }
@@ -83,7 +75,7 @@ class FromRiot {
                     log.debug("Processing match ${it}")
 
                     //Get the match itself
-                    MatchDetail match = riotApi1.getMatch(it, false)
+                    MatchDetail match = riotApi.getMatch(it, false)
                     //def match = RiotAPIMy.getMatch(it, region.toLowerCase())
 
                     //create "SummonerMatch" items for each summoner in the match
@@ -112,10 +104,7 @@ class FromRiot {
     }
 
     static List<Long> getSummonerMatchIds(String summonerId, long since) {
-        //riotApi.getMatchList(region, summonerId as long, null, QueueType.RANKED_SOLO_5x5.toString(), null, since, -1L, -1, -1).getMatches().collect {it.matchId}
-        //riotApi.getMatchList(summonerId.toLong(), new Date(since)).collect {it.getID()}
-        //return RiotAPIMy.getMatchlistForSummoner(summonerId, region, since)["matches"].collect {it["matchId"].toString()}
-        riotApi1.getMatchList(summonerId as long, since).collect {it.matchId}
+        riotApi.getMatchList(summonerId as long, since).collect {it.matchId}
     }
 
     static List<String> getInitialSummonerSeed(Region region) {
@@ -123,8 +112,8 @@ class FromRiot {
 
         //At the beginning of the season there are no challengers and masters, so the following
         //API calls will return null
-        seed.addAll(riotApi1.getChallengersIds())
-        seed.addAll(riotApi1.getMastersIds())
+        seed.addAll(riotApi.getChallengersIds())
+        seed.addAll(riotApi.getMastersIds())
 
         log.debug("Found total {} challengers + masters", seed.size())
 
@@ -132,10 +121,10 @@ class FromRiot {
         //Try to get a seed from some random game
         if (seed.size() == 0) {
             List<String> summonerNames = []
-            new JsonSlurper().parseText(riotApi1.getFeaturedGames())["gameList"].each {match ->
+            new JsonSlurper().parseText(riotApi.getFeaturedGames())["gameList"].each { match ->
                 match["participants"].each {participant -> summonerNames += (String)participant["summonerName"]}
             }
-            Map<String, String> namesToIds = riotApi1.getSummonerIdsByNames(summonerNames.toArray(new String[0]))
+            Map<String, String> namesToIds = riotApi.getSummonerIdsByNames(summonerNames.toArray(new String[0]))
             seed.addAll(namesToIds.values())
         }
 

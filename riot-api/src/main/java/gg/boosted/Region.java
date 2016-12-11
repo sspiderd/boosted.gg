@@ -4,7 +4,17 @@ package gg.boosted;
  * Created by ilan on 12/9/16.
  */
 public enum Region {
-    EUW,
+    BR,
     EUNE,
-    KR
+    EUW,
+    JP,
+    KR,
+    LAS,
+    LAN,
+    NA,
+    OCE,
+    PBE,
+    RU,
+    TR,
+    GLOBAL;
 }

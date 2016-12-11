@@ -28,8 +28,9 @@ public class SimpleThrottler implements IThrottler {
     public void waitFor() {
         while (System.currentTimeMillis() - lastTimeCalled < millisBetweenRequests) {
             try {
-                log.debug("Can't call API yet, sleeping for {} ms", millisBetweenRequests);
-                Thread.sleep(millisBetweenRequests);
+                long sleepTime = millisBetweenRequests + lastTimeCalled - System.currentTimeMillis() ;
+                log.debug("Can't call API yet, sleeping for {} ms", sleepTime);
+                Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
                 log.error("This code shouldn't be reached");
                 throw new RuntimeException("This code shouldn't be reached");

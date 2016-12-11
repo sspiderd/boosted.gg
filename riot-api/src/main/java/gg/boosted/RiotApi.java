@@ -12,6 +12,7 @@ import gg.boosted.dtos.match.MatchDetail;
 import gg.boosted.throttlers.IThrottler;
 import gg.boosted.throttlers.SimpleThrottler;
 import gg.boosted.utilities.ArrayChunker;
+import gg.boosted.utilities.ArrayConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,8 +124,8 @@ public class RiotApi {
         return rootNode.toString() ;
     }
 
-    public Map<String, String> getSummonerIdsByNames(String... names) throws IOException {
-        Map<String, String> map = new HashMap<>() ;
+    public Map<String, Long> getSummonerIdsByNames(String... names) throws IOException {
+        Map<String, Long> map = new HashMap<>() ;
         //We can get 40 names for each call, so
         List<String[]> chunckedArray = ArrayChunker.split(names, 40) ;
 
@@ -138,10 +139,29 @@ public class RiotApi {
             Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields() ;
             while (it.hasNext()) {
                 JsonNode node = it.next().getValue() ;
-                map.put(node.get("name").asText(), node.get("id").asText()) ;
+                map.put(node.get("name").asText(), node.get("id").asLong()) ;
             }
         }
         return map ;
+    }
+
+    public Map<Long, String> getSummonerNamesByIds(Long... ids) {
+        Map<Long, String> map = new HashMap<>() ;
+        List<Long[]> chunkedArray = ArrayChunker.split(ids, 40) ;
+        for (Long[] array : chunkedArray) {
+
+            String endpoint = String.format("%s/v1.4/summoner/", regionEndpoint) ;
+            endpoint += Arrays.stream(ArrayConverter.convertLongToString(array)).collect(Collectors.joining(",")) ;
+            endpoint += "&api_key=" + riotApiKey ;
+            JsonNode rootNode = callApi(endpoint) ;
+            //Riot has made this api a little silly, so i need to be silly to get the data
+            Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields() ;
+            while (it.hasNext()) {
+                JsonNode node = it.next().getValue() ;
+                map.put(node.get("id").asLong(), node.get("name").asText()) ;
+            }
+        }
+        return map;
     }
 
     public List<String> getChallengersIds() {

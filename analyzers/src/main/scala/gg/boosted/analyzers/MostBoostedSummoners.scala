@@ -7,7 +7,7 @@ import org.apache.spark.sql.Dataset
 case class MostBoostedSummoners(
                                  championId: Int,
                                  roleId: Int,
-                                 summonerId: Long,
+                                 summonerId: String,
                                  region: String,
                                  gamesPlayed: Long,
                                  winrate: Double,

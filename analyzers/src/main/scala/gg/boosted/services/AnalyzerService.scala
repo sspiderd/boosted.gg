@@ -5,7 +5,7 @@ import java.util.Date
 import gg.boosted.Application
 import gg.boosted.analyzers.MostBoostedSummoners
 import gg.boosted.dal.{BoostedEntity, BoostedRepository}
-import gg.boosted.maps.{SummonerIdToLoLScore, SummonerIdToName}
+import gg.boosted.maps.{SummonerIdToLoLScore, SummonerIdToName, Summoners}
 import gg.boosted.posos.SummonerMatch
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Dataset
@@ -50,8 +50,10 @@ object AnalyzerService {
         //I'm assuming that the answer is "no" and so i need to keep a map of region->summonerIds
         val regionToSummonerIds = topSummoners.groupBy(_.region).mapValues(_.map(_.summonerId))
 
-        SummonerIdToName.populateSummonerNamesByIds(regionToSummonerIds)
-        SummonerIdToLoLScore.populateLoLScoresByIds(regionToSummonerIds)
+        //regionToSummonerIds.foreach(k => Summoners.getNames(k._2, k._1))
+
+        //SummonerIdToName.populateSummonerNamesByIds(regionToSummonerIds)
+        //SummonerIdToLoLScore.populateLoLScoresByIds(regionToSummonerIds)
 
         val topSummonersEntities = topSummoners.map(BoostedEntity(_))
 

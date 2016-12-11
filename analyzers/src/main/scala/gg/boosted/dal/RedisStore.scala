@@ -11,14 +11,14 @@ object RedisStore {
 
     val summonerIdToNameKey = "summonerIdToName"
 
-    val TTL = 60*60*24*5
+    val summonerNameTTL = 60*60*24*5 //5 days
 
     def getSummonerNameById(region:String, summonerId:Long):Option[String] = {
         rc.get(s"$summonerIdToNameKey:$region:$summonerId")
     }
 
     def addSummonerName(region:String, summonerId:Long, summonerName:String):Unit = {
-        rc.setex(s"$summonerIdToNameKey:$region:$summonerId", TTL, summonerName)
+        rc.setex(s"$summonerIdToNameKey:$region:$summonerId", summonerNameTTL, summonerName)
     }
 
 }
