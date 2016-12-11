@@ -1,11 +1,14 @@
 package gg.boosted.maps
 
 import gg.boosted.{Region, RiotApi}
+import org.slf4j.{Logger, LoggerFactory}
 
 /**
   * Created by ilan on 12/9/16.
   */
 object Champions {
+
+    val log:Logger = LoggerFactory.getLogger(Champions.getClass) ;
 
     var champions = collection.mutable.HashMap.empty[Int, String]
 
@@ -19,6 +22,7 @@ object Champions {
         champions.get(id) match {
             case Some(name) => name
             case None =>
+                log.debug("Champion id {} not found. Downloading from riot..", id)
                 //We can't find the id, load it from riot
                 populateMap()
                 champions.get(id).getOrElse("UNKNOWN CHAMPION")

@@ -8,6 +8,7 @@ import gg.boosted.dtos.MatchReference;
 import gg.boosted.throttlers.IThrottler;
 import gg.boosted.throttlers.SimpleThrottler;
 import gg.boosted.utilities.ArrayChunker;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +17,9 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,17 +49,31 @@ public class RiotApi {
                 region.toString().toLowerCase() ;
     }
 
-    private JsonNode callApi(String endpoint) throws IOException {
+    private JsonNode callApi(String endpoint) {
         WebTarget target = client.target(endpoint) ;
-        try {
-            throttler.waitFor();
-            String response = target.request(MediaType.APPLICATION_JSON_TYPE).get(String.class);
-            return om.readValue(response, JsonNode.class);
-        } catch (ClientErrorException cer) {
-            log.error("Bad status: {}", cer.getResponse().getStatus());
-            throw cer ;
+        //Don't stop believing
+        while (true) {
+            try {
+                throttler.waitFor();
+                log.debug("API Called: {}", endpoint);
+                String response = target.request(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+                return om.readValue(response, JsonNode.class);
+            } catch (ClientErrorException cer) {
+                int status = cer.getResponse().getStatus() ;
+                String error = String.format("Bad status: {%d} -> {%s}", status, cer.getResponse().getStatusInfo().getReasonPhrase());
+                if (status == 429) {
+                    error = error.concat(" : rateLimitCount {" + cer.getResponse().getHeaderString("X-Rate-Limit-Count") + "}") ;
+                    String retryAfter = cer.getResponse().getHeaderString("Retry-After") ;
+                    if (retryAfter != null) {
+                        error = error.concat(" : retryAfter {" + retryAfter + "}") ;
+                    }
+                }
+                log.error(error);
+            } catch (Exception ex) {
+                log.error("Logged unknown error", ex) ;
+                throw new RuntimeException(ex) ;
+            }
         }
-
     }
 
     public List<Champion> getChampionsList() throws IOException {

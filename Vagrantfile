@@ -21,7 +21,7 @@ Vagrant.configure(2) do |config|
    v.cpus = 1
   end
 
-  config.vm.network "private_network", ip: "10.0.0.3" #, nic_type: "virtio"
+  config.vm.network "private_network", ip: "10.0.0.3" , nic_type: "virtio"
 
   #For the day i'll be using docker for kafka and zk
   #config.vm.network "forwarded_port", guest: 9092, host: 9092

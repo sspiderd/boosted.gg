@@ -1,5 +1,8 @@
 package gg.boosted.throttlers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  * A simple, non-threadsafe throttler
@@ -7,6 +10,8 @@ package gg.boosted.throttlers;
  * Created by ilan on 12/10/16.
  */
 public class SimpleThrottler implements IThrottler {
+
+    private Logger log = LoggerFactory.getLogger(SimpleThrottler.class) ;
 
     private long millisBetweenRequests ;
 
@@ -23,10 +28,12 @@ public class SimpleThrottler implements IThrottler {
     public void waitFor() {
         while (System.currentTimeMillis() - lastTimeCalled < millisBetweenRequests) {
             try {
+                log.debug("Can't call API yet, sleeping for {} ms", millisBetweenRequests);
                 Thread.sleep(millisBetweenRequests);
                 lastTimeCalled = System.currentTimeMillis() ;
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                log.error("This code shouldn't be reached");
+                throw new RuntimeException("This code shouldn't be reached");
             }
         }
     }
