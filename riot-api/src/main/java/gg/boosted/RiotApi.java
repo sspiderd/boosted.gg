@@ -3,12 +3,13 @@ package gg.boosted;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import gg.boosted.constants.QueueType;
 import gg.boosted.dtos.Champion;
 import gg.boosted.dtos.MatchReference;
 import gg.boosted.throttlers.IThrottler;
 import gg.boosted.throttlers.SimpleThrottler;
 import gg.boosted.utilities.ArrayChunker;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,9 +18,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -138,9 +137,40 @@ public class RiotApi {
         return map ;
     }
 
+    public List<String> getChallengersIds() {
+        List<String> challengerIds = new LinkedList<>() ;
+        String endpoint = String.format("%s/v2.5/league/challenger?type=%s&api_key=%s", regionEndpoint, QueueType.RANKED_SOLO_5x5, riotApiKey) ;
+        JsonNode root = callApi(endpoint) ;
+        Iterator<JsonNode> it = root.get("entries").elements() ;
+        while (it.hasNext()) {
+            JsonNode node = it.next() ;
+            challengerIds.add(node.get("playerOrTeamId").toString());
+        }
+        return challengerIds ;
+    }
+
+    public List<String> getMastersIds() {
+        List<String> challengerIds = new LinkedList<>() ;
+        String endpoint = String.format("%s/v2.5/league/master?type=%s&api_key=%s", regionEndpoint, QueueType.RANKED_SOLO_5x5, riotApiKey) ;
+        JsonNode root = callApi(endpoint) ;
+        Iterator<JsonNode> it = root.get("entries").elements() ;
+        while (it.hasNext()) {
+            JsonNode node = it.next() ;
+            challengerIds.add(node.get("playerOrTeamId").toString());
+        }
+        return challengerIds ;
+    }
+
+
     public static void main(String[] args) throws IOException {
         //new RiotApi(Region.EUW).getChampionsList() ;
-        new RiotApi(Region.KR).getMatchList(2035958L, 1) ;
+        //new RiotApi(Region.KR).getMatchList(2035958L, 1) ;
+        for (String s : new RiotApi(Region.EUW).getMastersIds()) {
+            System.out.println(s);
+        }
+        for (String s : new RiotApi(Region.EUW).getChallengersIds()) {
+            System.out.println(s);
+        }
     }
 
 

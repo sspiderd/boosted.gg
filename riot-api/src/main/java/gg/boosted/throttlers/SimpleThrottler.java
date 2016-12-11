@@ -30,11 +30,11 @@ public class SimpleThrottler implements IThrottler {
             try {
                 log.debug("Can't call API yet, sleeping for {} ms", millisBetweenRequests);
                 Thread.sleep(millisBetweenRequests);
-                lastTimeCalled = System.currentTimeMillis() ;
             } catch (InterruptedException e) {
                 log.error("This code shouldn't be reached");
                 throw new RuntimeException("This code shouldn't be reached");
             }
         }
+        lastTimeCalled = System.currentTimeMillis() ;
     }
 }
