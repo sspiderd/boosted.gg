@@ -18,7 +18,7 @@ public class SimpleThrottler implements IThrottler {
     private long lastTimeCalled = 0;
 
     public SimpleThrottler(int requestsPer10Seconds, int requestsPer10Minutes) {
-        millisBetweenRequests = Double.valueOf(Math.max(requestsPer10Seconds/10.0, requestsPer10Minutes/600.0) * 1000).longValue();
+        millisBetweenRequests = Double.valueOf(Math.max(10.0/requestsPer10Seconds, 600.0/requestsPer10Minutes) * 1000).longValue();
     }
 
     /**

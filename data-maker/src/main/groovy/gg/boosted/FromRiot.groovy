@@ -122,14 +122,10 @@ class FromRiot {
 
         //At the beginning of the season there are no challengers and masters, so the following
         //API calls will return null
-        def entries = riotApi.getChallengerLeague(region, QueueType.RANKED_SOLO_5x5).entries
-        if (entries != null) entries.each {
-            seed += it.getPlayerOrTeamId()
-        }
-        entries = riotApi.getMasterLeague(region, QueueType.RANKED_SOLO_5x5).entries
-        if (entries != null) entries.each {
-            seed += it.getPlayerOrTeamId()
-        }
+        seed.addAll(riotApi1.getChallengersIds())
+        seed.addAll(riotApi1.getMastersIds())
+
+        log.debug("Found total {} challengers + masters", seed.size())
 
         //If there are no challengers or masters (since it's the start of the season)
         //Try to get a seed from some random game

@@ -131,7 +131,7 @@ public class RiotApi {
             Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields() ;
             while (it.hasNext()) {
                 JsonNode node = it.next().getValue() ;
-                map.put(node.get("name").toString(), node.get("id").toString()) ;
+                map.put(node.get("name").asText(), node.get("id").asText()) ;
             }
         }
         return map ;
@@ -144,7 +144,7 @@ public class RiotApi {
         Iterator<JsonNode> it = root.get("entries").elements() ;
         while (it.hasNext()) {
             JsonNode node = it.next() ;
-            challengerIds.add(node.get("playerOrTeamId").toString());
+            challengerIds.add(node.get("playerOrTeamId").asText());
         }
         return challengerIds ;
     }
