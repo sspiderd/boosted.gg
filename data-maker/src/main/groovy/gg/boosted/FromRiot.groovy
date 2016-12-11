@@ -1,8 +1,6 @@
 package gg.boosted
 
 import groovy.json.JsonSlurper
-import groovy.transform.CompileStatic
-import jdk.nashorn.internal.parser.JSONParser
 import net.rithms.riot.api.ApiConfig
 import net.rithms.riot.api.RiotApi
 import net.rithms.riot.api.endpoints.match.dto.MatchDetail
@@ -92,7 +90,7 @@ class FromRiot {
 
                     //Send them all to the broker
                     summonerMatchList.each {
-                        KafkaSummonerGameProducer.send(it)
+                        KafkaSummonerMatchProducer.send(it)
                     }
 
                     //Add the match to "seen matches"

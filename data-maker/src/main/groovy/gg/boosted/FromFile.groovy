@@ -27,7 +27,7 @@ class FromFile {
 //        new JsonSlurper().parseText(matchesText)['matches'].each { match ->
 //            List<SummonerMatch> summonerGameList = MatchParser.parseMatch(match) ;
 //            summonerGameList.each {
-//                KafkaSummonerGameProducer.send(it)
+//                KafkaSummonerMatchProducer.send(it)
 //                sleep 500
 //            }
 //        }

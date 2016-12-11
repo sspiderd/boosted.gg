@@ -9,7 +9,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
  * Created by ilan on 8/11/16.
  */
 @CompileStatic
-class KafkaSummonerGameProducer {
+class KafkaSummonerMatchProducer {
 
     static Producer<String, String> producer ;
 
