@@ -18,4 +18,15 @@ public class LeagueEntry {
 
     public String tier ;
 
+    public MiniSeries miniSeries ;
+
+    public static class MiniSeries {
+
+        public int losses;
+        public String progress;
+        public int target;
+        public int wins;
+
+    }
+
 }

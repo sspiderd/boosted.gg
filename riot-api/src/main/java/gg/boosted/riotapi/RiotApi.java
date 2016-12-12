@@ -68,8 +68,10 @@ public class RiotApi {
                     String retryAfter = cer.getResponse().getHeaderString("Retry-After") ;
                     if (retryAfter != null) {
                         error = error.concat(" : retryAfter {" + retryAfter + "}") ;
+                        long retryMillis = Long.parseLong(retryAfter) * 1000 ;
+                        log.warn("retryAfter header sent. will retry after {} millis", retryMillis);
                         try {
-                            Thread.sleep(Long.parseLong(retryAfter) * 1000);
+                            Thread.sleep(retryMillis);
                         } catch (InterruptedException e) {
                             log.error("I shouldn't really be here");
                         }
@@ -134,7 +136,7 @@ public class RiotApi {
             String endpoint = regionEndpoint +
                     "/v1.4/summoner/by-name/" ;
             endpoint += Arrays.stream(array).collect(Collectors.joining(",")) ;
-            endpoint += "&api_key=" + riotApiKey ;
+            endpoint += "?api_key=" + riotApiKey ;
             JsonNode rootNode = callApi(endpoint) ;
             //Riot has made this api a little silly, so i need to be silly to get the data
             Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields() ;
@@ -153,7 +155,7 @@ public class RiotApi {
 
             String endpoint = String.format("%s/v1.4/summoner/", regionEndpoint) ;
             endpoint += Arrays.stream(ArrayConverter.convertLongToString(array)).collect(Collectors.joining(",")) ;
-            endpoint += "&api_key=" + riotApiKey ;
+            endpoint += "?api_key=" + riotApiKey ;
             JsonNode rootNode = callApi(endpoint) ;
             //Riot has made this api a little silly, so i need to be silly to get the data
             Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields() ;

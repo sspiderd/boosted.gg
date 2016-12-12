@@ -37,7 +37,7 @@ object BoostedEntity {
             Role.byId(summoner.roleId).toString,
             summoner.summonerId.toLong,
             name,
-            summoner.region,
+            Region.valueOf(summoner.region),
             lolScore.tier,
             lolScore.division,
             lolScore.leaguePoints,

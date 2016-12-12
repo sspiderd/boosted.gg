@@ -10,6 +10,7 @@ import scala.collection.mutable
 /**
   * Created by ilan on 9/9/16.
   */
+@Deprecated
 object SummonerIdToLoLScore {
 
     val log = LoggerFactory.getLogger(getClass)

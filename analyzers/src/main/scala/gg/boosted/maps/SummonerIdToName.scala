@@ -9,6 +9,7 @@ import scala.collection.mutable
 /**
   * Created by ilan on 9/8/16.
   */
+@Deprecated
 object SummonerIdToName {
 
     val log = LoggerFactory.getLogger(getClass)

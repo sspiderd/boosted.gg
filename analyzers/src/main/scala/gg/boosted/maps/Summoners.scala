@@ -83,7 +83,7 @@ object Summoners {
             }
         })
 
-        log.debug("Found {} summoner names already in store", map.size)
+        log.debug("Found {} summoner lol scores already in store", map.size)
 
         //Group by region and retrieve the names
         unknowns.groupBy(_.region).foreach { case(region, ids) => {

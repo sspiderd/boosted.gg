@@ -49,7 +49,7 @@ object BoostedRepository {
                     Double.box(row.winrate),
                     Long.box(row.summonerId),
                     row.summonerName,
-                    row.region,
+                    row.region.toString,
                     row.tier,
                     row.division,
                     Int.box(row.leaguePoints),

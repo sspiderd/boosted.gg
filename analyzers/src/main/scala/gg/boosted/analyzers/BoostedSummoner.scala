@@ -2,14 +2,13 @@ package gg.boosted.analyzers
 
 import gg.boosted.Application
 import gg.boosted.posos.SummonerMatch
-import gg.boosted.riotapi.Region
 import org.apache.spark.sql.Dataset
 
 case class BoostedSummoner(
                                  championId: Int,
                                  roleId: Int,
                                  summonerId: String,
-                                 region: Region,
+                                 region: String,
                                  gamesPlayed: Long,
                                  winrate: Double,
                                  matches: Seq[Long],

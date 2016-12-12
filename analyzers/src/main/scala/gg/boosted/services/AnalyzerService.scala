@@ -22,7 +22,7 @@ object AnalyzerService {
 
     val maxRank = 1000
 
-    val minGamesPlayed = 1
+    val minGamesPlayed = 3
 
     def analyze(stream:DStream[SummonerMatch]):Unit = {
 
@@ -47,7 +47,7 @@ object AnalyzerService {
         //Get the boosted summoner DF by champion and role
         val topSummoners = BoostedSummoner.calculate(ds, minGamesPlayed, 0, maxRank).collect()
 
-        val summonerIds = topSummoners.map ( s => SummonerId(s.summonerId.toLong, s.region))
+        val summonerIds = topSummoners.map ( s => SummonerId(s.summonerId.toLong, Region.valueOf(s.region)))
 
         //Get the names and scores of the output so we can store in the db
         val names = Summoners.getNames(summonerIds)
@@ -55,7 +55,7 @@ object AnalyzerService {
         val scores = Summoners.getLOLScores(summonerIds)
 
         val topSummonersEntities = topSummoners.map(summoner => {
-            val id = SummonerId(summoner.summonerId.toLong, summoner.region)
+            val id = SummonerId(summoner.summonerId.toLong, Region.valueOf(summoner.region))
             val name = names(id)
             val score = scores(id)
             BoostedEntity.toEntity(summoner, name, score)
