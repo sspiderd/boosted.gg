@@ -1,6 +1,6 @@
 package gg.boosted
 
-import gg.boosted.dtos.match.MatchDetail
+import gg.boosted.riotapi.dtos.match.MatchDetail
 import groovy.transform.CompileStatic
 
 /**

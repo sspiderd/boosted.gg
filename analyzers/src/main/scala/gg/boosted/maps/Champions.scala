@@ -1,6 +1,6 @@
 package gg.boosted.maps
 
-import gg.boosted.{Region, RiotApi}
+import gg.boosted.riotapi.{Region, RiotApi}
 import org.slf4j.{Logger, LoggerFactory}
 
 /**

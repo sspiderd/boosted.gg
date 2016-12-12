@@ -1,8 +1,10 @@
 package gg.boosted.dal
 
 import gg.boosted.Role
-import gg.boosted.analyzers.MostBoostedSummoners
-import gg.boosted.maps.{Champions, SummonerIdToLoLScore, SummonerIdToName}
+import gg.boosted.analyzers.BoostedSummoner
+import gg.boosted.maps.Champions
+import gg.boosted.posos.LoLScore
+import gg.boosted.riotapi.Region
 import org.slf4j.LoggerFactory
 
 /**
@@ -13,7 +15,7 @@ case class BoostedEntity (
     role:String,
     summonerId:Long,
     summonerName:String,
-    region:String,
+    region:Region,
     tier:String,
     division:String,
     leaguePoints:Int,
@@ -26,29 +28,25 @@ case class BoostedEntity (
 
 object BoostedEntity {
 
-    val RIOT_API_KEY = System.getenv("RIOT_API_KEY")
-
     val log = LoggerFactory.getLogger(BoostedEntity.getClass)
 
-    def apply(from: MostBoostedSummoners):BoostedEntity = {
-
-        val summonerName = SummonerIdToName(from.region, from.summonerId)
-        val lolScore = SummonerIdToLoLScore(from.region, from.summonerId)
-        val matches = from.matches.toArray.toList
+    def toEntity(summoner: BoostedSummoner, name:String, lolScore:LoLScore): BoostedEntity = {
+        val matches = summoner.matches.toArray.toList
         BoostedEntity(
-            Champions.byId(from.championId),
-            Role.byId(from.roleId).toString,
-            from.summonerId,
-            summonerName,
-            from.region,
+            Champions.byId(summoner.championId),
+            Role.byId(summoner.roleId).toString,
+            summoner.summonerId.toLong,
+            name,
+            summoner.region,
             lolScore.tier,
             lolScore.division,
             lolScore.leaguePoints,
             lolScore.lolScore,
-            from.gamesPlayed,
-            from.winrate,
+            summoner.gamesPlayed,
+            summoner.winrate,
             matches,
-            from.rank
+            summoner.rank
         )
     }
+
 }

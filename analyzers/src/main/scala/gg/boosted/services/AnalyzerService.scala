@@ -3,10 +3,11 @@ package gg.boosted.services
 import java.util.Date
 
 import gg.boosted.Application
-import gg.boosted.analyzers.MostBoostedSummoners
+import gg.boosted.analyzers.{BoostedSummoner, BoostedSummoner$}
 import gg.boosted.dal.{BoostedEntity, BoostedRepository}
-import gg.boosted.maps.{SummonerIdToLoLScore, SummonerIdToName, Summoners}
-import gg.boosted.posos.SummonerMatch
+import gg.boosted.maps.Summoners
+import gg.boosted.posos.{SummonerId, SummonerMatch}
+import gg.boosted.riotapi.Region
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Dataset
 import org.apache.spark.streaming.dstream.DStream
@@ -44,18 +45,21 @@ object AnalyzerService {
 
     def analyze(ds:Dataset[SummonerMatch]):Unit = {
         //Get the boosted summoner DF by champion and role
-        val topSummoners = MostBoostedSummoners.calculate(ds, minGamesPlayed, 0, maxRank).collect()
+        val topSummoners = BoostedSummoner.calculate(ds, minGamesPlayed, 0, maxRank).collect()
 
-        //I don't know whether different regions can share summoner ids or not, since that is the case
-        //I'm assuming that the answer is "no" and so i need to keep a map of region->summonerIds
-        val regionToSummonerIds = topSummoners.groupBy(_.region).mapValues(_.map(_.summonerId))
+        val summonerIds = topSummoners.map ( s => SummonerId(s.summonerId.toLong, s.region))
 
-        //regionToSummonerIds.foreach(k => Summoners.getNames(k._2, k._1))
+        //Get the names and scores of the output so we can store in the db
+        val names = Summoners.getNames(summonerIds)
 
-        //SummonerIdToName.populateSummonerNamesByIds(regionToSummonerIds)
-        //SummonerIdToLoLScore.populateLoLScoresByIds(regionToSummonerIds)
+        val scores = Summoners.getLOLScores(summonerIds)
 
-        val topSummonersEntities = topSummoners.map(BoostedEntity(_))
+        val topSummonersEntities = topSummoners.map(summoner => {
+            val id = SummonerId(summoner.summonerId.toLong, summoner.region)
+            val name = names(id)
+            val score = scores(id)
+            BoostedEntity.toEntity(summoner, name, score)
+        })
 
         if (topSummoners.length > 0) {
             BoostedRepository.insertMatches(topSummonersEntities, new Date())

@@ -1,6 +1,8 @@
 package gg.boosted
 
-import gg.boosted.dtos.match.MatchDetail
+import gg.boosted.riotapi.Region
+import gg.boosted.riotapi.RiotApi
+import gg.boosted.riotapi.dtos.match.MatchDetail
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import org.slf4j.Logger
@@ -42,7 +44,7 @@ class FromRiot {
         //Get an initial seed of summoners
         //List<String> summonerQueue = getInitialSummonerSeed(region)
         //RedisStore.addSummonersToQueue(summonerQueue)
-        List<String> summonerQueue = getInitialSummonerSeed(region)
+        List<Long> summonerQueue = getInitialSummonerSeed(region)
         RedisStore.addSummonersToQueue(region.toString(), summonerQueue as String[])
 
         //get the time at which we want to look matches from then on
@@ -107,8 +109,8 @@ class FromRiot {
         riotApi.getMatchList(summonerId as long, since).collect {it.matchId}
     }
 
-    static List<String> getInitialSummonerSeed(Region region) {
-        List<String> seed = []
+    static List<Long> getInitialSummonerSeed(Region region) {
+        List<Long> seed = []
 
         //At the beginning of the season there are no challengers and masters, so the following
         //API calls will return null
@@ -120,11 +122,12 @@ class FromRiot {
         //If there are no challengers or masters (since it's the start of the season)
         //Try to get a seed from some random game
         if (seed.size() == 0) {
+            log.info("There are currently no challengers or masters. getting seed from featured games...")
             List<String> summonerNames = []
             new JsonSlurper().parseText(riotApi.getFeaturedGames())["gameList"].each { match ->
                 match["participants"].each {participant -> summonerNames += (String)participant["summonerName"]}
             }
-            Map<String, String> namesToIds = riotApi.getSummonerIdsByNames(summonerNames.toArray(new String[0]))
+            Map<String, Long> namesToIds = riotApi.getSummonerIdsByNames(summonerNames.toArray(new String[0]))
             seed.addAll(namesToIds.values())
         }
 

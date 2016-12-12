@@ -11,13 +11,13 @@ object LoLScore {
 
     val log = LoggerFactory.getLogger(LoLScore.getClass)
 
-    def apply(league: String, division: String, leaguePoints:Int):LoLScore = {
+    def apply(tier: String, division: String, leaguePoints:Int):LoLScore = {
         var lolScore = 0
-        if (league == "UNRANKED") {
+        if (tier == "UNRANKED") {
             return LoLScore("UNRANKED", "U", 0, -1)
         }
 
-        league match {
+        tier match {
             case "BRONZE" => lolScore += 0
             case "SILVER" => lolScore += 500
             case "GOLD" => lolScore += 1000
@@ -25,11 +25,11 @@ object LoLScore {
             case "DIAMOND" => lolScore += 2000
             case "MASTER" | "CHALLENGER" => lolScore += 2500
             case _ => {
-                log.error(s"Unknown league: $league")
+                log.error(s"Unknown league: $tier")
                 return LoLScore("UNKNOWN", "U", 0, -1)
             }
         }
-        if (league != "MASTER" && league != "CHALLENGER") {
+        if (tier != "MASTER" && tier != "CHALLENGER") {
             division match {
                 case "V" => 0
                 case "IV" => lolScore += 100
@@ -44,6 +44,7 @@ object LoLScore {
         }
 
         lolScore += leaguePoints
-        LoLScore(league, division, leaguePoints, lolScore)
+        LoLScore(tier, division, leaguePoints, lolScore)
     }
+
 }
