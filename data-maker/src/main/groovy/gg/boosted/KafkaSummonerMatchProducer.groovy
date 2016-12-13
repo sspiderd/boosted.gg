@@ -29,7 +29,8 @@ class KafkaSummonerMatchProducer {
 
     static send(SummonerMatch summonerMatch) {
 
-        producer.send(new ProducerRecord<>("boostedgg", summonerMatch.summonerId, MessagePacker.pack(summonerMatch)));
+        producer.send(new ProducerRecord<>("boostedgg", summonerMatch.summonerId, MessagePacker.pack(summonerMatch)))
+        producer.flush()
     }
 
 }

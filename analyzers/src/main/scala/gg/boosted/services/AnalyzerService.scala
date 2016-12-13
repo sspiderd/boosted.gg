@@ -45,9 +45,11 @@ object AnalyzerService {
 
     def analyze(ds:Dataset[SummonerMatch]):Unit = {
         //Get the boosted summoner DF by champion and role
+        log.debug(s"Retrieved ${ds.count()} rows")
+
         val topSummoners = BoostedSummoner.calculate(ds, minGamesPlayed, 0, maxRank).collect()
 
-        log.info(s"Retrieved total of ${topSummoners.length}")
+        log.info(s"Retrieved total of ${topSummoners.length} boosted summoners")
 
         val summonerIds = topSummoners.map ( s => SummonerId(s.summonerId.toLong, Region.valueOf(s.region)))
 

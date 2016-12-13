@@ -2,7 +2,7 @@
 
 
 SCALA_VERSION=2.11
-KAFKA_VERSION=0.10.0.1
+KAFKA_VERSION=0.10.1.0
 DEBIAN_FRONTEND=noninteractive
 
 echo "127.0.1.1 ubuntu-xenial" >> /etc/hosts

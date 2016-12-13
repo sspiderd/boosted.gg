@@ -17,19 +17,4 @@ CREATE TABLE BoostedGG.BOOSTED_SUMMONERS_BY_CHAMPION_AND_ROLE (
   last_updated timestamp,
   PRIMARY KEY ((champion, role), rank)
 );
- 
-CREATE TABLE BoostedGG.HIGHEST_RATED_SUMMONERS_AT_CHROLES (
-  champion varchar,
-  role varchar,
-  rank int,
-  winrate double,
-  summoner_id bigint,
-  summoner_name varchar,
-  region varchar,
-  tier varchar,
-  matches list<bigint>,
-  last_updated timestamp,
-  PRIMARY KEY ((champion, role), rank)
-);
-
 
