@@ -28,7 +28,7 @@ object AnalyzerService {
 
         //At this point i'm not sure why i need to work with DStreams at all so:
         stream.foreachRDD(rdd => {
-            log.debug("Processing at: " + new Date()) ;
+            log.info("Processing at: " + new Date()) ;
             analyze(rdd)
         })
     }
@@ -46,6 +46,8 @@ object AnalyzerService {
     def analyze(ds:Dataset[SummonerMatch]):Unit = {
         //Get the boosted summoner DF by champion and role
         val topSummoners = BoostedSummoner.calculate(ds, minGamesPlayed, 0, maxRank).collect()
+
+        log.info(s"Retrieved total of ${topSummoners.length}")
 
         val summonerIds = topSummoners.map ( s => SummonerId(s.summonerId.toLong, Region.valueOf(s.region)))
 
