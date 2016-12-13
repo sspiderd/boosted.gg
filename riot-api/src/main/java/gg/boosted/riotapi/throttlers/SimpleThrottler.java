@@ -38,4 +38,10 @@ public class SimpleThrottler implements IThrottler {
         }
         lastTimeCalled = System.currentTimeMillis() ;
     }
+
+    //DO nothing
+    @Override
+    public void releaseLock() {
+
+    }
 }

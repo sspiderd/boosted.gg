@@ -13,4 +13,6 @@ public interface IThrottler {
      */
     void waitFor() ;
 
+    void releaseLock() ;
+
 }

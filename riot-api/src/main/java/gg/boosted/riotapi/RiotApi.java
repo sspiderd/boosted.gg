@@ -9,6 +9,7 @@ import gg.boosted.riotapi.dtos.Champion;
 import gg.boosted.riotapi.dtos.LeagueEntry;
 import gg.boosted.riotapi.dtos.MatchReference;
 import gg.boosted.riotapi.dtos.match.MatchDetail;
+import gg.boosted.riotapi.throttlers.DistributedThrottler;
 import gg.boosted.riotapi.throttlers.IThrottler;
 import gg.boosted.riotapi.throttlers.SimpleThrottler;
 import gg.boosted.riotapi.utilities.ArrayChunker;
@@ -37,7 +38,7 @@ public class RiotApi {
     private String regionEndpoint;
     Client client = ClientBuilder.newClient() ;
     ObjectMapper om = new ObjectMapper() ;
-    private IThrottler throttler = new SimpleThrottler(10, 500) ;
+    private IThrottler throttler = new DistributedThrottler(10, 500) ;
 
     public RiotApi(Region region) {
         this.region = region ;
@@ -80,7 +81,9 @@ public class RiotApi {
                 log.error(error);
             } catch (Exception ex) {
                 log.error("Logged unknown error", ex) ;
-                throw new RuntimeException(ex) ;
+                //throw new RuntimeException(ex) ;
+            } finally {
+                throttler.releaseLock();
             }
         }
     }
