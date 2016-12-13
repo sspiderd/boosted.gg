@@ -42,16 +42,15 @@ class FromRiot {
 
         //Create an empty set of summonerIds.. This is the queue to which we add new summoners that we find
         //Get an initial seed of summoners
-        //List<String> summonerQueue = getInitialSummonerSeed(region)
-        //RedisStore.addSummonersToQueue(summonerQueue)
         List<Long> summonerQueue = getInitialSummonerSeed(region)
         RedisStore.addSummonersToQueue(region.toString(), summonerQueue as String[])
 
         //get the time at which we want to look matches from then on
         long gamesPlayedSince = getDateToLookForwardFrom()
+        log.info("Looking at games since ${new Date(gamesPlayedSince)}")
 
         //While the queue is not empty
-        String summonerId = null
+        String summonerId
         while ((summonerId = RedisStore.popSummonerFromQueue(region.toString())) != null) {
             //Get the next summoner (it's in summonerId)
 

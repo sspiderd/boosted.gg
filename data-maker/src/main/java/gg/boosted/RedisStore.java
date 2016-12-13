@@ -18,21 +18,21 @@ public class RedisStore {
     private static String matchesProcessed = "matchesProcessed" ;
 
     public static void reset(String region) {
-        jedis.del(summonersInQueue + "-" + region) ;
-        jedis.del(summonersProcessed + "-" + region) ;
-        jedis.del(matchesProcessed + "-" + region) ;
+        jedis.del(summonersInQueue + ":" + region) ;
+        jedis.del(summonersProcessed + ":" + region) ;
+        jedis.del(matchesProcessed + ":" + region) ;
     }
 
     public static void addMatchesToProcessedMatches(String region, String... matchIds) {
-        jedis.sadd(matchesProcessed + "-" + region, matchIds) ;
+        jedis.sadd(matchesProcessed + ":" + region, matchIds) ;
     }
 
     public static Long addSummonersToQueue(String region, String... summonerIds) {
-        return jedis.rpush(summonersInQueue + "-" + region, summonerIds) ;
+        return jedis.rpush(summonersInQueue + ":" + region, summonerIds) ;
     }
 
     public static String popSummonerFromQueue(String region) {
-        return jedis.lpop(summonersInQueue + "-" + region) ;
+        return jedis.lpop(summonersInQueue + ":" + region) ;
     }
 
     public static Long numberOfSummonersInQueue() {
@@ -40,15 +40,15 @@ public class RedisStore {
     }
 
     public static void addSummonersProcessed(String region, String... summonerIds) {
-        jedis.sadd(summonersProcessed + "-" + region, summonerIds) ;
+        jedis.sadd(summonersProcessed + ":" + region, summonerIds) ;
     }
 
     public static boolean wasMatchProcessedAlready(String region, String matchId) {
-        return jedis.smembers(matchesProcessed + "-" + region).contains(matchId) ;
+        return jedis.smembers(matchesProcessed + ":" + region).contains(matchId) ;
     }
 
     public static boolean wasSummonerProcessedAlready(String region, String summonerId) {
-        return jedis.smembers(summonersProcessed + "-" + region).contains(summonerId) ;
+        return jedis.smembers(summonersProcessed + ":" + region).contains(summonerId) ;
     }
 
 }
