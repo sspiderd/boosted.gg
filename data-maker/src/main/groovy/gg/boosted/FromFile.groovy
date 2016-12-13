@@ -1,5 +1,8 @@
 package gg.boosted
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import gg.boosted.riotapi.dtos.match.MatchDetail
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
@@ -22,15 +25,19 @@ class FromFile {
         println JsonOutput.prettyPrint(JsonOutput.toJson(match))
     }
 
-//    public static void main(String[] args) {
-//        String matchesText = FromFile.getClass().getResource( '/matches1.json' ).openStream().text
-//        new JsonSlurper().parseText(matchesText)['matches'].each { match ->
-//            List<SummonerMatch> summonerGameList = MatchParser.parseMatch(match) ;
-//            summonerGameList.each {
-//                KafkaSummonerMatchProducer.send(it)
-//                sleep 500
-//            }
-//        }
-//    }
+    static void main(String[] args) {
+        String matchesText = FromFile.getClass().getResource( '/matches1.json' ).openStream().text
+        ObjectMapper om = new ObjectMapper()
+        Iterator it = om.readValue(matchesText, JsonNode.class).get("matches").iterator()
+        while (it.hasNext()) {
+        //new JsonSlurper().parseText(matchesText)['matches'].each { match ->
+            MatchDetail md = om.readValue(it.next().toString(), MatchDetail.class)
+            List<SummonerMatch> matchDetails = MatchParser.parseMatch(md) ;
+            matchDetails.each {
+                KafkaSummonerMatchProducer.send(it)
+                sleep 10
+            }
+        }
+    }
 
 }
