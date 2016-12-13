@@ -41,7 +41,7 @@ public class SimpleThrottler implements IThrottler {
 
     //DO nothing
     @Override
-    public void releaseLock() {
+    public void releaseLock(long lastTimeCalled) {
 
     }
 }

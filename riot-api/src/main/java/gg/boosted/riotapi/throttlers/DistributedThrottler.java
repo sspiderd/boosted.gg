@@ -80,10 +80,10 @@ public class DistributedThrottler implements IThrottler{
         }
     }
 
-    public void releaseLock() {
+    public void releaseLock(long lastTimeCalled) {
         String lockValue = jedis.get(lockRes) ;
         if (lockValue != null && Long.parseLong(lockValue) == randomValue) {
-            jedis.set(lastTimeCalledRes, String.valueOf(System.currentTimeMillis())) ;
+            jedis.set(lastTimeCalledRes, String.valueOf(lastTimeCalled)) ;
             jedis.del(lockRes) ;
             log.debug("Released lock");
         } else {
@@ -96,7 +96,7 @@ public class DistributedThrottler implements IThrottler{
         while (true) {
             dt.waitFor();
             log.debug("Called API");
-            dt.releaseLock();
+            dt.releaseLock(0);
         }
     }
 }

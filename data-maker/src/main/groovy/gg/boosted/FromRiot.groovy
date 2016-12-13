@@ -34,7 +34,7 @@ class FromRiot {
 
     static def extract(Region region) {
 
-        this.region = region ;
+        this.region = region
 
         //Forget that summoners and matches were ever processed
         //Remove all summoners and matches from redis

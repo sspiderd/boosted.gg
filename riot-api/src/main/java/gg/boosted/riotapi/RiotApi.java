@@ -54,12 +54,20 @@ public class RiotApi {
 
     private JsonNode callApi(String endpoint) {
         WebTarget target = client.target(endpoint) ;
+
+        //I'm trying to shave off a few ms by taking into account that the roundtrip itself takes some time to finish
+        //I think a good rough estimate is shaving off half the round trip.. we'll see...
+        long beforeApiCall, roundTrip = 0;
         //Don't stop believing
         while (true) {
             try {
                 throttler.waitFor();
                 log.debug("API Called: {}", endpoint);
+                beforeApiCall = System.currentTimeMillis() ;
                 String response = target.request(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+                roundTrip = System.currentTimeMillis() - beforeApiCall;
+                log.debug("Roundtrip {}", roundTrip);
+
                 return om.readValue(response, JsonNode.class);
             } catch (ClientErrorException cer) {
                 int status = cer.getResponse().getStatus() ;
@@ -70,7 +78,7 @@ public class RiotApi {
                     if (retryAfter != null) {
                         error = error.concat(" : retryAfter {" + retryAfter + "}") ;
                         long retryMillis = Long.parseLong(retryAfter) * 1000 ;
-                        log.warn("retryAfter header sent. will retry after {} millis", retryMillis);
+                        log.warn("retryAfter header sent. will retry afterApiCall {} millis", retryMillis);
                         try {
                             Thread.sleep(retryMillis);
                         } catch (InterruptedException e) {
@@ -83,7 +91,7 @@ public class RiotApi {
                 log.error("Logged unknown error", ex) ;
                 //throw new RuntimeException(ex) ;
             } finally {
-                throttler.releaseLock();
+                throttler.releaseLock(System.currentTimeMillis() - roundTrip);
             }
         }
     }
