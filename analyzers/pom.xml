@@ -87,7 +87,7 @@
         <dependency>
             <groupId>net.debasishg</groupId>
             <artifactId>redisclient_2.11</artifactId>
-            <version>3.2</version>
+            <version>3.3</version>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>

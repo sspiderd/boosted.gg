@@ -14,7 +14,7 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
   */
 object Application {
 
-  val checkPointDir = "/tmp/kuku2"
+  val checkPointDir = "/tmp/kuku3"
 
   private val master = "local[*]"
   private val appName = Configuration.getString("kafka.topic")

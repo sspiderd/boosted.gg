@@ -3,7 +3,6 @@ package gg.boosted.dal
 import com.redis._
 import gg.boosted.configuration.Configuration
 import gg.boosted.posos.{LoLScore, SummonerId}
-import gg.boosted.riotapi.Region
 
 /**
   * Created by ilan on 9/1/16.
@@ -17,6 +16,8 @@ object RedisStore {
 
     val summonerIdToLOLScoreKey = "summonerIdToLOLScore"
     val summonerLOLScoreTTL = Configuration.getLong("summoner.to.lolscore.retention.period")
+
+    val summonersProcessedKey = "summonersProcessed"
 
     def getSummonerName(id:SummonerId):Option[String] = {
         rc.get[String](s"$summonerIdToNameKey:${id.region}:${id.id}")
@@ -43,6 +44,11 @@ object RedisStore {
         rc.setex(s"$summonerIdToLOLScoreKey:${id.region}:${id.id}:tier", summonerLOLScoreTTL, lolScore.tier)
         rc.setex(s"$summonerIdToLOLScoreKey:${id.region}:${id.id}:division", summonerLOLScoreTTL, lolScore.division)
         rc.setex(s"$summonerIdToLOLScoreKey:${id.region}:${id.id}:leaguePoints", summonerLOLScoreTTL, lolScore.leaguePoints)
+    }
+
+    def wasSummonerProcessedAlready(summonerId:SummonerId): Boolean = {
+        true
+        //rc.smembers(s"${summonersProcessedKey}:${summonerId.region.toString}").contains(summonerId.id.toString)
     }
 
 }

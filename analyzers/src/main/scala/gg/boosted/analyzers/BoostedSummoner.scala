@@ -1,7 +1,9 @@
 package gg.boosted.analyzers
 
 import gg.boosted.Application
-import gg.boosted.posos.SummonerMatch
+import gg.boosted.dal.RedisStore
+import gg.boosted.posos.{SummonerId, SummonerMatch}
+import gg.boosted.riotapi.Region
 import org.apache.spark.sql.Dataset
 
 case class BoostedSummoner(
@@ -20,6 +22,10 @@ case class BoostedSummoner(
   */
 object BoostedSummoner {
 
+    def selectOnlySummonersThatWereFullyProcessed(ds: Dataset[SummonerMatch]):Dataset[SummonerMatch] = {
+        ds.filter(sm => RedisStore.wasSummonerProcessedAlready(SummonerId(sm.summonerId, Region.valueOf(sm.region))))
+    }
+
     /**
       *
       * Calculate the Most boosted summoners at each role
@@ -36,8 +42,9 @@ object BoostedSummoner {
     def calculate(ds: Dataset[SummonerMatch], minGamesPlayed:Int, since:Long, maxRank:Int):Dataset[BoostedSummoner] = {
         //Use "distinct" so that in case a match got in more than once it will count just once
         import Application.session.implicits._
-        ds.distinct().createOrReplaceTempView("MostBoostedSummoners") ;
-        ds.sparkSession.sql(
+        val filteredSummoners = selectOnlySummonersThatWereFullyProcessed(ds)
+        filteredSummoners.distinct().createOrReplaceTempView("MostBoostedSummoners") ;
+        filteredSummoners.sparkSession.sql(
             s"""SELECT championId, roleId, summonerId, region, gamesPlayed, winrate, matches,
                |rank() OVER (PARTITION BY championId, roleId ORDER BY winrate DESC, gamesPlayed DESC, summonerId DESC) as rank FROM (
                |SELECT championId, roleId, summonerId, region, count(*) as gamesPlayed, (sum(if (winner=true,1,0))/count(winner)) as winrate, collect_list(matchId) as matches
