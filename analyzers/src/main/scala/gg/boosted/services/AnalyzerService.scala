@@ -3,7 +3,7 @@ package gg.boosted.services
 import java.util.Date
 
 import gg.boosted.Application
-import gg.boosted.analyzers.{BoostedSummoner, BoostedSummoner$}
+import gg.boosted.analyzers.BoostedSummoner
 import gg.boosted.dal.{BoostedEntity, BoostedRepository}
 import gg.boosted.maps.Summoners
 import gg.boosted.posos.{SummonerId, SummonerMatch}

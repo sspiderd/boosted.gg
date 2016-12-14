@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/analyzers/analyzers.iml" filepath="$PROJECT_DIR$/analyzers/analyzers.iml" />
+      <module fileurl="file://$PROJECT_DIR$/configuration/configuration.iml" filepath="$PROJECT_DIR$/configuration/configuration.iml" />
       <module fileurl="file://$PROJECT_DIR$/data-maker/data-maker.iml" filepath="$PROJECT_DIR$/data-maker/data-maker.iml" />
       <module fileurl="file://$PROJECT_DIR$/parent.iml" filepath="$PROJECT_DIR$/parent.iml" />
       <module fileurl="file://$PROJECT_DIR$/riot-api/riot-api.iml" filepath="$PROJECT_DIR$/riot-api/riot-api.iml" />

@@ -1,5 +1,6 @@
 package gg.boosted;
 
+import gg.boosted.configuration.Configuration;
 import groovy.transform.CompileStatic;
 import redis.clients.jedis.Jedis;
 
@@ -9,22 +10,20 @@ import redis.clients.jedis.Jedis;
 @CompileStatic
 public class RedisStore {
 
-    private static Jedis jedis = new Jedis("10.0.0.3");
+    private static Jedis jedis = new Jedis(Configuration.getString("redis.location"));
+
+    private static Long TTL = Configuration.getLong("window.size.seconds") ;
 
     private static String summonersInQueue = "summonersInQueue" ;
 
     private static String summonersProcessed = "summonersProcessed" ;
 
-    private static String matchesProcessed = "matchesProcessed" ;
-
-    public static void reset(String region) {
-        jedis.del(summonersInQueue + ":" + region) ;
-        jedis.del(summonersProcessed + ":" + region) ;
-        jedis.del(matchesProcessed + ":" + region) ;
+    public static void reset() {
+        jedis.flushAll();
     }
 
-    public static void addMatchesToProcessedMatches(String region, String... matchIds) {
-        jedis.sadd(matchesProcessed + ":" + region, matchIds) ;
+    public static void addMatchToProcessedMatches(String region, String matchId) {
+        jedis.set("matchesProcessed:" + region + ":" + matchId, "", "NX", "EX", TTL) ;
     }
 
     public static Long addSummonersToQueue(String region, String... summonerIds) {
@@ -35,16 +34,12 @@ public class RedisStore {
         return jedis.lpop(summonersInQueue + ":" + region) ;
     }
 
-    public static Long numberOfSummonersInQueue() {
-        return jedis.llen(summonersInQueue) ;
-    }
-
     public static void addSummonersProcessed(String region, String... summonerIds) {
         jedis.sadd(summonersProcessed + ":" + region, summonerIds) ;
     }
 
     public static boolean wasMatchProcessedAlready(String region, String matchId) {
-        return jedis.smembers(matchesProcessed + ":" + region).contains(matchId) ;
+        return jedis.get("matchesProcessed:" + region + ":" + matchId) != null ;
     }
 
     public static boolean wasSummonerProcessedAlready(String region, String summonerId) {

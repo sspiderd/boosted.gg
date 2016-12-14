@@ -88,7 +88,7 @@ class FromRiot {
                     }
 
                     //Add the match to "seen matches"
-                    RedisStore.addMatchesToProcessedMatches(region.toString(), it.toString())
+                    RedisStore.addMatchToProcessedMatches(region.toString(), it.toString())
 
                     //Add all the summoners to the summoner queue
                     summonerMatchList.each {RedisStore.addSummonersToQueue(region.toString(), it.summonerId.toString())}
