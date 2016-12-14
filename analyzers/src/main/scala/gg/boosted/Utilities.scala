@@ -1,10 +1,7 @@
 package gg.boosted
 
-import gg.boosted.dal.RedisStore
-import gg.boosted.posos.SummonerMatch
+import gg.boosted.configuration.Configuration
 import kafka.serializer.{DefaultDecoder, StringDecoder}
-import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, Row}
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka.KafkaUtils
@@ -26,11 +23,11 @@ object Utilities {
   def getKafkaSparkContext(ssc: StreamingContext):DStream[(String, String)] = {
 
     val kafkaParams = Map[String, String](
-      "bootstrap.servers" -> "10.0.0.3:9092",
+      "bootstrap.servers" -> Configuration.getString("kafka.location").concat(":9092"),
       "group.id" -> "group1",
       "auto.commit.interval.ms" -> "1000")
 
-    val topics = "boostedgg"
+    val topics = Configuration.getString("kafka.topic")
 
     // Create direct kafka stream with brokers and topics
     val topicsSet = topics.split(",").toSet

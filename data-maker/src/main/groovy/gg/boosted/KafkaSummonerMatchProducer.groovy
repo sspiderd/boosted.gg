@@ -1,5 +1,6 @@
 package gg.boosted
 
+import gg.boosted.configuration.Configuration
 import groovy.transform.CompileStatic
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer
@@ -15,7 +16,7 @@ class KafkaSummonerMatchProducer {
 
     static {
         Properties props = new Properties();
-        props.put("bootstrap.servers", "10.0.0.3:9092")
+        props.put("bootstrap.servers", Configuration.getString('kafka.location') + ":9092")
         props.put("acks", "all")
         props.put("retries", 0)
         props.put("batch.size", 16384)
@@ -24,12 +25,12 @@ class KafkaSummonerMatchProducer {
         props.put("key.serializer", "org.apache.kafka.common.serialization.LongSerializer")
         props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer")
 
-        producer = new KafkaProducer<>(props);
+        producer = new KafkaProducer<>(props)
     }
 
     static send(SummonerMatch summonerMatch) {
 
-        producer.send(new ProducerRecord<>("boostedgg", summonerMatch.summonerId, MessagePacker.pack(summonerMatch)))
+        producer.send(new ProducerRecord<>(Configuration.getString("kafka.topic"), summonerMatch.summonerId, MessagePacker.pack(summonerMatch)))
         producer.flush()
     }
 

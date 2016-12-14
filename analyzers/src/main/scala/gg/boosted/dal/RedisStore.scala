@@ -1,6 +1,7 @@
 package gg.boosted.dal
 
 import com.redis._
+import gg.boosted.configuration.Configuration
 import gg.boosted.posos.{LoLScore, SummonerId}
 import gg.boosted.riotapi.Region
 
@@ -9,13 +10,13 @@ import gg.boosted.riotapi.Region
   */
 object RedisStore {
 
-    val rc = new RedisClient("10.0.0.3", 6379)
+    val rc = new RedisClient(Configuration.getString("redis.location"), 6379)
 
     val summonerIdToNameKey = "summonerIdToName"
-    val summonerNameTTL = 60*60*24*5 //5 days
+    val summonerNameTTL = Configuration.getLong("summoner.to.name.retention.period")
 
     val summonerIdToLOLScoreKey = "summonerIdToLOLScore"
-    val summonerLOLScoreTTL = 60*60*24 // 1 day
+    val summonerLOLScoreTTL = Configuration.getLong("summoner.to.lolscore.retention.period")
 
     def getSummonerName(id:SummonerId):Option[String] = {
         rc.get[String](s"$summonerIdToNameKey:${id.region}:${id.id}")

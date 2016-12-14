@@ -25,6 +25,7 @@ class FromRiot {
     static Region region
 
     static void main(String[] args) {
+        RedisStore.reset()
 
         riotApi = new RiotApi(Region.EUW) ;
 
@@ -38,7 +39,6 @@ class FromRiot {
 
         //Forget that summoners and matches were ever processed
         //Remove all summoners and matches from redis
-        RedisStore.reset(region.toString()) ;
 
         //Create an empty set of summonerIds.. This is the queue to which we add new summoners that we find
         //Get an initial seed of summoners

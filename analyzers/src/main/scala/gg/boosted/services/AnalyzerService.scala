@@ -4,6 +4,7 @@ import java.util.Date
 
 import gg.boosted.Application
 import gg.boosted.analyzers.BoostedSummoner
+import gg.boosted.configuration.Configuration
 import gg.boosted.dal.{BoostedEntity, BoostedRepository}
 import gg.boosted.maps.Summoners
 import gg.boosted.posos.{SummonerId, SummonerMatch}
@@ -20,9 +21,9 @@ object AnalyzerService {
 
     val log = LoggerFactory.getLogger(AnalyzerService.getClass)
 
-    val maxRank = 1000
+    val maxRank = Configuration.getInt("maxrank")
 
-    val minGamesPlayed = 3
+    val minGamesPlayed = Configuration.getInt("min.games.played")
 
     def analyze(stream:DStream[SummonerMatch]):Unit = {
 

@@ -1,5 +1,6 @@
 package gg.boosted
 
+import gg.boosted.configuration.Configuration
 import gg.boosted.posos.SummonerMatch
 import gg.boosted.services.AnalyzerService
 import org.apache.spark.sql.SparkSession
@@ -13,10 +14,10 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
   */
 object Application {
 
-  val checkPointDir = "/tmp/kuku1"
+  val checkPointDir = "/tmp/kuku2"
 
   private val master = "local[*]"
-  private val appName = "boostedGG"
+  private val appName = Configuration.getString("kafka.topic")
 
   val session:SparkSession = SparkSession
     .builder()
@@ -26,9 +27,10 @@ object Application {
 
 
   def context():StreamingContext = {
-    val ssc = new StreamingContext(session.sparkContext, Seconds(30))
+    //Check every 30 seconds
+    val ssc = new StreamingContext(session.sparkContext, Seconds(Configuration.getLong("spark.kafka.polling")))
 
-    val stream = Utilities.getKafkaSparkContext(ssc).window(Seconds(600000)).map(value => SummonerMatch(value._2))
+    val stream = Utilities.getKafkaSparkContext(ssc).window(Seconds(Configuration.getLong("window.size.seconds"))).map(value => SummonerMatch(value._2))
     AnalyzerService.analyze(stream)
 
     ssc.checkpoint(checkPointDir)
