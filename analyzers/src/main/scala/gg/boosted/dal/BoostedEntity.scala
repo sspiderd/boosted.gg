@@ -33,8 +33,8 @@ object BoostedEntity {
     def toEntity(summoner: BoostedSummoner, name:String, lolScore:LoLScore): BoostedEntity = {
         val matches = summoner.matches.toArray.toList
         BoostedEntity(
-            Champions.byId(summoner.championId),
-            Role.byId(summoner.roleId).toString,
+            summoner.champion,
+            summoner.role,
             summoner.summonerId.toLong,
             name,
             Region.valueOf(summoner.region),

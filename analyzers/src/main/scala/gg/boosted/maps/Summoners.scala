@@ -60,7 +60,6 @@ object Summoners {
         return map.toMap
 
     }
-
     /**
       * Returns a map of id->score for the given ids
       * @param ids

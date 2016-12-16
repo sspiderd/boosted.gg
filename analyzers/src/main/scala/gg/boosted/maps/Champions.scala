@@ -12,9 +12,11 @@ object Champions {
 
     var champions = collection.mutable.HashMap.empty[Int, String]
 
+    val riotApi = new RiotApi(Region.EUW)
+
     private def populateMap(): Unit = {
         import collection.JavaConverters._
-        val riotApi = new RiotApi(Region.EUW)
+
         riotApi.getChampionsList.asScala.foreach(champ => champions(champ.id) = champ.name)
     }
 

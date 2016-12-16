@@ -1,14 +1,13 @@
 package gg.boosted.analyzers
 
-import gg.boosted.Application
-import gg.boosted.dal.RedisStore
-import gg.boosted.posos.{SummonerId, SummonerMatch}
-import gg.boosted.riotapi.Region
+import gg.boosted.maps.Champions
+import gg.boosted.posos.SummonerMatch
+import gg.boosted.{Application, Role}
 import org.apache.spark.sql.Dataset
 
 case class BoostedSummoner(
-                                 championId: Int,
-                                 roleId: Int,
+                                 champion: String,
+                                 role: String,
                                  summonerId: Long,
                                  region: String,
                                  gamesPlayed: Long,
@@ -21,10 +20,6 @@ case class BoostedSummoner(
   * Created by ilan on 8/26/16.
   */
 object BoostedSummoner {
-
-    def selectOnlySummonersThatWereFullyProcessed(ds: Dataset[SummonerMatch]):Dataset[SummonerMatch] = {
-        ds.filter(sm => RedisStore.wasSummonerProcessedAlready(SummonerId(sm.summonerId, Region.valueOf(sm.region))))
-    }
 
     /**
       *
@@ -42,9 +37,8 @@ object BoostedSummoner {
     def calculate(ds: Dataset[SummonerMatch], minGamesPlayed:Int, since:Long, maxRank:Int):Dataset[BoostedSummoner] = {
         //Use "distinct" so that in case a match got in more than once it will count just once
         import Application.session.implicits._
-        val filteredSummoners = selectOnlySummonersThatWereFullyProcessed(ds)
-        filteredSummoners.distinct().createOrReplaceTempView("MostBoostedSummoners") ;
-        filteredSummoners.sparkSession.sql(
+        ds.distinct().createOrReplaceTempView("MostBoostedSummoners") ;
+        val v = ds.sparkSession.sql(
             s"""SELECT championId, roleId, summonerId, region, gamesPlayed, winrate, matches,
                |rank() OVER (PARTITION BY championId, roleId ORDER BY winrate DESC, gamesPlayed DESC, summonerId DESC) as rank FROM (
                |SELECT championId, roleId, summonerId, region, count(*) as gamesPlayed, (sum(if (winner=true,1,0))/count(winner)) as winrate, collect_list(matchId) as matches
@@ -53,7 +47,17 @@ object BoostedSummoner {
                |GROUP BY championId, roleId, summonerId, region
                |HAVING winrate > 0.5 AND gamesPlayed >= $minGamesPlayed
                |) having rank <= $maxRank
-      """.stripMargin).as[BoostedSummoner]
+      """.stripMargin)
+            //Map from Champion and role ids to their respective names
+            .map(r=>(Champions.byId(r.getInt(0)), Role.byId(r.getInt(1)).toString, r.getLong(2),
+                                    r.getString(3), r.getLong(4), r.getDouble(5), r.getSeq[Long](6), r.getInt(7)))//.as[BoostedSummoner]
+        //At this point i am at a fix. I need to get the summoner names and lolscore for all summoners that have gotten to this point.
+        //The riot api allows me to get names and league entrries for multiple IDs and i need to do it in order to minimize the calls
+        //To the riot api. However, i don't think there's a way to call a function for an entire column so i have to use a trick here...
+            .map(r=>(r._1, r._2, r._3, r._4, r._5, r._6, r._7, r._8, LazyLoader.loadNameLazy(r._3, r._4)))
+            .map(r=>(r._1, r._2, r._3, r._4, r._5, r._6, r._7, r._8, LazyLoader.getName(r._3, r._4)))
+        v.collect()
+        return null
     }
 
 

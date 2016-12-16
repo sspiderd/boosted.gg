@@ -1,8 +1,11 @@
 package gg.boosted.riotapi.throttlers;
 
+import gg.boosted.riotapi.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.util.Random;
 
@@ -16,10 +19,11 @@ public class DistributedThrottler implements IThrottler{
 
     private static Logger log = LoggerFactory.getLogger(DistributedThrottler.class);
 
-    private static Jedis jedis = new Jedis("10.0.0.3");
+    //private static Jedis jedis = new Jedis("10.0.0.3");
+    private static JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), "10.0.0.3") ;
 
     //The name of the redis resource used to do the locking
-    private static String lockRes = "redlock" ;
+    private static String lockRes = "riotApiLock" ;
 
     //This keeps the time where the api was called last
     private static String lastTimeCalledRes = "lastapicall" ;
@@ -34,15 +38,22 @@ public class DistributedThrottler implements IThrottler{
 
     private long lastTimeCalled = 0;
 
-    public DistributedThrottler(int requestsPer10Seconds, int requestsPer10Minutes) {
+    private Region region ;
+
+    public DistributedThrottler(int requestsPer10Seconds, int requestsPer10Minutes, Region region) {
         millisBetweenRequests = Double.valueOf(Math.max(10.0/requestsPer10Seconds, 600.0/requestsPer10Minutes) * 1000).longValue();
+        this.region = region;
     }
 
     @Override
     public void waitFor() {
         //Generate a random value to store as a lockRes
         randomValue = random.nextLong() ;
-        String result = jedis.set(lockRes, randomValue.toString(), "NX", "EX", lockExpirationInSeconds) ;
+        String regionLock = lockRes + ":" + region.toString() ;
+        String result ;
+        try (Jedis jedis = jedisPool.getResource()) {
+            result = jedis.set(regionLock, randomValue.toString(), "NX", "EX", lockExpirationInSeconds);
+        }
 
         //We did not acquire the lockRes
         while (result == null) {
@@ -53,16 +64,20 @@ public class DistributedThrottler implements IThrottler{
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            result = jedis.set(lockRes, randomValue.toString(), "NX", "EX", lockExpirationInSeconds) ;
+            try (Jedis jedis = jedisPool.getResource()) {
+                result = jedis.set(regionLock, randomValue.toString(), "NX", "EX", lockExpirationInSeconds);
+            }
         }
         log.debug("Got lock");
 
         //Get the last time called
-        String lastTimeCalledString = jedis.get(lastTimeCalledRes) ;
-        if (lastTimeCalledString == null) {
-            lastTimeCalled = 0;
-        } else {
-            lastTimeCalled = Long.parseLong(lastTimeCalledString);
+        try (Jedis jedis = jedisPool.getResource()) {
+            String lastTimeCalledString = jedis.get(lastTimeCalledRes);
+            if (lastTimeCalledString == null) {
+                lastTimeCalled = 0;
+            } else {
+                lastTimeCalled = Long.parseLong(lastTimeCalledString);
+            }
         }
         sleepUntilAllowedToCall();
     }
@@ -81,18 +96,21 @@ public class DistributedThrottler implements IThrottler{
     }
 
     public void releaseLock(long lastTimeCalled) {
-        String lockValue = jedis.get(lockRes) ;
-        if (lockValue != null && Long.parseLong(lockValue) == randomValue) {
-            jedis.set(lastTimeCalledRes, String.valueOf(lastTimeCalled)) ;
-            jedis.del(lockRes) ;
-            log.debug("Released lock");
-        } else {
-            log.warn("Lock is null or not mine");
+        String regionLock = lockRes + ":" + region.toString() ;
+        try (Jedis jedis = jedisPool.getResource()) {
+            String lockValue = jedis.get(regionLock);
+            if (lockValue != null && Long.parseLong(lockValue) == randomValue) {
+                jedis.set(lastTimeCalledRes, String.valueOf(lastTimeCalled));
+                jedis.del(regionLock);
+                log.debug("Released lock");
+            } else {
+                log.warn("Lock is null or not mine");
+            }
         }
     }
 
     public static void main(String[] args) {
-        DistributedThrottler dt = new DistributedThrottler(10, 500) ;
+        DistributedThrottler dt = new DistributedThrottler(10, 500, Region.EUW) ;
         while (true) {
             dt.waitFor();
             log.debug("Called API");

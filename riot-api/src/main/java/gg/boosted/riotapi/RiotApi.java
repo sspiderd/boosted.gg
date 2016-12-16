@@ -38,7 +38,7 @@ public class RiotApi {
     private String regionEndpoint;
     Client client = ClientBuilder.newClient() ;
     ObjectMapper om = new ObjectMapper() ;
-    private IThrottler throttler = new DistributedThrottler(10, 500) ;
+    private IThrottler throttler ;
 
     public RiotApi(Region region) {
         this.region = region ;
@@ -50,6 +50,7 @@ public class RiotApi {
                 region.toString().toLowerCase() +
                 ".api.pvp.net/api/lol/" +
                 region.toString().toLowerCase() ;
+        throttler = new DistributedThrottler(10, 500, region) ;
     }
 
     private JsonNode callApi(String endpoint) {
