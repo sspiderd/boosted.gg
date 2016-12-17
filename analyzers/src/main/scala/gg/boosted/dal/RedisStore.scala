@@ -19,11 +19,11 @@ object RedisStore {
 
     val summonersProcessedKey = "summonersProcessed"
 
-    def getSummonerName(id:SummonerId):Option[String] = {
+    def getSummonerName(id:SummonerId):Option[String] = synchronized {
         rc.get[String](s"$summonerIdToNameKey:${id.region}:${id.id}")
     }
 
-    def addSummonerName(id:SummonerId, summonerName:String):Unit = {
+    def addSummonerName(id:SummonerId, summonerName:String):Unit = synchronized {
         rc.setex(s"$summonerIdToNameKey:${id.region}:${id.id}", summonerNameTTL, summonerName)
     }
 

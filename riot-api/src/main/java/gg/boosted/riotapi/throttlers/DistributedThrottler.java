@@ -68,7 +68,7 @@ public class DistributedThrottler implements IThrottler{
                 result = jedis.set(regionLock, randomValue.toString(), "NX", "EX", lockExpirationInSeconds);
             }
         }
-        log.debug("Got lock");
+        log.debug("Locked '" + regionLock + "' with value " + randomValue);
 
         //Get the last time called
         try (Jedis jedis = jedisPool.getResource()) {
@@ -102,9 +102,11 @@ public class DistributedThrottler implements IThrottler{
             if (lockValue != null && Long.parseLong(lockValue) == randomValue) {
                 jedis.set(lastTimeCalledRes, String.valueOf(lastTimeCalled));
                 jedis.del(regionLock);
-                log.debug("Released lock");
+                log.debug("Released lock at '" + regionLock + "' with my value (" + randomValue + ")");
             } else {
-                log.warn("Lock is null or not mine");
+                log.warn("Lock at '" + regionLock +
+                        "' is null or not mine (my value is " + randomValue +
+                        ", the lock value is " + lockValue + ")");
             }
         }
     }
