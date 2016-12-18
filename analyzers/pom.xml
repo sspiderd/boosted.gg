@@ -13,7 +13,7 @@
 
     <properties>
         <scala.version>2.11.8</scala.version>
-        <spark.version>2.0.2</spark.version>
+        <spark.version>2.0.0</spark.version>
     </properties>
 
     <dependencies>
@@ -80,11 +80,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-            <version>3.1.0</version>
-        </dependency>
-        <dependency>
             <groupId>com.datastax.spark</groupId>
             <artifactId>spark-cassandra-connector_2.11</artifactId>
             <version>2.0.0-M3</version>
@@ -97,6 +92,11 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.nscala-time</groupId>
+            <artifactId>nscala-time_2.11</artifactId>
+            <version>2.14.0</version>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>

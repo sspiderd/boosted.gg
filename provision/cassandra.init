@@ -18,3 +18,21 @@ CREATE TABLE BoostedGG.BOOSTED_SUMMONERS_BY_CHAMPION_AND_ROLE (
   PRIMARY KEY ((champion, role), rank)
 );
 
+CREATE TABLE BoostedGG.BOOSTED_SUMMONERS (
+  champion varchar,
+  role varchar,
+  summoner_name varchar,
+  region varchar,
+  winrate double,
+  rank int,
+  summoner_id bigint,
+  tier varchar,
+  division varchar,
+  league_points int,
+  lol_score int,
+  games_played int,
+  matches list<bigint>,
+  last_updated timestamp,
+  PRIMARY KEY ((champion, role), rank)
+);
+

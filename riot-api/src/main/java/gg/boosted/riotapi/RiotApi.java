@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
 import gg.boosted.riotapi.constants.QueueType;
 import gg.boosted.riotapi.dtos.Champion;
 import gg.boosted.riotapi.dtos.LeagueEntry;
@@ -86,6 +87,9 @@ public class RiotApi {
                             log.error("I shouldn't really be here");
                         }
                     }
+                } else if (status == 404) {
+                    log.error("GOT 404 from server!");
+                    return NullNode.getInstance();
                 }
                 log.error(error);
             } catch (Exception ex) {
@@ -217,6 +221,9 @@ public class RiotApi {
     public Map<Long, LeagueEntry> getLeagueEntries(Long... summonerIds) {
         Map<Long, LeagueEntry> map = new HashMap<>() ;
 
+        Set<Long> found = new HashSet<>();
+        Set<Long> all = new HashSet<>() ;
+
         int chunkSize = 10;
         List<Long[]> chunkedArray = ArrayChunker.split(summonerIds, chunkSize) ;
         for (Long[] array : chunkedArray) {
@@ -225,6 +232,7 @@ public class RiotApi {
             endpoint += Arrays.stream(ArrayConverter.convertLongToString(array)).collect(Collectors.joining(",")) ;
             endpoint += "/entry?api_key=" + riotApiKey ;
             JsonNode rootNode = callApi(endpoint) ;
+
             //Riot has made this api a little silly, so i need to be silly to get the data
             Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields() ;
             while (it.hasNext()) {
@@ -233,13 +241,27 @@ public class RiotApi {
                 try {
                     LeagueEntry leagueEntry = om.treeToValue(entry, LeagueEntry.class) ;
                     leagueEntry.tier = node.get("tier").asText();
-                    map.put(Long.parseLong(leagueEntry.playerOrTeamId), leagueEntry) ;
+                    Long summonerId = Long.parseLong(leagueEntry.playerOrTeamId) ;
+                    map.put(summonerId, leagueEntry) ;
+                    found.add(summonerId) ;
                 } catch (JsonProcessingException e) {
                     log.error("Processing exception", e);
                     throw new RuntimeException(e) ;
                 }
             }
         }
+
+        //For all of those not found (this means that they are unranked) add an unranked league entry
+        all.removeAll(found) ;
+        for (Long unknown : all) {
+            LeagueEntry unranked = new LeagueEntry();
+            unranked.playerOrTeamId = String.valueOf(unknown);
+            unranked.tier = "UNRANKED";
+            unranked.division = "U";
+            map.put(unknown, unranked) ;
+
+        }
+
         return map ;
 
     }

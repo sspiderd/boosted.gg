@@ -18,7 +18,8 @@ object LoLScore {
         }
 
         tier match {
-            case "BRONZE" => lolScore += 0
+            case "UNRANKED" => 0
+            case "BRONZE" => 0
             case "SILVER" => lolScore += 500
             case "GOLD" => lolScore += 1000
             case "PLATINUM" => lolScore += 1500
@@ -36,6 +37,7 @@ object LoLScore {
                 case "III" => lolScore += 200
                 case "II" => lolScore += 300
                 case "I" => lolScore += 400
+                case "U" => 0
                 case _ => {
                     log.error(s"Unknown division: $division")
                     return LoLScore("UNKNOWN", "U", 0, -1)

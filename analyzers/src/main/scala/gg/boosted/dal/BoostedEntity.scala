@@ -30,23 +30,23 @@ object BoostedEntity {
 
     val log = LoggerFactory.getLogger(BoostedEntity.getClass)
 
-    def toEntity(summoner: BoostedSummoner, name:String, lolScore:LoLScore): BoostedEntity = {
-        val matches = summoner.matches.toArray.toList
-        BoostedEntity(
-            summoner.champion,
-            summoner.role,
-            summoner.summonerId.toLong,
-            name,
-            Region.valueOf(summoner.region),
-            lolScore.tier,
-            lolScore.division,
-            lolScore.leaguePoints,
-            lolScore.lolScore,
-            summoner.gamesPlayed,
-            summoner.winrate,
-            matches,
-            summoner.rank
-        )
-    }
+//    def toEntity(summoner: BoostedSummoner, name:String, lolScore:LoLScore): BoostedEntity = {
+//        val matches = summoner.matches.toArray.toList
+//        BoostedEntity(
+//            summoner.champion,
+//            summoner.role,
+//            summoner.summonerId.toLong,
+//            name,
+//            Region.valueOf(summoner.region),
+//            lolScore.tier,
+//            lolScore.division,
+//            lolScore.leaguePoints,
+//            lolScore.lolScore,
+//            summoner.gamesPlayed,
+//            summoner.winrate,
+//            matches,
+//            summoner.rank
+//        )
+//    }
 
 }

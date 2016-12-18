@@ -23,6 +23,7 @@ object Application {
     .builder()
     .appName(appName)
     .master(master)
+      .config("spark.cassandra.connection.host", Configuration.getString("cassandra.location"))
     .getOrCreate()
 
 

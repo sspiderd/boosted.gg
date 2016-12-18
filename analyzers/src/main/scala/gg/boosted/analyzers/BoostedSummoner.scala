@@ -1,34 +1,39 @@
 package gg.boosted.analyzers
 
+import java.util.Date
+
+import com.datastax.spark.connector._
 import gg.boosted.dal.RedisStore
-import gg.boosted.maps.{Champions, RiotApis}
+import gg.boosted.maps.Champions
 import gg.boosted.posos.{LoLScore, SummonerId, SummonerMatch}
 import gg.boosted.riotapi.{Region, RiotApi}
 import gg.boosted.{Application, Role}
 import org.apache.spark.sql.Dataset
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
+
 case class BoostedSummoner(
-                                 champion: String,
-                                 role: String,
-                                 summonerId: Long,
-                                 region: String,
-                                 gamesPlayed: Long,
-                                 winrate: Double,
-                                 matches: Seq[Long],
-                                 rank: Int
-)
+                          champion:String,
+                          role:String,
+                          name:String,
+                          region:String,
+                          winrate:Double,
+                          rank:Int,
+                          summonerId:Long,
+                          tier:String,
+                          division:String,
+                          leaguePoints:Int,
+                          lolScore:Int,
+                          gamesPlayed:Int,
+                          matches:Seq[Long]
+                          )
 
 /**
   * Created by ilan on 8/26/16.
   */
 object BoostedSummoner {
-
-
-    val idToNameMap = scala.collection.mutable.HashMap.empty[SummonerId, String]
-
-    //val idToLoLScoreMap = Map[Long, LoLScore]
 
     /**
       *
@@ -59,21 +64,29 @@ object BoostedSummoner {
       """.stripMargin)
             //Map from Champion and role ids to their respective names
             .map(r=>(Champions.byId(r.getInt(0)), Role.byId(r.getInt(1)).toString, r.getLong(2),
-                                    r.getString(3), r.getLong(4), r.getDouble(5), r.getSeq[Long](6), r.getInt(7))).cache()//.as[BoostedSummoner]
+                                    r.getString(3), r.getLong(4), r.getDouble(5), r.getSeq[Long](6), r.getInt(7))).cache()
         //At this point i am at a fix. I need to get the summoner names and lolscore for all summoners that have gotten to this point.
         //The riot api allows me to get names and league entrries for multiple IDs and i need to do it in order to minimize the calls
         //To the riot api. However, i don't think there's a way to call a function for an entire column so i have to use a trick here...
         getNamesAndLoLScore(intermed)
-        val x = intermed.map(
+        val boosted = intermed.map(
             r=> {
                 val summonerId = SummonerId(r._3, Region.valueOf(r._4))
                 val summonerName = RedisStore.getSummonerName(summonerId)
-                val lolScore = RedisStore.getSummonerLOLScore(summonerId).get
-                (r._1, r._2, summonerName,
-                    r._4, lolScore.tier, lolScore.division, lolScore.leaguePoints, lolScore.lolScore,
-                    r._5, r._6, r._7, r._8)
+                val lolScore = RedisStore.getSummonerLOLScore(summonerId).getOrElse(LoLScore("UNKNOWN","U",0))
+                val champion = r._1
+                val role = r._2
+                val winrate = r._6
+                val rank = r._8
+                val gamesPlayed = r._7.size
+                val matches = r._7
+                //val lastUpdated = new Date()
+                (champion, role, summonerName, summonerId.region.toString, winrate, rank, summonerId.id,
+                    lolScore.tier, lolScore.division, lolScore.leaguePoints, lolScore.lolScore, gamesPlayed, matches)
             })
-        val y = x
+        boosted.rdd.saveToCassandra("boostedgg", "boosted_summoners",
+            SomeColumns("champion", "role", "summoner_name", "region", "winrate", "rank", "summoner_id",
+                "tier", "division", "league_points", "lol_score", "games_played", "matches"))
         return null
     }
 
@@ -83,22 +96,38 @@ object BoostedSummoner {
             val summonerIds = new ListBuffer[SummonerId]
             partitionOfRecords.foreach(row => summonerIds += SummonerId(row._3, Region.valueOf(row._4)))
 
+            //Find names and scores that we don't know yet
+            val unknownNames = new ListBuffer[SummonerId]
+            val unknownScores = new ListBuffer[SummonerId]
+
+            summonerIds.foreach(id => {
+                RedisStore.getSummonerName(id).getOrElse(unknownNames += id)
+                RedisStore.getSummonerLOLScore(id).getOrElse(unknownScores += id)
+            })
+
             //group by regions and call their apis
-            //TODO: throw Redis in the mix
             //TODO: Execute this in parallel
-            summonerIds.groupBy(_.region).foreach(tuple => {
+            unknownNames.groupBy(_.region).foreach(tuple => {
                 val region = tuple._1
                 val ids = tuple._2
                 val api = new RiotApi(region)
                 import collection.JavaConverters._
                 api.getSummonerNamesByIds(ids.map(_.id).map(Long.box):_*).asScala.foreach(
                     mapping => RedisStore.addSummonerName(SummonerId(mapping._1, region), mapping._2))
+            })
+
+            unknownScores.groupBy(_.region).foreach(tuple => {
+                val region = tuple._1
+                val ids = tuple._2
+                val api = new RiotApi(region)
+
                 api.getLeagueEntries(ids.map(_.id).map(Long.box):_*).asScala.foreach(
                     mapping => {
                         val lolScore = LoLScore(mapping._2.tier, mapping._2.division, mapping._2.leaguePoints)
                         RedisStore.addSummonerLOLScore(SummonerId(mapping._1, region), lolScore)
                     })
             })
+
         })
     }
 
