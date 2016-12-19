@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.sedis:sedis_2.11:1.2.2">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/sedis/sedis_2.11/1.2.2/sedis_2.11-1.2.2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/sedis/sedis_2.11/1.2.2/sedis_2.11-1.2.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/sedis/sedis_2.11/1.2.2/sedis_2.11-1.2.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

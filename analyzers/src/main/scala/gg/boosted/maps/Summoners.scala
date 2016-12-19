@@ -13,6 +13,7 @@ import scala.collection.mutable.ListBuffer
   *
   * Created by ilan on 12/8/16.
   */
+@Deprecated
 object Summoners {
 
     val log = LoggerFactory.getLogger(Summoners.getClass)

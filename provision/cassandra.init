@@ -1,7 +1,7 @@
 CREATE KEYSPACE BoostedGG
   WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
 
-CREATE TABLE BoostedGG.BOOSTED_SUMMONERS_BY_CHAMPION_AND_ROLE (
+CREATE TABLE BoostedGG.Test (
   champion varchar,
   role varchar,
   rank int,
@@ -16,8 +16,10 @@ CREATE TABLE BoostedGG.BOOSTED_SUMMONERS_BY_CHAMPION_AND_ROLE (
   matches list<bigint>,
   last_updated timestamp,
   PRIMARY KEY ((champion, role), rank)
-);
+) WITH default_time_to_live=5;
 
+
+#TTL Is 5 hours
 CREATE TABLE BoostedGG.BOOSTED_SUMMONERS (
   champion varchar,
   role varchar,
@@ -34,5 +36,6 @@ CREATE TABLE BoostedGG.BOOSTED_SUMMONERS (
   matches list<bigint>,
   last_updated timestamp,
   PRIMARY KEY ((champion, role), rank)
-);
+) with default_time_to_live=18000;
+
 

@@ -1,8 +1,8 @@
 package gg.boosted.services
 
+import java.time.{LocalDateTime, Period, ZoneId}
 import java.util.Date
 
-import com.github.nscala_time.time.Imports._
 import gg.boosted.Application
 import gg.boosted.analyzers.BoostedSummoner
 import gg.boosted.configuration.Configuration
@@ -47,9 +47,7 @@ object AnalyzerService {
         //Get the boosted summoner DF by champion and role
         log.debug(s"Retrieved ${ds.count()} rows")
 
-        val twoWeeks = DateTime.now() - 2.weeks
-
-        BoostedSummoner.process(ds, minGamesPlayed, twoWeeks.getMillis, maxRank)
+        BoostedSummoner.process(ds, minGamesPlayed, getDateToLookForwardFrom, maxRank)
 
         //log.info(s"Retrieved total of ${topSummoners.length} boosted summoners")
     }
@@ -57,6 +55,15 @@ object AnalyzerService {
     def convertToDataSet(rdd:RDD[SummonerMatch]):Dataset[SummonerMatch] = {
         import Application.session.implicits._
         return Application.session.createDataset(rdd)
+    }
+
+    def getDateToLookForwardFrom():Long = {
+        //Get the date to start looking from
+        val backPeriodInMinutes = Configuration.getLong("window.size.minutes")
+        val backPeriodInDays = (backPeriodInMinutes / 60  /24).toInt
+        val backPeriod = (LocalDateTime.now().minus(Period.ofDays(backPeriodInDays)))
+        val zoneId = ZoneId.of("UTC")
+        return backPeriod.atZone(zoneId).toEpochSecond() * 1000
     }
 
 }

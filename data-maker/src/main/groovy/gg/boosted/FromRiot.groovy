@@ -1,5 +1,6 @@
 package gg.boosted
 
+import gg.boosted.configuration.Configuration
 import gg.boosted.riotapi.Region
 import gg.boosted.riotapi.RiotApi
 import gg.boosted.riotapi.dtos.match.MatchDetail
@@ -25,24 +26,23 @@ class FromRiot {
     static Region region
 
     static void main(String[] args) {
-        RedisStore.reset()
+        //RedisStore.reset()
 
-        riotApi = new RiotApi(Region.EUW) ;
+        region = Region.EUW
+        riotApi = new RiotApi(region) ;
 
-        extract(Region.EUW)
+        extract()
     }
 
 
-    static def extract(Region region) {
-
-        this.region = region
+    static void extract() {
 
         //Forget that summoners and matches were ever processed
         //Remove all summoners and matches from redis
 
         //Create an empty set of summonerIds.. This is the queue to which we add new summoners that we find
         //Get an initial seed of summoners
-        List<Long> summonerQueue = getInitialSummonerSeed(region)
+        List<Long> summonerQueue = getInitialSummonerSeed()
         RedisStore.addSummonersToQueue(region.toString(), summonerQueue as String[])
 
         //get the time at which we want to look matches from then on
@@ -108,7 +108,7 @@ class FromRiot {
         riotApi.getMatchList(summonerId as long, since).collect {it.matchId}
     }
 
-    static List<Long> getInitialSummonerSeed(Region region) {
+    static List<Long> getInitialSummonerSeed() {
         List<Long> seed = []
 
         //At the beginning of the season there are no challengers and masters, so the following
@@ -134,11 +134,12 @@ class FromRiot {
     }
 
     static long getDateToLookForwardFrom() {
-        //Two weeks ago
-        LocalDateTime twoWeeksAgo = (LocalDateTime.now() - Period.ofWeeks(2))
+        //Get the date to start looking from
+        Long backPeriodInMinutes = Configuration.getLong("window.size.minutes")
+        Integer backPeriodInDays = (backPeriodInMinutes / 60  /24).toInteger()
+        LocalDateTime backPeriod = LocalDateTime.now().minusDays(backPeriodInDays)
         ZoneId zoneId = ZoneId.of("UTC")
-        long epoch = twoWeeksAgo.atZone(zoneId).toEpochSecond() * 1000
-        return epoch
+        return backPeriod.atZone(zoneId).toEpochSecond() * 1000
     }
 
 }

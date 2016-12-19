@@ -12,7 +12,7 @@ public class RedisStore {
 
     private static Jedis jedis = new Jedis(Configuration.getString("redis.location"));
 
-    private static Long TTL = Configuration.getLong("window.size.seconds") ;
+    private static Long matchesProcessedTTL = Configuration.getLong("window.size.minutes") * 60 ;
 
     private static String summonersInQueue = "summonersInQueue" ;
 
@@ -23,7 +23,7 @@ public class RedisStore {
     }
 
     public static void addMatchToProcessedMatches(String region, String matchId) {
-        jedis.set("matchesProcessed:" + region + ":" + matchId, "", "NX", "EX", TTL) ;
+        jedis.set("matchesProcessed:" + region + ":" + matchId, "", "NX", "EX", matchesProcessedTTL) ;
     }
 
     public static Long addSummonersToQueue(String region, String... summonerIds) {

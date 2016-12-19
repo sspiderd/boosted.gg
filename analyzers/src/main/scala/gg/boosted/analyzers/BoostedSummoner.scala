@@ -1,37 +1,27 @@
 package gg.boosted.analyzers
 
+import java.util.Date
+
 import com.datastax.spark.connector._
+import com.datastax.spark.connector.writer.{TTLOption, WriteConf}
 import gg.boosted.dal.RedisStore
 import gg.boosted.maps.Champions
 import gg.boosted.posos.{LoLScore, SummonerId, SummonerMatch}
 import gg.boosted.riotapi.{Region, RiotApi}
 import gg.boosted.{Application, Role}
 import org.apache.spark.sql.Dataset
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
 
-case class BoostedSummoner(
-                          champion:String,
-                          role:String,
-                          name:String,
-                          region:String,
-                          winrate:Double,
-                          rank:Int,
-                          summonerId:Long,
-                          tier:String,
-                          division:String,
-                          leaguePoints:Int,
-                          lolScore:Int,
-                          gamesPlayed:Int,
-                          matches:Seq[Long]
-                          )
-
 /**
   * Created by ilan on 8/26/16.
   */
 object BoostedSummoner {
+
+    val log = LoggerFactory.getLogger(BoostedSummoner.getClass)
 
     /**
       *
@@ -47,13 +37,19 @@ object BoostedSummoner {
       * @return
       */
     def process(ds: Dataset[SummonerMatch], minGamesPlayed:Int, since:Long, maxRank:Int):Unit = {
+
+        log.info(s"Processing dataset with ${minGamesPlayed} min games played, since '${new Date(since)}' with max rank ${maxRank}")
+
         val boostedSummoners = findBoostedSummoners(ds, minGamesPlayed, since, maxRank).cache()
+
+        log.info(s"Originally i had ${ds.count()} rows and now i have ${boostedSummoners.count()}")
+
         //At this point i am at a fix. I need to get the summoner names and lolscore for all summoners that have gotten to this point.
         //The riot api allows me to get names and league entrries for multiple IDs and i need to do it in order to minimize the calls
         //To the riot api. However, i don't think there's a way to call a function for an entire column so i have to use a trick here...
         getNamesAndLoLScore(boostedSummoners)
         import Application.session.implicits._
-        boostedSummoners.map(
+        val mapWithNames = boostedSummoners.map(
             r=> {
                 val summonerId = SummonerId(r._3, Region.valueOf(r._4))
                 val summonerName = RedisStore.getSummonerName(summonerId)
@@ -67,9 +63,14 @@ object BoostedSummoner {
                 //val lastUpdated = new Date()
                 (champion, role, summonerName, summonerId.region.toString, winrate, rank, summonerId.id,
                     lolScore.tier, lolScore.division, lolScore.leaguePoints, lolScore.lolScore, gamesPlayed, matches)
-            }).rdd.saveToCassandra("boostedgg", "boosted_summoners",
+            })
+        //TODO: I should delete from cassandra first, but for now it's ok
+
+        mapWithNames.rdd.saveToCassandra("boostedgg", "boosted_summoners",
             SomeColumns("champion", "role", "summoner_name", "region", "winrate", "rank", "summoner_id",
                 "tier", "division", "league_points", "lol_score", "games_played", "matches"))
+
+        log.info(s"Saved to ${mapWithNames.count()} rows to cassandra")
     }
 
     def findBoostedSummoners(ds: Dataset[SummonerMatch], minGamesPlayed:Int, since:Long, maxRank:Int)
@@ -112,8 +113,8 @@ object BoostedSummoner {
             })
 
             //group by regions and call their apis
-            //TODO: Execute this in parallel
-            unknownNames.groupBy(_.region).foreach(tuple => {
+            //TODO: Execute this in parallel for each region and call redis store async
+            unknownNames.groupBy(_.region).par.foreach(tuple => {
                 val region = tuple._1
                 val ids = tuple._2
                 val api = new RiotApi(region)
@@ -122,7 +123,7 @@ object BoostedSummoner {
                     mapping => RedisStore.addSummonerName(SummonerId(mapping._1, region), mapping._2))
             })
 
-            unknownScores.groupBy(_.region).foreach(tuple => {
+            unknownScores.groupBy(_.region).par.foreach(tuple => {
                 val region = tuple._1
                 val ids = tuple._2
                 val api = new RiotApi(region)

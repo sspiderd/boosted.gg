@@ -7,6 +7,5 @@ appender("STDOUT", ConsoleAppender) {
 }
 
 logger("gg.boosted", DEBUG)
-logger("net.rithms", DEBUG)
 
 root(WARN, ["STDOUT"])
