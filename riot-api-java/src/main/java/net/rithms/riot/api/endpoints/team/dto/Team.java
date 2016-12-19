@@ -16,10 +16,10 @@
 
 package net.rithms.riot.api.endpoints.team.dto;
 
+import net.rithms.riot.api.Dto;
+
 import java.io.Serializable;
 import java.util.List;
-
-import net.rithms.riot.api.Dto;
 
 public class Team extends Dto implements Serializable {
 

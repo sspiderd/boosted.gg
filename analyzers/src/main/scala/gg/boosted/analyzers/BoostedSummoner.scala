@@ -1,7 +1,5 @@
 package gg.boosted.analyzers
 
-import java.util.Date
-
 import com.datastax.spark.connector._
 import gg.boosted.dal.RedisStore
 import gg.boosted.maps.Champions
@@ -46,13 +44,41 @@ object BoostedSummoner {
       * @param ds of type [SummonerMatch]
       * @param minGamesPlayed
       * @param since take into account only games played since that time
-      * @return ds of type [MostBoostedSummoners]
+      * @return
       */
-    def calculate(ds: Dataset[SummonerMatch], minGamesPlayed:Int, since:Long, maxRank:Int):Dataset[BoostedSummoner] = {
+    def process(ds: Dataset[SummonerMatch], minGamesPlayed:Int, since:Long, maxRank:Int):Unit = {
+        val boostedSummoners = findBoostedSummoners(ds, minGamesPlayed, since, maxRank).cache()
+        //At this point i am at a fix. I need to get the summoner names and lolscore for all summoners that have gotten to this point.
+        //The riot api allows me to get names and league entrries for multiple IDs and i need to do it in order to minimize the calls
+        //To the riot api. However, i don't think there's a way to call a function for an entire column so i have to use a trick here...
+        getNamesAndLoLScore(boostedSummoners)
+        import Application.session.implicits._
+        boostedSummoners.map(
+            r=> {
+                val summonerId = SummonerId(r._3, Region.valueOf(r._4))
+                val summonerName = RedisStore.getSummonerName(summonerId)
+                val lolScore = RedisStore.getSummonerLOLScore(summonerId).getOrElse(LoLScore("UNKNOWN","U",0))
+                val champion = Champions.byId(r._1)
+                val role = r._2
+                val winrate = r._6
+                val rank = r._8
+                val gamesPlayed = r._5
+                val matches = r._7
+                //val lastUpdated = new Date()
+                (champion, role, summonerName, summonerId.region.toString, winrate, rank, summonerId.id,
+                    lolScore.tier, lolScore.division, lolScore.leaguePoints, lolScore.lolScore, gamesPlayed, matches)
+            }).rdd.saveToCassandra("boostedgg", "boosted_summoners",
+            SomeColumns("champion", "role", "summoner_name", "region", "winrate", "rank", "summoner_id",
+                "tier", "division", "league_points", "lol_score", "games_played", "matches"))
+    }
+
+    def findBoostedSummoners(ds: Dataset[SummonerMatch], minGamesPlayed:Int, since:Long, maxRank:Int)
+        :Dataset[(Int, String, Long, String, Long, Double, Seq[Long], Int)] = {
+
         //Use "distinct" so that in case a match got in more than once it will count just once
         import Application.session.implicits._
         ds.distinct().createOrReplaceTempView("MostBoostedSummoners") ;
-        val intermed = ds.sparkSession.sql(
+        ds.sparkSession.sql(
             s"""SELECT championId, roleId, summonerId, region, gamesPlayed, winrate, matches,
                |rank() OVER (PARTITION BY championId, roleId ORDER BY winrate DESC, gamesPlayed DESC, summonerId DESC) as rank FROM (
                |SELECT championId, roleId, summonerId, region, count(*) as gamesPlayed, (sum(if (winner=true,1,0))/count(winner)) as winrate, collect_list(matchId) as matches
@@ -62,36 +88,16 @@ object BoostedSummoner {
                |HAVING winrate > 0.5 AND gamesPlayed >= $minGamesPlayed
                |) having rank <= $maxRank
       """.stripMargin)
-            //Map from Champion and role ids to their respective names
-            .map(r=>(Champions.byId(r.getInt(0)), Role.byId(r.getInt(1)).toString, r.getLong(2),
-                                    r.getString(3), r.getLong(4), r.getDouble(5), r.getSeq[Long](6), r.getInt(7))).cache()
-        //At this point i am at a fix. I need to get the summoner names and lolscore for all summoners that have gotten to this point.
-        //The riot api allows me to get names and league entrries for multiple IDs and i need to do it in order to minimize the calls
-        //To the riot api. However, i don't think there's a way to call a function for an entire column so i have to use a trick here...
-        getNamesAndLoLScore(intermed)
-        val boosted = intermed.map(
-            r=> {
-                val summonerId = SummonerId(r._3, Region.valueOf(r._4))
-                val summonerName = RedisStore.getSummonerName(summonerId)
-                val lolScore = RedisStore.getSummonerLOLScore(summonerId).getOrElse(LoLScore("UNKNOWN","U",0))
-                val champion = r._1
-                val role = r._2
-                val winrate = r._6
-                val rank = r._8
-                val gamesPlayed = r._7.size
-                val matches = r._7
-                //val lastUpdated = new Date()
-                (champion, role, summonerName, summonerId.region.toString, winrate, rank, summonerId.id,
-                    lolScore.tier, lolScore.division, lolScore.leaguePoints, lolScore.lolScore, gamesPlayed, matches)
-            })
-        boosted.rdd.saveToCassandra("boostedgg", "boosted_summoners",
-            SomeColumns("champion", "role", "summoner_name", "region", "winrate", "rank", "summoner_id",
-                "tier", "division", "league_points", "lol_score", "games_played", "matches"))
-        return null
+          //Map from Champion and role ids to their respective names
+          .map(r=>(r.getInt(0), Role.byId(r.getInt(1)).toString, r.getLong(2),
+          r.getString(3), r.getLong(4), r.getDouble(5), r.getSeq[Long](6), r.getInt(7)))
     }
 
-    private def getNamesAndLoLScore(ds:Dataset[(String, String, Long, String, Long, Double, Seq[Long], Int)]):Unit = {
+    private def getNamesAndLoLScore(ds:Dataset[(Int, String, Long, String, Long, Double, Seq[Long], Int)]):Unit = {
         ds.foreachPartition(partitionOfRecords => {
+
+            Champions.populateMapIfEmpty()
+
             //Run over all the records and get the summonerId field of each one
             val summonerIds = new ListBuffer[SummonerId]
             partitionOfRecords.foreach(row => summonerIds += SummonerId(row._3, Region.valueOf(row._4)))

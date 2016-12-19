@@ -16,10 +16,10 @@
 
 package net.rithms.riot.api.endpoints.current_game.dto;
 
+import net.rithms.riot.api.Dto;
+
 import java.io.Serializable;
 import java.util.List;
-
-import net.rithms.riot.api.Dto;
 
 public class CurrentGameParticipant extends Dto implements Serializable {
 

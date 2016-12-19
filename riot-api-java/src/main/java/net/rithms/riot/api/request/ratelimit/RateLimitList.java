@@ -13,10 +13,10 @@
 
 package net.rithms.riot.api.request.ratelimit;
 
+import net.rithms.riot.constant.Region;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import net.rithms.riot.constant.Region;
 
 /**
  * This class provides a list of rate limits and retry times.

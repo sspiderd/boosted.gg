@@ -16,9 +16,9 @@
 
 package net.rithms.riot.api.endpoints.summoner.dto;
 
-import java.io.Serializable;
-
 import net.rithms.riot.api.Dto;
+
+import java.io.Serializable;
 
 public class RuneSlot extends Dto implements Serializable {
 

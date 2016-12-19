@@ -16,9 +16,9 @@
 
 package net.rithms.riot.api.endpoints.status.dto;
 
-import java.io.Serializable;
-
 import net.rithms.riot.api.Dto;
+
+import java.io.Serializable;
 
 public class Translation extends Dto implements Serializable {
 

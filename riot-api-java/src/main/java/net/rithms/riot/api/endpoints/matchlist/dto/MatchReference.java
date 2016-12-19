@@ -16,9 +16,9 @@
 
 package net.rithms.riot.api.endpoints.matchlist.dto;
 
-import java.io.Serializable;
-
 import net.rithms.riot.api.Dto;
+
+import java.io.Serializable;
 
 public class MatchReference extends Dto implements Serializable {
 

@@ -16,10 +16,10 @@
 
 package net.rithms.riot.api.endpoints.featured_game.dto;
 
+import net.rithms.riot.api.Dto;
+
 import java.io.Serializable;
 import java.util.List;
-
-import net.rithms.riot.api.Dto;
 
 public class FeaturedGames extends Dto implements Serializable {
 

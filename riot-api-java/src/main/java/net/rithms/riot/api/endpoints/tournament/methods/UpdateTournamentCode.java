@@ -16,15 +16,15 @@
 
 package net.rithms.riot.api.endpoints.tournament.methods;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.endpoints.tournament.TournamentApiMethod;
 import net.rithms.riot.api.request.RequestMethod;
 import net.rithms.riot.constant.PickType;
 import net.rithms.riot.constant.SpectatorType;
 import net.rithms.riot.constant.TournamentMap;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class UpdateTournamentCode extends TournamentApiMethod {
 

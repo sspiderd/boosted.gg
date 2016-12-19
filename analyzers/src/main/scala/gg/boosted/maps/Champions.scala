@@ -14,10 +14,16 @@ object Champions {
 
     val riotApi = new RiotApi(Region.EUW)
 
-    private def populateMap(): Unit = {
+    def populateMap(): Unit = {
         import collection.JavaConverters._
 
         riotApi.getChampionsList.asScala.foreach(champ => champions(champ.id) = champ.name)
+    }
+
+    def populateMapIfEmpty(): Unit = {
+        if (champions.size == 0) {
+            populateMap()
+        }
     }
 
     def byId(id:Int):String = {

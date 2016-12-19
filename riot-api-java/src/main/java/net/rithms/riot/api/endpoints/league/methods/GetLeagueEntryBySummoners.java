@@ -16,15 +16,14 @@
 
 package net.rithms.riot.api.endpoints.league.methods;
 
-import java.util.List;
-import java.util.Map;
-
 import com.google.gson.reflect.TypeToken;
-
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.endpoints.league.LeagueApiMethod;
 import net.rithms.riot.api.endpoints.league.dto.League;
 import net.rithms.riot.constant.Region;
+
+import java.util.List;
+import java.util.Map;
 
 public class GetLeagueEntryBySummoners extends LeagueApiMethod {
 

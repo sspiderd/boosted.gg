@@ -2,7 +2,7 @@ package gg.boosted.maps
 
 import gg.boosted.dal.RedisStore
 import gg.boosted.posos.{LoLScore, SummonerId}
-import gg.boosted.riotapi.{Region, RiotApi}
+import gg.boosted.riotapi.RiotApi
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer

@@ -49,7 +49,7 @@ object AnalyzerService {
 
         val twoWeeks = DateTime.now() - 2.weeks
 
-        BoostedSummoner.calculate(ds, minGamesPlayed, twoWeeks.getMillis, maxRank)
+        BoostedSummoner.process(ds, minGamesPlayed, twoWeeks.getMillis, maxRank)
 
         //log.info(s"Retrieved total of ${topSummoners.length} boosted summoners")
     }

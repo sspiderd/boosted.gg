@@ -1,10 +1,8 @@
 package gg.boosted.dal
 
-import java.util
 import java.util.Date
 
 import com.datastax.driver.core.{BatchStatement, Cluster}
-import gg.boosted.{Role, Tier}
 import org.slf4j.LoggerFactory
 
 /**

@@ -16,9 +16,9 @@
 
 package net.rithms.riot.api.endpoints.team.dto;
 
-import java.io.Serializable;
-
 import net.rithms.riot.api.Dto;
+
+import java.io.Serializable;
 
 public class TeamMemberInfo extends Dto implements Serializable {
 

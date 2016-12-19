@@ -16,14 +16,13 @@
 
 package net.rithms.riot.api.endpoints.team.methods;
 
-import java.util.Map;
-
 import com.google.gson.reflect.TypeToken;
-
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.endpoints.team.TeamApiMethod;
 import net.rithms.riot.api.endpoints.team.dto.Team;
 import net.rithms.riot.constant.Region;
+
+import java.util.Map;
 
 public class GetTeamsByTeamIds extends TeamApiMethod {
 

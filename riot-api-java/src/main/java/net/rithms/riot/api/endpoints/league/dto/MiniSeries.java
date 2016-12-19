@@ -16,9 +16,9 @@
 
 package net.rithms.riot.api.endpoints.league.dto;
 
-import java.io.Serializable;
-
 import net.rithms.riot.api.Dto;
+
+import java.io.Serializable;
 
 public class MiniSeries extends Dto implements Serializable {
 

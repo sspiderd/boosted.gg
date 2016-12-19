@@ -16,9 +16,9 @@
 
 package net.rithms.riot.api.endpoints.static_data.dto;
 
-import java.io.Serializable;
-
 import net.rithms.riot.api.Dto;
+
+import java.io.Serializable;
 
 public class Image extends Dto implements Serializable {
 

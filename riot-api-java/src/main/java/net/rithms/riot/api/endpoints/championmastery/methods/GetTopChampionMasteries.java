@@ -16,16 +16,15 @@
 
 package net.rithms.riot.api.endpoints.championmastery.methods;
 
-import java.util.List;
-
 import com.google.gson.reflect.TypeToken;
-
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.UrlParameter;
 import net.rithms.riot.api.endpoints.championmastery.ChampionMasteryApiMethod;
 import net.rithms.riot.api.endpoints.championmastery.dto.ChampionMastery;
 import net.rithms.riot.constant.PlatformId;
 import net.rithms.riot.constant.Region;
+
+import java.util.List;
 
 public class GetTopChampionMasteries extends ChampionMasteryApiMethod {
 

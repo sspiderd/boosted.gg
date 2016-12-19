@@ -12,7 +12,6 @@ import gg.boosted.riotapi.dtos.MatchReference;
 import gg.boosted.riotapi.dtos.match.MatchDetail;
 import gg.boosted.riotapi.throttlers.DistributedThrottler;
 import gg.boosted.riotapi.throttlers.IThrottler;
-import gg.boosted.riotapi.throttlers.SimpleThrottler;
 import gg.boosted.riotapi.utilities.ArrayChunker;
 import gg.boosted.riotapi.utilities.ArrayConverter;
 import org.slf4j.Logger;

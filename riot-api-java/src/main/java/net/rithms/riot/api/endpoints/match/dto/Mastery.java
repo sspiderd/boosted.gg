@@ -16,9 +16,9 @@
 
 package net.rithms.riot.api.endpoints.match.dto;
 
-import java.io.Serializable;
-
 import net.rithms.riot.api.Dto;
+
+import java.io.Serializable;
 
 public class Mastery extends Dto implements Serializable {
 

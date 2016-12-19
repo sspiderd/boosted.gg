@@ -16,15 +16,14 @@
 
 package net.rithms.riot.api;
 
+import com.google.gson.Gson;
+import net.rithms.riot.api.request.RequestMethod;
+import net.rithms.riot.constant.Region;
+
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import com.google.gson.Gson;
-
-import net.rithms.riot.api.request.RequestMethod;
-import net.rithms.riot.constant.Region;
 
 abstract public class ApiMethod {
 

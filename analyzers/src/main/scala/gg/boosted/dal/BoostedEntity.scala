@@ -1,9 +1,5 @@
 package gg.boosted.dal
 
-import gg.boosted.Role
-import gg.boosted.analyzers.BoostedSummoner
-import gg.boosted.maps.Champions
-import gg.boosted.posos.LoLScore
 import gg.boosted.riotapi.Region
 import org.slf4j.LoggerFactory
 

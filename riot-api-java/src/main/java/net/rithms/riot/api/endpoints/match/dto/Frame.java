@@ -16,11 +16,11 @@
 
 package net.rithms.riot.api.endpoints.match.dto;
 
+import net.rithms.riot.api.Dto;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
-import net.rithms.riot.api.Dto;
 
 public class Frame extends Dto implements Serializable {
 

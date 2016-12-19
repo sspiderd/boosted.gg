@@ -16,13 +16,12 @@
 
 package net.rithms.riot.api.endpoints.match.methods;
 
-import java.util.List;
-
 import com.google.gson.reflect.TypeToken;
-
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.endpoints.match.MatchApiMethod;
 import net.rithms.riot.constant.Region;
+
+import java.util.List;
 
 public class GetMatchesByTournament extends MatchApiMethod {
 

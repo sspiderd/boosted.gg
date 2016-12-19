@@ -16,9 +16,9 @@
 
 package net.rithms.riot.api.endpoints.game.dto;
 
-import java.io.Serializable;
-
 import net.rithms.riot.api.Dto;
+
+import java.io.Serializable;
 
 public class RawStats extends Dto implements Serializable {
 

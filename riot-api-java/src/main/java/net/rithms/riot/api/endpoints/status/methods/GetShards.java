@@ -16,13 +16,12 @@
 
 package net.rithms.riot.api.endpoints.status.methods;
 
-import java.util.List;
-
 import com.google.gson.reflect.TypeToken;
-
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.endpoints.status.StatusApiMethod;
 import net.rithms.riot.api.endpoints.status.dto.Shard;
+
+import java.util.List;
 
 public class GetShards extends StatusApiMethod {
 

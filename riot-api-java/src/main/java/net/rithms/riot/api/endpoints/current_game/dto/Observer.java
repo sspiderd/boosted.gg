@@ -16,9 +16,9 @@
 
 package net.rithms.riot.api.endpoints.current_game.dto;
 
-import java.io.Serializable;
-
 import net.rithms.riot.api.Dto;
+
+import java.io.Serializable;
 
 public class Observer extends Dto implements Serializable {
 

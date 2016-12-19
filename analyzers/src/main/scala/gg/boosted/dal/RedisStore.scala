@@ -3,7 +3,7 @@ package gg.boosted.dal
 import com.redis._
 import gg.boosted.configuration.Configuration
 import gg.boosted.posos.{LoLScore, SummonerId}
-import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
+import redis.clients.jedis.{JedisPool, JedisPoolConfig}
 
 import scala.util.{Failure, Success, Try}
 

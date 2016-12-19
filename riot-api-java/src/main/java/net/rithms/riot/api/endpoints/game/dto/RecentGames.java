@@ -16,10 +16,10 @@
 
 package net.rithms.riot.api.endpoints.game.dto;
 
+import net.rithms.riot.api.Dto;
+
 import java.io.Serializable;
 import java.util.Set;
-
-import net.rithms.riot.api.Dto;
 
 public class RecentGames extends Dto implements Serializable {
 

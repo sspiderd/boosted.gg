@@ -16,18 +16,14 @@
 
 package net.rithms.riot.api.request;
 
+import net.rithms.riot.api.*;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
-
-import net.rithms.riot.api.ApiConfig;
-import net.rithms.riot.api.ApiMethod;
-import net.rithms.riot.api.RiotApi;
-import net.rithms.riot.api.RiotApiAsync;
-import net.rithms.riot.api.RiotApiException;
 
 /**
  * This class is used to fire asynchronous call at the Riot Api. You should not construct these requests manually. To fire asynchronous

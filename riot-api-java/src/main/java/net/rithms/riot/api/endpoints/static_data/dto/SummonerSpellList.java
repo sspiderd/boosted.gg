@@ -16,10 +16,10 @@
 
 package net.rithms.riot.api.endpoints.static_data.dto;
 
+import net.rithms.riot.api.Dto;
+
 import java.io.Serializable;
 import java.util.Map;
-
-import net.rithms.riot.api.Dto;
 
 public class SummonerSpellList extends Dto implements Serializable {
 

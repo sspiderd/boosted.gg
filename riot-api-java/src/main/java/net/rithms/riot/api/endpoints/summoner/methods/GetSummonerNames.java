@@ -16,13 +16,12 @@
 
 package net.rithms.riot.api.endpoints.summoner.methods;
 
-import java.util.Map;
-
 import com.google.gson.reflect.TypeToken;
-
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.endpoints.summoner.SummonerApiMethod;
 import net.rithms.riot.constant.Region;
+
+import java.util.Map;
 
 public class GetSummonerNames extends SummonerApiMethod {
 

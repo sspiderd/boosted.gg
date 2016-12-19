@@ -16,13 +16,12 @@
 
 package net.rithms.riot.api.endpoints.static_data.methods;
 
-import java.util.List;
-
 import com.google.gson.reflect.TypeToken;
-
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.endpoints.static_data.StaticDataApiMethod;
 import net.rithms.riot.constant.Region;
+
+import java.util.List;
 
 public class GetDataLanguages extends StaticDataApiMethod {
 

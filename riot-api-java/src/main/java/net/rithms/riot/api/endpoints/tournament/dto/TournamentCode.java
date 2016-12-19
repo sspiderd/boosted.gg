@@ -16,10 +16,10 @@
 
 package net.rithms.riot.api.endpoints.tournament.dto;
 
+import net.rithms.riot.api.Dto;
+
 import java.io.Serializable;
 import java.util.Set;
-
-import net.rithms.riot.api.Dto;
 
 public class TournamentCode extends Dto implements Serializable {
 

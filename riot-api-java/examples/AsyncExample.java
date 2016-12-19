@@ -1,7 +1,3 @@
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiAsync;
@@ -11,6 +7,10 @@ import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.request.AsyncRequest;
 import net.rithms.riot.api.request.RequestAdapter;
 import net.rithms.riot.constant.Region;
+
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * This is an example for how to use asynchronous requests. In this example we get a summoner's base information, as well as league

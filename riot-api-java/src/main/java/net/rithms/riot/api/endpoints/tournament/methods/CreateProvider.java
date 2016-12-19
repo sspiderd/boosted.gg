@@ -16,13 +16,13 @@
 
 package net.rithms.riot.api.endpoints.tournament.methods;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.endpoints.tournament.TournamentApiMethod;
 import net.rithms.riot.api.request.RequestMethod;
 import net.rithms.riot.constant.Region;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class CreateProvider extends TournamentApiMethod {
 

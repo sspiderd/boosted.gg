@@ -16,10 +16,10 @@
 
 package net.rithms.riot.api.endpoints.summoner.dto;
 
+import net.rithms.riot.api.Dto;
+
 import java.io.Serializable;
 import java.util.List;
-
-import net.rithms.riot.api.Dto;
 
 public class MasteryPage extends Dto implements Serializable {
 

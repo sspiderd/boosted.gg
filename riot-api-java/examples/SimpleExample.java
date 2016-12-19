@@ -1,10 +1,10 @@
-import java.util.Map;
-
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Region;
+
+import java.util.Map;
 
 /**
  * This is a simple example using the RiotApi to request summoner information for a few given summoner names

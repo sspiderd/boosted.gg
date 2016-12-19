@@ -16,12 +16,7 @@
 
 package net.rithms.riot.api.endpoints.tournament.methods;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.gson.reflect.TypeToken;
-
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.UrlParameter;
 import net.rithms.riot.api.endpoints.tournament.TournamentApiMethod;
@@ -29,6 +24,10 @@ import net.rithms.riot.api.request.RequestMethod;
 import net.rithms.riot.constant.PickType;
 import net.rithms.riot.constant.SpectatorType;
 import net.rithms.riot.constant.TournamentMap;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CreateTournamentCodes extends TournamentApiMethod {
 

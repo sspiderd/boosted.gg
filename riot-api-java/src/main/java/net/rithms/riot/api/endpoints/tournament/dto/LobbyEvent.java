@@ -16,9 +16,9 @@
 
 package net.rithms.riot.api.endpoints.tournament.dto;
 
-import java.io.Serializable;
-
 import net.rithms.riot.api.Dto;
+
+import java.io.Serializable;
 
 public class LobbyEvent extends Dto implements Serializable {
 
