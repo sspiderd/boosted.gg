@@ -1,4 +1,4 @@
-package gg.boosted
+package gg.boosted.utils
 
 import gg.boosted.configuration.Configuration
 import kafka.serializer.{DefaultDecoder, StringDecoder}
@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory
 /**
   * Created by ilan on 8/16/16.
   */
-object Utilities {
+object KafkaUtil {
 
-  val log = LoggerFactory.getLogger(Utilities.getClass)
+  val log = LoggerFactory.getLogger(KafkaUtil.getClass)
 
 
   def unpackMessage(message: Array[Byte]):String = {

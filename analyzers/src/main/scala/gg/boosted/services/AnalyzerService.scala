@@ -4,7 +4,7 @@ import java.time.{LocalDateTime, Period, ZoneId}
 import java.util.Date
 
 import gg.boosted.Application
-import gg.boosted.analyzers.BoostedSummoner
+import gg.boosted.analyzers.Analyzer
 import gg.boosted.configuration.Configuration
 import gg.boosted.posos.SummonerMatch
 import org.apache.spark.rdd.RDD
@@ -47,7 +47,7 @@ object AnalyzerService {
         //Get the boosted summoner DF by champion and role
         log.debug(s"Retrieved ${ds.count()} rows")
 
-        BoostedSummoner.process(ds, minGamesPlayed, getDateToLookForwardFrom, maxRank)
+        Analyzer.process(ds, minGamesPlayed, getDateToLookForwardFrom, maxRank)
 
         //log.info(s"Retrieved total of ${topSummoners.length} boosted summoners")
     }

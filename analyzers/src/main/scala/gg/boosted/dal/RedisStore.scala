@@ -3,7 +3,7 @@ package gg.boosted.dal
 import org.sedis._
 import redis.clients.jedis._
 import gg.boosted.configuration.Configuration
-import gg.boosted.posos.{LoLScore, SummonerId}
+import gg.boosted.posos.{LoLScore, MatchId, SummonerId}
 import redis.clients.jedis.{JedisPool, JedisPoolConfig}
 
 import scala.util.{Failure, Success, Try}
@@ -21,11 +21,11 @@ object RedisStore {
     val summonerIdToLOLScoreKey = "summonerIdToLOLScore"
     val summonerLOLScoreTTL = Configuration.getInt("summoner.to.lolscore.retention.period")
 
-    val summonersProcessedKey = "summonersProcessed"
+    val matchIdKey = "fullMatch"
+    val matchIdTTL = Configuration.getInt("full.match.retention.period")
 
     def getSummonerName(id:SummonerId):Option[String] = {
         pool.withClient { _.get(s"$summonerIdToNameKey:${id.region}:${id.id}")}
-        //rc.get[String](s"$summonerIdToNameKey:${id.region}:${id.id}")
     }
 
     def addSummonerName(id:SummonerId, summonerName:String):Unit = {
@@ -54,5 +54,19 @@ object RedisStore {
             client.setex(s"$summonerIdToLOLScoreKey:${id.region}:${id.id}:leaguePoints", summonerLOLScoreTTL, lolScore.leaguePoints.toString)
         })
     }
+
+    /**
+      * Return the json representation of a full match
+      * @param id
+      * @return
+      */
+    def getMatch(id:MatchId):Option[String] = {
+        pool.withClient { _.get(s"$matchIdKey:${id.region}:${id.id}")}
+    }
+
+    def addMatch(id:MatchId, matchJson:String):Unit = {
+        pool.withClient { _.setex(s"$matchIdKey:${id.region}:${id.id}", matchIdTTL, matchJson) }
+    }
+
 
 }

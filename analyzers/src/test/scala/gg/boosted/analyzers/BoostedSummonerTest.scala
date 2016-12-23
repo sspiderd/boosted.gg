@@ -31,7 +31,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,1,1,Role.TOP.roleId, true, "NA", now))
         )
 
-        val result = BoostedSummoner.findBoostedSummoners(df, 0, 0, 100).collect()
+        val result = Analyzer.findBoostedSummoners(df, 0, 0, 100).collect()
 
         assert(result.length === 1)
     }
@@ -41,7 +41,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,1,1,Role.TOP.roleId, false, "NA", now))
         )
 
-        val result = BoostedSummoner.findBoostedSummoners(df, 0, 0, 100).collect()
+        val result = Analyzer.findBoostedSummoners(df, 0, 0, 100).collect()
 
         assert(result.length === 0)
     }
@@ -52,7 +52,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,2,1,Role.TOP.roleId, false, "NA", now)
         ))
 
-        val result = BoostedSummoner.findBoostedSummoners(df, 0, 0, 100).collect()
+        val result = Analyzer.findBoostedSummoners(df, 0, 0, 100).collect()
         assert(result.length === 1)
     }
 
@@ -61,7 +61,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,1,1,Role.TOP.roleId, true, "NA", now)
         ))
 
-        val result = BoostedSummoner.findBoostedSummoners(df, 2, 0, 100).collect()
+        val result = Analyzer.findBoostedSummoners(df, 2, 0, 100).collect()
         assert(result.length === 0)
     }
 
@@ -72,10 +72,10 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(3,2,1,Role.TOP.roleId, true, "NA", now)
         ))
 
-        val result = BoostedSummoner.findBoostedSummoners(df, 2, 0, 100).collect()
+        val result = Analyzer.findBoostedSummoners(df, 2, 0, 100).collect()
         assert(result.length === 1)
         //The one who is left is player number 2
-        assert(result(0)._3 === 2)
+        assert(result(0).summonerId === 2)
     }
 
     "A list with an old game" should "be filtered out" in {
@@ -83,7 +83,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,1,1,Role.TOP.roleId, true, "NA", 0)
         ))
 
-        val result = BoostedSummoner.findBoostedSummoners(df, 0, 1, 100).collect()
+        val result = Analyzer.findBoostedSummoners(df, 0, 1, 100).collect()
         assert(result.length === 0)
     }
 
@@ -111,20 +111,20 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(14,4,1,Role.TOP.roleId, false, "NA", now)
         ))
 
-        val result = BoostedSummoner.findBoostedSummoners(df, 1, 0, 100).collect()
+        val result = Analyzer.findBoostedSummoners(df, 1, 0, 100).collect()
         assert(result.length === 3)
 
-        assert(result(0)._3 === 1)
-        assert(result(0)._5 === 1)
-        assert(result(0)._6 === 1)
+        assert(result(0).summonerId === 1)
+        assert(result(0).gamesPlayed === 1)
+        assert(result(0).winrate === 1)
 
-        assert(result(1)._3 === 3)
-        assert(result(1)._5 === 4)
-        assert(result(1)._6 === 3.0/4)
+        assert(result(1).summonerId === 3)
+        assert(result(1).gamesPlayed === 4)
+        assert(result(1).winrate === 3.0/4)
 
-        assert(result(2)._3 === 2)
-        assert(result(2)._5 === 3)
-        assert(result(2)._6 === 2.0/3)
+        assert(result(2).summonerId === 2)
+        assert(result(2).gamesPlayed === 3)
+        assert(result(2).winrate === 2.0/3)
     }
 
     "When the same summoner-match is encountered more than once it" should "be counted just once" in {
@@ -133,9 +133,9 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,1,1,Role.TOP.roleId, true, "NA", now)
         ))
 
-        val calcResult = BoostedSummoner.findBoostedSummoners(df, 1, 0, 100).collect()
+        val calcResult = Analyzer.findBoostedSummoners(df, 1, 0, 100).collect()
         assert (calcResult.length === 1)
-        assert (calcResult(0)._5 === 1)
+        assert (calcResult(0).gamesPlayed === 1)
 
     }
 
@@ -147,10 +147,10 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(4,2,1,Role.TOP.roleId, false, "NA", now)
         ))
 
-        val calcResult = BoostedSummoner.findBoostedSummoners(df, 1, 0, 100).collect()
+        val calcResult = Analyzer.findBoostedSummoners(df, 1, 0, 100).collect()
         assert (calcResult.length === 2)
-        assert (calcResult(0)._8 === 1)
-        assert (calcResult(1)._8 === 2)
+        assert (calcResult(0).rank === 1)
+        assert (calcResult(1).rank === 2)
     }
 
     "If there are 2 or more chroles, then the ranks" should "be sorted for each role individually" in {
@@ -162,11 +162,11 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,3,2,Role.BOTTOM.roleId, true, "NA", now)
         ))
 
-        val calcResult = BoostedSummoner.findBoostedSummoners(df, 1, 0, 100).collect()
+        val calcResult = Analyzer.findBoostedSummoners(df, 1, 0, 100).collect()
         assert (calcResult.length === 3)
-        assert (calcResult(0)._8 === 1)
-        assert (calcResult(1)._8 === 2)
-        assert (calcResult(2)._8 === 1)
+        assert (calcResult(0).rank === 1)
+        assert (calcResult(1).rank === 2)
+        assert (calcResult(2).rank === 1)
     }
 
     "If 2 summoners have the same winrate for the same chrole then the results" should
@@ -177,16 +177,16 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(3,2,1,Role.TOP.roleId, true, "NA", now)
         ))
 
-        val calcResult = BoostedSummoner.findBoostedSummoners(df, 1, 0, 100).collect()
+        val calcResult = Analyzer.findBoostedSummoners(df, 1, 0, 100).collect()
         assert (calcResult.length === 2)
 
         //Summoner 1 should have rank 2
-        val summoner1 = calcResult.find(row => row._3 == 1).get
-        assert (summoner1._8 === 2)
+        val summoner1 = calcResult.find(row => row.summonerId == 1).get
+        assert (summoner1.rank === 2)
 
         //And summoner 2 should have rank 1
-        val summoner2 = calcResult.find(row => row._3 == 2).get
-        assert (summoner2._8 === 1)
+        val summoner2 = calcResult.find(row => row.summonerId == 2).get
+        assert (summoner2.rank === 1)
 
     }
 
@@ -198,16 +198,16 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(2,2,1,Role.TOP.roleId, true, "NA", now)
         ))
 
-        val calcResult = BoostedSummoner.findBoostedSummoners(df, 1, 0, 100).collect()
+        val calcResult = Analyzer.findBoostedSummoners(df, 1, 0, 100).collect()
         assert (calcResult.length === 2)
 
         //Summoner 1 should have rank 2
-        val summoner1 = calcResult.find(row => row._3 == 1).get
-        assert (summoner1._8 === 2)
+        val summoner1 = calcResult.find(row => row.summonerId == 1).get
+        assert (summoner1.rank === 2)
 
         //And summoner 2 should have rank 1
-        val summoner2 = calcResult.find(row => row._3 == 2).get
-        assert (summoner2._8 === 1)
+        val summoner2 = calcResult.find(row => row.summonerId == 2).get
+        assert (summoner2.rank === 1)
 
     }
 
@@ -224,16 +224,16 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(7,3,1,Role.TOP.roleId, false, "NA", now)
         ))
 
-        val calcResult = BoostedSummoner.findBoostedSummoners(df, 1, 0, 2).collect()
+        val calcResult = Analyzer.findBoostedSummoners(df, 1, 0, 2).collect()
         assert (calcResult.length === 2)
 
         //Summoner 1 should have rank 1
-        val summoner1 = calcResult.find(row => row._3 == 1).get
-        assert (summoner1._8 === 1)
+        val summoner1 = calcResult.find(row => row.summonerId == 1).get
+        assert (summoner1.rank === 1)
 
         //And summoner 2 should have rank 2
-        val summoner2 = calcResult.find(row => row._3 == 2).get
-        assert (summoner2._8 === 2)
+        val summoner2 = calcResult.find(row => row.summonerId == 2).get
+        assert (summoner2.rank === 2)
     }
 
 }

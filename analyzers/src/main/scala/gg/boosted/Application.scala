@@ -3,6 +3,7 @@ package gg.boosted
 import gg.boosted.configuration.Configuration
 import gg.boosted.posos.SummonerMatch
 import gg.boosted.services.AnalyzerService
+import gg.boosted.utils.KafkaUtil
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Durations, Minutes, Seconds, StreamingContext}
 
@@ -31,7 +32,7 @@ object Application {
     //Check every 30 seconds
     val ssc = new StreamingContext(session.sparkContext, Minutes(Configuration.getLong("calculate.every.n.minutes")))
 
-    val stream = Utilities.getKafkaSparkContext(ssc).window(Minutes(Configuration.getLong("window.size.minutes"))).map(value => SummonerMatch(value._2))
+    val stream = KafkaUtil.getKafkaSparkContext(ssc).window(Minutes(Configuration.getLong("window.size.minutes"))).map(value => SummonerMatch(value._2))
     AnalyzerService.analyze(stream)
 
     ssc.checkpoint(checkPointDir)

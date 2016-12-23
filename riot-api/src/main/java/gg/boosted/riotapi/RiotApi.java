@@ -53,7 +53,7 @@ public class RiotApi {
         throttler = new DistributedThrottler(10, 500, region) ;
     }
 
-    private JsonNode callApi(String endpoint) {
+    private String callApiJson(String endpoint) {
         WebTarget target = client.target(endpoint) ;
 
         //I'm trying to shave off a few ms by taking into account that the roundtrip itself takes some time to finish
@@ -68,8 +68,8 @@ public class RiotApi {
                 String response = target.request(MediaType.APPLICATION_JSON_TYPE).get(String.class);
                 roundTrip = System.currentTimeMillis() - beforeApiCall;
                 log.debug("Roundtrip {}", roundTrip);
+                return response ;
 
-                return om.readValue(response, JsonNode.class);
             } catch (ClientErrorException cer) {
                 int status = cer.getResponse().getStatus() ;
                 String error = String.format("Bad status: {%d} -> {%s}", status, cer.getResponse().getStatusInfo().getReasonPhrase());
@@ -88,7 +88,7 @@ public class RiotApi {
                     }
                 } else if (status == 404) {
                     log.error("GOT 404 from server!");
-                    return NullNode.getInstance();
+                    return null;
                 }
                 log.error(error);
             } catch (Exception ex) {
@@ -98,6 +98,19 @@ public class RiotApi {
                 throttler.releaseLock(System.currentTimeMillis() - roundTrip);
             }
         }
+    }
+
+    private JsonNode callApi(String endpoint) {
+        try {
+            String json = callApiJson(endpoint);
+            if (json == null) {
+                return NullNode.getInstance();
+            }
+            return om.readValue(json, JsonNode.class);
+        } catch (IOException ex) {
+            log.error("Logged unknown error", ex) ;
+        }
+        throw new RuntimeException("How did i get here??");
     }
 
     public List<Champion> getChampionsList() throws IOException {
@@ -137,8 +150,7 @@ public class RiotApi {
         String endpoint = "https://" + region.toString().toLowerCase() +
                 ".api.pvp.net/observer-mode/rest/featured" +
                 "?api_key=" + riotApiKey ;
-        JsonNode rootNode = callApi(endpoint) ;
-        return rootNode.toString() ;
+        return callApiJson(endpoint) ;
     }
 
     public Map<String, Long> getSummonerIdsByNames(String... names) throws IOException {
@@ -204,6 +216,11 @@ public class RiotApi {
             challengerIds.add(node.get("playerOrTeamId").asLong());
         }
         return challengerIds ;
+    }
+
+    public String getMatchAsJson(long matchId, boolean includeTimeline) {
+        String endpoint = String.format("%s/v2.2/match/%s?includeTimeline=%s&api_key=%s", regionEndpoint, matchId, includeTimeline, riotApiKey) ;
+        return callApiJson(endpoint);
     }
 
     public MatchDetail getMatch(long matchId, boolean includeTimeline) {

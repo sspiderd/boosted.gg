@@ -2,11 +2,13 @@ package gg.boosted
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import gg.boosted.configuration.Configuration
 import gg.boosted.riotapi.dtos.match.MatchDetail
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import redis.clients.jedis.Jedis
 
 /**
  * Created by ilan on 8/11/16.
@@ -15,6 +17,8 @@ import org.slf4j.LoggerFactory
 class FromFile {
 
     static Logger log = LoggerFactory.getLogger(FromFile.class)
+
+    private static Jedis jedis = new Jedis(Configuration.getString("redis.location"));
 
     /* Returns a list maps, each containing:
      *
@@ -35,6 +39,9 @@ class FromFile {
         while (it.hasNext()) {
         //new JsonSlurper().parseText(matchesText)['matches'].each { match ->
             MatchDetail md = om.readValue(it.next().toString(), MatchDetail.class)
+
+            putInRedis(md)
+
             List<SummonerMatch> matchDetails = MatchParser.parseMatch(md)
             log.debug("Sending match details for match ${md.matchId}")
             matchDetails.each {
@@ -42,6 +49,10 @@ class FromFile {
                 sleep 10
             }
         }
+    }
+
+    static void putInRedis(MatchDetail md) {
+        jedis.set("fullMatch:${md.region}:${md.matchId}", "55555", new ObjectMapper().writeValueAsString(md))
     }
 
 }
