@@ -22,16 +22,24 @@ public class Configuration {
         }
     }
 
+    public static Object get(String property) {
+        Object o = props.get(property);
+        if (o == null) {
+            throw new RuntimeException("Could not find property '" + property + "' in configuration") ;
+        }
+        return o ;
+    }
+
     public static String getString(String property) {
-        return props.getProperty(property) ;
+        return get(property).toString() ;
     }
 
     public static Integer getInt(String property) {
-        return Integer.parseInt(props.getProperty(property)) ;
+        return Integer.parseInt(getString(property)) ;
     }
 
     public static Long getLong(String property) {
-        return Long.parseLong(props.getProperty(property)) ;
+        return Long.parseLong(getString(property)) ;
     }
 
 

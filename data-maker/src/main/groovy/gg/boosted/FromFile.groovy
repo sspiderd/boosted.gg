@@ -46,13 +46,13 @@ class FromFile {
             log.debug("Sending match details for match ${md.matchId}")
             matchDetails.each {
                 KafkaSummonerMatchProducer.send(it)
-                sleep 10
+                sleep 5
             }
         }
     }
 
     static void putInRedis(MatchDetail md) {
-        jedis.set("fullMatch:${md.region}:${md.matchId}", "55555", new ObjectMapper().writeValueAsString(md))
+        jedis.setex("fullMatch:${md.region}:${md.matchId}", 6000, new ObjectMapper().writeValueAsString(md))
     }
 
 }

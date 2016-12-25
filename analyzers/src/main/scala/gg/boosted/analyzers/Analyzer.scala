@@ -3,7 +3,7 @@ package gg.boosted.analyzers
 import java.util.Date
 
 import com.datastax.spark.connector._
-import com.datastax.spark.connector.writer.{TTLOption, WriteConf}
+import gg.boosted.Application.session.implicits._
 import gg.boosted.dal.RedisStore
 import gg.boosted.maps.Champions
 import gg.boosted.posos._
@@ -11,13 +11,12 @@ import gg.boosted.riotapi.dtos.`match`.MatchDetail
 import gg.boosted.riotapi.{Region, RiotApi}
 import gg.boosted.utils.JsonUtil
 import gg.boosted.{Application, Role}
-import org.apache.spark.sql.{DataFrame, Dataset, Row}
+import org.apache.spark.sql.Dataset
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
-import scala.collection.{SortedSet, mutable}
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import Application.session.implicits._
 
 
 /**
@@ -42,17 +41,16 @@ object Analyzer {
       */
     def process(ds: Dataset[SummonerMatch], minGamesPlayed:Int, since:Long, maxRank:Int):Unit = {
 
-        log.info(s"Processing dataset with ${minGamesPlayed} min games played, since '${new Date(since)}' with max rank ${maxRank}")
+        log.info(s"Processing dataset with ${minGamesPlayed} games played (min), since '${new Date(since)}' with max rank ${maxRank}")
 
         val boostedSummoners = findBoostedSummoners(ds, minGamesPlayed, since, maxRank).cache()
 
         log.info(s"Originally i had ${ds.count()} rows and now i have ${boostedSummoners.count()}")
 
         //Here i download the the full match profile for the matches i haven't stored in redis yet
-        getMatches(boostedSummoners)
+        val matchedEvents = boostedSummonersToMatchEvents(boostedSummoners)
 
-        val processedMatches = processMatches(boostedSummoners)
-
+        matchedEvents.show()
 
         //At this point i am at a fix. I need to get the summoner names and lolscore for all summoners that have gotten to this point.
         //The riot api allows me to get names and league entrries for multiple IDs and i need to do it in order to minimize the calls
@@ -75,7 +73,7 @@ object Analyzer {
             SomeColumns("champion", "role", "summoner_name", "region", "winrate", "rank", "summoner_id",
                 "tier", "division", "league_points", "lol_score", "games_played", "matches"))
 
-        log.info(s"Saved to ${mapWithNames.count()} rows to cassandra")
+        log.info(s"Saved ${mapWithNames.count()} rows to cassandra")
     }
 
     /**
@@ -109,7 +107,7 @@ object Analyzer {
     }
 
 
-    def getMatches(ds:Dataset[BoostedSummoner]):Dataset[MatchEvent] = {
+    def boostedSummonersToMatchEvents(ds:Dataset[BoostedSummoner]):Dataset[MatchEvent] = {
         //Download the matches from the dataset
         ds.foreachPartition(partitionOfRecords => {
             var matchIds = new mutable.HashSet[MatchId]
@@ -138,12 +136,13 @@ object Analyzer {
             row.matches.flatMap(matchId => {
                 val matchDetail = JsonUtil.fromJson[MatchDetail](RedisStore.getMatch(MatchId(matchId, region)).get)
                 //Find this guy's participant id
-                val participantIdList =  matchDetail.participantIdentities.asScala.map(participantIdentity => {
-                    if (participantIdentity.player.summonerId == summonerId) participantIdentity.participantId
-                })
-                val participantId = participantIdList(0)
+                val participantId =  matchDetail.participantIdentities.asScala.filter(_.player.summonerId == summonerId)(0).participantId
+                log.debug(s"PARTICIPANT ID = ${participantId}")
                 val winLose = matchDetail.participants.asScala.filter(p => p.participantId == participantId)(0).stats.winner
-                val gameEvents = matchDetail.timeline.frames.asScala.flatMap(frame => frame.events.asScala)
+                val gameEvents = matchDetail.timeline.frames.asScala.filter(_.events != null).flatMap(frame => {
+                    log.debug(frame.events.toString)
+                    frame.events.asScala
+                })
                 val eventsForOurParticipantOnly = gameEvents.filter(
                     event => participantId == Option(event.participantId).getOrElse(event.creatorId)
                 )

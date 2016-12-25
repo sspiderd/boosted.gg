@@ -1,12 +1,9 @@
 package gg.boosted.dal
 
-import org.sedis._
-import redis.clients.jedis._
 import gg.boosted.configuration.Configuration
 import gg.boosted.posos.{LoLScore, MatchId, SummonerId}
+import org.sedis._
 import redis.clients.jedis.{JedisPool, JedisPoolConfig}
-
-import scala.util.{Failure, Success, Try}
 
 /**
   * Created by ilan on 9/1/16.
@@ -16,13 +13,13 @@ object RedisStore {
     val pool = new Pool(new JedisPool(new JedisPoolConfig(), Configuration.getString("redis.location"), 6379, 2000))
 
     val summonerIdToNameKey = "summonerIdToName"
-    val summonerNameTTL = Configuration.getInt("summoner.to.name.retention.period")
+    val summonerNameTTL = Configuration.getInt("summoner.to.name.retention.period.seconds")
 
     val summonerIdToLOLScoreKey = "summonerIdToLOLScore"
-    val summonerLOLScoreTTL = Configuration.getInt("summoner.to.lolscore.retention.period")
+    val summonerLOLScoreTTL = Configuration.getInt("summoner.to.lolscore.retention.period.seconds")
 
     val matchIdKey = "fullMatch"
-    val matchIdTTL = Configuration.getInt("full.match.retention.period")
+    val matchIdTTL = Configuration.getInt("full.match.retention.period.seconds")
 
     def getSummonerName(id:SummonerId):Option[String] = {
         pool.withClient { _.get(s"$summonerIdToNameKey:${id.region}:${id.id}")}

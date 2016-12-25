@@ -46,8 +46,9 @@ object AnalyzerService {
     def analyze(ds:Dataset[SummonerMatch]):Unit = {
         //Get the boosted summoner DF by champion and role
         log.debug(s"Retrieved ${ds.count()} rows")
-
-        Analyzer.process(ds, minGamesPlayed, getDateToLookForwardFrom, maxRank)
+        minGamesPlayed
+        getDateToLookForwardFrom
+        Analyzer.process(ds, 1, 0, maxRank)
 
         //log.info(s"Retrieved total of ${topSummoners.length} boosted summoners")
     }

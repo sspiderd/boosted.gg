@@ -19,7 +19,7 @@ CREATE TABLE BoostedGG.Test (
 ) WITH default_time_to_live=5;
 
 
-#TTL Is 5 hours
+-- TTL is 5 hours
 CREATE TABLE BoostedGG.BOOSTED_SUMMONERS (
   champion varchar,
   role varchar,
