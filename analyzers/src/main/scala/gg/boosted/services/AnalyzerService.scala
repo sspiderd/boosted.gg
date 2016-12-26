@@ -3,14 +3,16 @@ package gg.boosted.services
 import java.time.{LocalDateTime, Period, ZoneId}
 import java.util.Date
 
-import gg.boosted.Application
 import gg.boosted.analyzers.Analyzer
 import gg.boosted.configuration.Configuration
 import gg.boosted.posos.SummonerMatch
+import gg.boosted.{Application, Role}
+import org.apache.spark.ml.classification.LogisticRegression
+import org.apache.spark.ml.feature.{LabeledPoint, OneHotEncoder, StringIndexer}
+import org.apache.spark.ml.linalg.Vectors
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Dataset
 import org.apache.spark.streaming.dstream.DStream
-import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
 /**
@@ -46,9 +48,64 @@ object AnalyzerService {
     def analyze(ds:Dataset[SummonerMatch]):Unit = {
         //Get the boosted summoner DF by champion and role
         log.debug(s"Retrieved ${ds.count()} rows")
-        minGamesPlayed
-        getDateToLookForwardFrom
-        Analyzer.process(ds, 1, 0, maxRank)
+
+        //Analyzer.process(ds, minGamesPlayed, getDateToLookForwardFrom, maxRank)
+
+        val bs = Analyzer.findBoostedSummoners(ds, 3, 0, 1000)
+        import Application.session.implicits._
+        val me = Analyzer.boostedSummonersToMatchEvents(bs).filter(_.eventType == "ITEM_PURCHASED")
+
+        var transforming = new StringIndexer().setInputCol("itemId").setOutputCol("itemIdx").fit(me).transform(me)
+
+        transforming = new OneHotEncoder().setInputCol("itemIdx").setOutputCol("itemVec").transform(transforming)
+
+        transforming.show()
+
+
+        //I need to encode itemIds and roles
+//        me.map(r => {
+//              val winnerInt = if (r.winner) 1 else 0
+//              (r.championId,
+//                Role.valueOf(r.role).roleId,
+//                r.timeStamp,
+//                r.itemId,
+//                winnerInt)
+//          }).map(r => LabeledPoint(r._5, Vectors.dense(r._1, r._2, r._3, r._4)))
+//
+//        me.show(10000, false)
+
+        val lrModel = new LogisticRegression().setMaxIter(10).fit(me)
+
+        println(s"Coefficients: ${lrModel.coefficients} Intercept: ${lrModel.intercept}")
+
+
+
+
+
+//        val roleIndexer = new StringIndexer()
+//          .setInputCol("role")
+//          .setOutputCol("roleIndex")
+//          .fit(me)
+//
+//        val indexed = roleIndexer.transform(me)
+//
+//        val transformed = new VectorAssembler()
+//          .setInputCols(Array("championId", "roleIndex", "timestamp", "itemId"))
+//          .setOutputCol("features").transform(indexed)
+//
+//        val labeled = transformed.selectExpr("cast (winner as int) winner", "features")
+//
+//        labeled.show()
+//
+//        val lr = new LogisticRegression()
+//          .setMaxIter(10).setLabelCol("winner").setFeaturesCol("features")
+//
+//        val lrModel = lr.fit(labeled)
+
+
+
+
+
 
         //log.info(s"Retrieved total of ${topSummoners.length} boosted summoners")
     }

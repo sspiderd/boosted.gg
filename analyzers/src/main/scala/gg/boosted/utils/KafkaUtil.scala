@@ -24,7 +24,7 @@ object KafkaUtil {
 
     val kafkaParams = Map[String, String](
       "bootstrap.servers" -> Configuration.getString("kafka.location").concat(":9092"),
-      "group.id" -> "group1",
+      "group.id" -> "group3",
       "auto.commit.interval.ms" -> "1000")
 
     val topics = Configuration.getString("kafka.topic")

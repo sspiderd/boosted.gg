@@ -33,22 +33,32 @@ class FromFile {
     }
 
     static void main(String[] args) {
-        String matchesText = FromFile.getClass().getResource( '/matches1.json' ).openStream().text
-        ObjectMapper om = new ObjectMapper()
-        Iterator it = om.readValue(matchesText, JsonNode.class).get("matches").iterator()
-        while (it.hasNext()) {
-        //new JsonSlurper().parseText(matchesText)['matches'].each { match ->
-            MatchDetail md = om.readValue(it.next().toString(), MatchDetail.class)
+        int counter = 0
+        int matchCounter = 0
+        (1..10).each {
+            log.debug("Reading file ${it}")
+            //String matchesJson = new URL("https://s3-us-west-1.amazonaws.com/riot-api/seed_data/matches${it}.json").getText()
+            String matchesJson = FromFile.getClass().getResource("/matches${it}.json").openStream().text
+            ObjectMapper om = new ObjectMapper()
+            Iterator iter = om.readValue(matchesJson, JsonNode.class).get("matches").iterator()
+            while (iter.hasNext()) {
+                matchCounter++
+                //new JsonSlurper().parseText(matchesText)['matches'].each { match ->
+                MatchDetail md = om.readValue(iter.next().toString(), MatchDetail.class)
 
-            putInRedis(md)
+                putInRedis(md)
 
-            List<SummonerMatch> matchDetails = MatchParser.parseMatch(md)
-            log.debug("Sending match details for match ${md.matchId}")
-            matchDetails.each {
-                KafkaSummonerMatchProducer.send(it)
-                sleep 5
+                List<SummonerMatch> matchDetails = MatchParser.parseMatch(md)
+                log.debug("Sending match details for match ${md.matchId}")
+                matchDetails.each {
+                    counter++
+                    KafkaSummonerMatchProducer.send(it)
+                    sleep 1
+                }
             }
         }
+
+        println ("Sent total ${counter} summoner matches for ${matchCounter} matches")
     }
 
     static void putInRedis(MatchDetail md) {

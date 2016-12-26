@@ -50,8 +50,6 @@ object Analyzer {
         //Here i download the the full match profile for the matches i haven't stored in redis yet
         val matchedEvents = boostedSummonersToMatchEvents(boostedSummoners)
 
-        matchedEvents.show()
-
         //At this point i am at a fix. I need to get the summoner names and lolscore for all summoners that have gotten to this point.
         //The riot api allows me to get names and league entrries for multiple IDs and i need to do it in order to minimize the calls
         //To the riot api. However, i don't think there's a way to call a function for an entire column so i have to use a trick here...
@@ -137,12 +135,8 @@ object Analyzer {
                 val matchDetail = JsonUtil.fromJson[MatchDetail](RedisStore.getMatch(MatchId(matchId, region)).get)
                 //Find this guy's participant id
                 val participantId =  matchDetail.participantIdentities.asScala.filter(_.player.summonerId == summonerId)(0).participantId
-                log.debug(s"PARTICIPANT ID = ${participantId}")
-                val winLose = matchDetail.participants.asScala.filter(p => p.participantId == participantId)(0).stats.winner
-                val gameEvents = matchDetail.timeline.frames.asScala.filter(_.events != null).flatMap(frame => {
-                    log.debug(frame.events.toString)
-                    frame.events.asScala
-                })
+                val winner = matchDetail.participants.asScala.filter(p => p.participantId == participantId)(0).stats.winner
+                val gameEvents = matchDetail.timeline.frames.asScala.filter(_.events != null).flatMap(frame => frame.events.asScala)
                 val eventsForOurParticipantOnly = gameEvents.filter(
                     event => participantId == Option(event.participantId).getOrElse(event.creatorId)
                 )
@@ -154,7 +148,7 @@ object Analyzer {
                 })
                 relevantEvents.map(event => {
                     MatchEvent(championId, role, summonerId, region.toString, event.eventType, event.timestamp,
-                        event.itemId, event.skillSlot, winLose)
+                        event.itemId, event.skillSlot, winner)
                 })
             })
         })
