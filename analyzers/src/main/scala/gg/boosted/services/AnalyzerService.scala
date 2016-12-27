@@ -52,6 +52,11 @@ object AnalyzerService {
         //BoostedSummonersAnalyzer.process(ds, minGamesPlayed, getDateToLookForwardFrom, maxRank)
 
         val bs = BoostedSummonersAnalyzer.findBoostedSummoners(ds, 3, 0, 1000)
+
+        val me = BoostedSummonersAnalyzer.boostedSummonersToMatchSummary(bs)
+
+        me.show()
+
         import Application.session.implicits._
 //        val me = BoostedSummonersAnalyzer.boostedSummonersToMatchSummary(bs, null)
 //

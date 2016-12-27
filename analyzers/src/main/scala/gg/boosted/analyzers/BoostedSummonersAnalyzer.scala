@@ -4,18 +4,20 @@ import java.util.Date
 
 import com.datastax.spark.connector._
 import gg.boosted.dal.RedisStore
-import gg.boosted.maps.Champions
+import gg.boosted.maps.{Champions, Items}
 import gg.boosted.posos._
-import gg.boosted.riotapi.dtos.{Item, MatchSummary}
+import gg.boosted.riotapi.dtos.MatchSummary
 import gg.boosted.riotapi.{Region, RiotApi}
 import gg.boosted.utils.JsonUtil
 import gg.boosted.{Application, Role}
-import org.apache.spark.sql.Dataset
+import org.apache.spark.ml.linalg.Vectors
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+
 
 
 /**
@@ -47,7 +49,7 @@ object BoostedSummonersAnalyzer {
         log.info(s"Originally i had ${ds.count()} rows and now i have ${boostedSummoners.count()}")
 
         //Here i download the the full match profile for the matches i haven't stored in redis yet
-        val matchedEvents = boostedSummonersToMatchSummary(boostedSummoners, null)
+        val matchedEvents = boostedSummonersToMatchSummary(boostedSummoners)
 
         //At this point i am at a fix. I need to get the summoner names and lolscore for all summoners that have gotten to this point.
         //The riot api allows me to get names and league entrries for multiple IDs and i need to do it in order to minimize the calls
@@ -104,7 +106,8 @@ object BoostedSummonersAnalyzer {
     }
 
 
-    def boostedSummonersToMatchSummary(ds:Dataset[BoostedSummoner], itemList:Map[Int, Item]):Unit = {
+    def boostedSummonersToMatchSummary(ds:Dataset[BoostedSummoner])
+        :Dataset[(Boolean, Long, String, Long, Int, String, Array[Int])] = {
 
         import Application.session.implicits._
 
@@ -113,7 +116,7 @@ object BoostedSummonersAnalyzer {
             var matchIds = new mutable.HashSet[MatchId]
 
             partitionOfRecords.foreach(row => row.matches.foreach(
-                matchh => matchIds += MatchId(matchh, Region.valueOf(row.region))))
+                _match => matchIds += MatchId(_match, Region.valueOf(row.region))))
 
             //Get all unknown matches
             val unknownMatches = new mutable.HashSet[MatchId]
@@ -126,24 +129,39 @@ object BoostedSummonersAnalyzer {
                 ids.foreach(id => RedisStore.addMatch(id, api.getMatchSummaryAsJson(id.id)))
             })
         })
+
+        //Create a map and its inverse
+        ds.foreachPartition(partition => {
+            Items.populateMapIfEmpty()
+        })
+
         ds.flatMap(row => {
-            //The grouping
+
             val summonerId = row.summonerId
-            val region = Region.valueOf(row.region)
+            val region = row.region
             val championId = row.championId
             val role = row.role
-            //Get raw event data
-            row.matches.flatMap(matchId => {
-                val matchSummary = JsonUtil.fromJson[MatchSummary](RedisStore.getMatch(MatchId(matchId, region)).get)
 
-                //Get the relevant summoner (we'll have to search both teams
-                val summoner = matchSummary.team1.summoners.asScala.find(summoner => summoner.summonerId == summonerId)
-                  .getOrElse(matchSummary.team2.summoners.asScala.find(summoner => summoner.summonerId == summonerId).get)
+            row.matches.map(matchId => {
+                val legendariesToIndex = Items.items.values.toList.filter(_.gold >= 1200).map(_.id.toInt).zipWithIndex.toMap
+                val indexToLegendaries = legendariesToIndex.map(_.swap)
 
-                //We only want "legendary" class items for now
-                summoner.itemsBought = summoner.itemsBought.asScala.filter(itemList(_).gold >= 1200).asJava
+                val matchSummary = JsonUtil.fromJson[MatchSummary](RedisStore.getMatch(MatchId(matchId, Region.valueOf(region))).get)
 
-                row.matches
+                val summonerFromSummary = matchSummary.team1.summoners.asScala.find(summoner => summoner.summonerId == summonerId)
+                    .getOrElse(matchSummary.team2.summoners.asScala.find(summoner => summoner.summonerId == summonerId).get)
+
+                log.debug(s"${summonerId}, ${matchId}, ${summonerFromSummary.summonerId}, ${summonerFromSummary.itemsBought.size()}")
+
+                //Get legendary items bought for summoner
+                val itemsBought = summonerFromSummary.itemsBought.asScala.filter(Items.byId(_).gold >= 1200)
+
+                //We use expanded items bought so we can do logistic regression afterwards
+                val expandedItemsBoughtList = Array.fill(legendariesToIndex.size){0}
+                log.debug("Items bought " + itemsBought.size)
+                itemsBought.foreach(item => expandedItemsBoughtList(legendariesToIndex(item)) += 1)
+
+                (summonerFromSummary.winner, summonerId, region, matchId, championId, role, expandedItemsBoughtList)
             })
         })
     }

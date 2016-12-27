@@ -72,7 +72,7 @@ public class RiotApi {
         long beforeApiCall, roundTrip = 0;
 
         boolean statikk = false ;
-        if (!endpoint.startsWith(staticEndpoint)) {
+        if (endpoint.startsWith(staticEndpoint)) {
             statikk = true;
         }
 

@@ -50,7 +50,7 @@ public class Matches {
         md.timeline.frames.forEach(frame -> {
             if (frame.events != null) {
                 frame.events.forEach(event -> {
-                    if (event.itemId != 0) {
+                    if (event.eventType.equals("ITEM_PURCHASED")) {
                         participantsToSummonerObjects.get(event.participantId).itemsBought.add(event.itemId);
                     }
                 });
@@ -69,9 +69,9 @@ public class Matches {
     public static String roleForParticipant(Participant p) {
         String lane = p.timeline.lane;
         String role ;
-        if (lane == "TOP" || lane == "MIDDLE" || lane == "JUNGLE") {
+        if (lane.equals("TOP") || lane .equals("MIDDLE") || lane.equals("JUNGLE")) {
             role = lane;
-        } else if (lane == "BOTTOM") {
+        } else if (lane.equals("BOTTOM")) {
             //This is bot lane
             if (p.timeline.role ==  "DUO_CARRY") {
                 role = "BOTTOM";

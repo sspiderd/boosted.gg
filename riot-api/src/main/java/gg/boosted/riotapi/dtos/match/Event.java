@@ -32,6 +32,7 @@ public class Event  {
 	public int killerId;
 	public String laneType;
 	public String levelUpType;
+	public String monsterSubType;
 	public String monsterType;
 	public int participantId;
 	public String pointCaptured;
