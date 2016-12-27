@@ -31,7 +31,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,1,1,Role.TOP.roleId, true, "NA", now))
         )
 
-        val result = Analyzer.findBoostedSummoners(df, 0, 0, 100).collect()
+        val result = BoostedSummonersAnalyzer.findBoostedSummoners(df, 0, 0, 100).collect()
 
         assert(result.length === 1)
     }
@@ -41,7 +41,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,1,1,Role.TOP.roleId, false, "NA", now))
         )
 
-        val result = Analyzer.findBoostedSummoners(df, 0, 0, 100).collect()
+        val result = BoostedSummonersAnalyzer.findBoostedSummoners(df, 0, 0, 100).collect()
 
         assert(result.length === 0)
     }
@@ -52,7 +52,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,2,1,Role.TOP.roleId, false, "NA", now)
         ))
 
-        val result = Analyzer.findBoostedSummoners(df, 0, 0, 100).collect()
+        val result = BoostedSummonersAnalyzer.findBoostedSummoners(df, 0, 0, 100).collect()
         assert(result.length === 1)
     }
 
@@ -61,7 +61,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,1,1,Role.TOP.roleId, true, "NA", now)
         ))
 
-        val result = Analyzer.findBoostedSummoners(df, 2, 0, 100).collect()
+        val result = BoostedSummonersAnalyzer.findBoostedSummoners(df, 2, 0, 100).collect()
         assert(result.length === 0)
     }
 
@@ -72,7 +72,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(3,2,1,Role.TOP.roleId, true, "NA", now)
         ))
 
-        val result = Analyzer.findBoostedSummoners(df, 2, 0, 100).collect()
+        val result = BoostedSummonersAnalyzer.findBoostedSummoners(df, 2, 0, 100).collect()
         assert(result.length === 1)
         //The one who is left is player number 2
         assert(result(0).summonerId === 2)
@@ -83,7 +83,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,1,1,Role.TOP.roleId, true, "NA", 0)
         ))
 
-        val result = Analyzer.findBoostedSummoners(df, 0, 1, 100).collect()
+        val result = BoostedSummonersAnalyzer.findBoostedSummoners(df, 0, 1, 100).collect()
         assert(result.length === 0)
     }
 
@@ -111,7 +111,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(14,4,1,Role.TOP.roleId, false, "NA", now)
         ))
 
-        val result = Analyzer.findBoostedSummoners(df, 1, 0, 100).collect()
+        val result = BoostedSummonersAnalyzer.findBoostedSummoners(df, 1, 0, 100).collect()
         assert(result.length === 3)
 
         assert(result(0).summonerId === 1)
@@ -133,7 +133,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,1,1,Role.TOP.roleId, true, "NA", now)
         ))
 
-        val calcResult = Analyzer.findBoostedSummoners(df, 1, 0, 100).collect()
+        val calcResult = BoostedSummonersAnalyzer.findBoostedSummoners(df, 1, 0, 100).collect()
         assert (calcResult.length === 1)
         assert (calcResult(0).gamesPlayed === 1)
 
@@ -147,7 +147,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(4,2,1,Role.TOP.roleId, false, "NA", now)
         ))
 
-        val calcResult = Analyzer.findBoostedSummoners(df, 1, 0, 100).collect()
+        val calcResult = BoostedSummonersAnalyzer.findBoostedSummoners(df, 1, 0, 100).collect()
         assert (calcResult.length === 2)
         assert (calcResult(0).rank === 1)
         assert (calcResult(1).rank === 2)
@@ -162,7 +162,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(1,3,2,Role.BOTTOM.roleId, true, "NA", now)
         ))
 
-        val calcResult = Analyzer.findBoostedSummoners(df, 1, 0, 100).collect()
+        val calcResult = BoostedSummonersAnalyzer.findBoostedSummoners(df, 1, 0, 100).collect()
         assert (calcResult.length === 3)
         assert (calcResult(0).rank === 1)
         assert (calcResult(1).rank === 2)
@@ -177,7 +177,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(3,2,1,Role.TOP.roleId, true, "NA", now)
         ))
 
-        val calcResult = Analyzer.findBoostedSummoners(df, 1, 0, 100).collect()
+        val calcResult = BoostedSummonersAnalyzer.findBoostedSummoners(df, 1, 0, 100).collect()
         assert (calcResult.length === 2)
 
         //Summoner 1 should have rank 2
@@ -198,7 +198,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(2,2,1,Role.TOP.roleId, true, "NA", now)
         ))
 
-        val calcResult = Analyzer.findBoostedSummoners(df, 1, 0, 100).collect()
+        val calcResult = BoostedSummonersAnalyzer.findBoostedSummoners(df, 1, 0, 100).collect()
         assert (calcResult.length === 2)
 
         //Summoner 1 should have rank 2
@@ -224,7 +224,7 @@ class BoostedSummonerTest extends FlatSpec with BeforeAndAfter{
             SummonerMatch(7,3,1,Role.TOP.roleId, false, "NA", now)
         ))
 
-        val calcResult = Analyzer.findBoostedSummoners(df, 1, 0, 2).collect()
+        val calcResult = BoostedSummonersAnalyzer.findBoostedSummoners(df, 1, 0, 2).collect()
         assert (calcResult.length === 2)
 
         //Summoner 1 should have rank 1

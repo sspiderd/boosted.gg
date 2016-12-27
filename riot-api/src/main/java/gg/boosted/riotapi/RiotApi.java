@@ -9,6 +9,7 @@ import gg.boosted.riotapi.constants.QueueType;
 import gg.boosted.riotapi.dtos.Champion;
 import gg.boosted.riotapi.dtos.LeagueEntry;
 import gg.boosted.riotapi.dtos.MatchReference;
+import gg.boosted.riotapi.dtos.MatchSummary;
 import gg.boosted.riotapi.dtos.match.MatchDetail;
 import gg.boosted.riotapi.throttlers.DistributedThrottler;
 import gg.boosted.riotapi.throttlers.IThrottler;
@@ -280,6 +281,11 @@ public class RiotApi {
 
         return map ;
 
+    }
+
+    public MatchSummary getMatchSummary(long matchId) {
+        MatchDetail md = getMatch(matchId, true);
+        
     }
 
 

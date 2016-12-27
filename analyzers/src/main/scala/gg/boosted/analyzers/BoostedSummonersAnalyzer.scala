@@ -22,9 +22,9 @@ import scala.collection.mutable.ListBuffer
 /**
   * Created by ilan on 8/26/16.
   */
-object Analyzer {
+object BoostedSummonersAnalyzer {
 
-    val log = LoggerFactory.getLogger(Analyzer.getClass)
+    val log = LoggerFactory.getLogger(BoostedSummonersAnalyzer.getClass)
 
     /**
       *

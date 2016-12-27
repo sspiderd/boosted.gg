@@ -3,7 +3,7 @@ package gg.boosted.services
 import java.time.{LocalDateTime, Period, ZoneId}
 import java.util.Date
 
-import gg.boosted.analyzers.Analyzer
+import gg.boosted.analyzers.BoostedSummonersAnalyzer
 import gg.boosted.configuration.Configuration
 import gg.boosted.posos.SummonerMatch
 import gg.boosted.{Application, Role}
@@ -49,11 +49,11 @@ object AnalyzerService {
         //Get the boosted summoner DF by champion and role
         log.debug(s"Retrieved ${ds.count()} rows")
 
-        //Analyzer.process(ds, minGamesPlayed, getDateToLookForwardFrom, maxRank)
+        //BoostedSummonersAnalyzer.process(ds, minGamesPlayed, getDateToLookForwardFrom, maxRank)
 
-        val bs = Analyzer.findBoostedSummoners(ds, 3, 0, 1000)
+        val bs = BoostedSummonersAnalyzer.findBoostedSummoners(ds, 3, 0, 1000)
         import Application.session.implicits._
-        val me = Analyzer.boostedSummonersToMatchEvents(bs).filter(_.eventType == "ITEM_PURCHASED")
+        val me = BoostedSummonersAnalyzer.boostedSummonersToMatchEvents(bs).filter(_.eventType == "ITEM_PURCHASED")
 
         var transforming = new StringIndexer().setInputCol("itemId").setOutputCol("itemIdx").fit(me).transform(me)
 
