@@ -53,13 +53,13 @@ object AnalyzerService {
 
         val bs = BoostedSummonersAnalyzer.findBoostedSummoners(ds, 3, 0, 1000)
         import Application.session.implicits._
-        val me = BoostedSummonersAnalyzer.boostedSummonersToMatchEvents(bs).filter(_.eventType == "ITEM_PURCHASED")
-
-        var transforming = new StringIndexer().setInputCol("itemId").setOutputCol("itemIdx").fit(me).transform(me)
-
-        transforming = new OneHotEncoder().setInputCol("itemIdx").setOutputCol("itemVec").transform(transforming)
-
-        transforming.show()
+//        val me = BoostedSummonersAnalyzer.boostedSummonersToMatchSummary(bs, null)
+//
+//        var transforming = new StringIndexer().setInputCol("itemId").setOutputCol("itemIdx").fit(me).transform(me)
+//
+//        transforming = new OneHotEncoder().setInputCol("itemIdx").setOutputCol("itemVec").transform(transforming)
+//
+//        transforming.show()
 
 
         //I need to encode itemIds and roles
@@ -74,9 +74,9 @@ object AnalyzerService {
 //
 //        me.show(10000, false)
 
-        val lrModel = new LogisticRegression().setMaxIter(10).fit(me)
+        //val lrModel = new LogisticRegression().setMaxIter(10).fit(me)
 
-        println(s"Coefficients: ${lrModel.coefficients} Intercept: ${lrModel.intercept}")
+        //println(s"Coefficients: ${lrModel.coefficients} Intercept: ${lrModel.intercept}")
 
 
 

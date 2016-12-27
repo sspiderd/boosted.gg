@@ -6,15 +6,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import gg.boosted.riotapi.constants.QueueType;
-import gg.boosted.riotapi.dtos.Champion;
-import gg.boosted.riotapi.dtos.LeagueEntry;
-import gg.boosted.riotapi.dtos.MatchReference;
-import gg.boosted.riotapi.dtos.MatchSummary;
+import gg.boosted.riotapi.dtos.*;
 import gg.boosted.riotapi.dtos.match.MatchDetail;
 import gg.boosted.riotapi.throttlers.DistributedThrottler;
 import gg.boosted.riotapi.throttlers.IThrottler;
 import gg.boosted.riotapi.utilities.ArrayChunker;
 import gg.boosted.riotapi.utilities.ArrayConverter;
+import gg.boosted.riotapi.utilities.Matches;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +35,7 @@ public class RiotApi {
     private Region region ;
     private String riotApiKey ;
     private String regionEndpoint;
+    private String staticEndpoint;
     Client client = ClientBuilder.newClient() ;
     ObjectMapper om = new ObjectMapper() ;
     private IThrottler throttler ;
@@ -51,19 +50,39 @@ public class RiotApi {
                 region.toString().toLowerCase() +
                 ".api.pvp.net/api/lol/" +
                 region.toString().toLowerCase() ;
+
+        staticEndpoint = "https://global.api.pvp.net/api/lol/static-data/" + region.toString().toLowerCase() ;
         throttler = new DistributedThrottler(10, 500, region) ;
     }
 
     private String callApiJson(String endpoint) {
+
+        //Add the riotApi key to the endpoint
+        if (endpoint.contains("?")) {
+            endpoint += "&";
+        } else {
+            endpoint += "?";
+        }
+        endpoint += "api_key=" + riotApiKey;
+
         WebTarget target = client.target(endpoint) ;
 
         //I'm trying to shave off a few ms by taking into account that the roundtrip itself takes some time to finish
         //I think a good rough estimate is shaving off half the round trip.. we'll see...
         long beforeApiCall, roundTrip = 0;
+
+        boolean statikk = false ;
+        if (!endpoint.startsWith(staticEndpoint)) {
+            statikk = true;
+        }
+
         //Don't stop believing
         while (true) {
             try {
-                throttler.waitFor();
+                //If it's a static endpoint, we don't need a throttler since we're allowed endless calls
+                if (!statikk) {
+                    throttler.waitFor();
+                }
                 log.debug("API Called: {}", endpoint);
                 beforeApiCall = System.currentTimeMillis() ;
                 String response = target.request(MediaType.APPLICATION_JSON_TYPE).get(String.class);
@@ -96,7 +115,9 @@ public class RiotApi {
                 log.error("Logged unknown error", ex) ;
                 //throw new RuntimeException(ex) ;
             } finally {
-                throttler.releaseLock(System.currentTimeMillis() - roundTrip);
+                if (!statikk) {
+                    throttler.releaseLock(System.currentTimeMillis() - roundTrip);
+                }
             }
         }
     }
@@ -115,7 +136,7 @@ public class RiotApi {
     }
 
     public List<Champion> getChampionsList() throws IOException {
-        String endpoint = "https://global.api.pvp.net/api/lol/static-data/" + region.toString().toLowerCase() + "/v1.2/champion?api_key=" + riotApiKey;
+        String endpoint = staticEndpoint + "/v1.2/champion";
 
         JsonNode rootNode = callApi(endpoint) ;
 
@@ -133,8 +154,7 @@ public class RiotApi {
         String QUEUES = "RANKED_SOLO_5x5,TEAM_BUILDER_RANKED_SOLO" ;
         String endpoint = regionEndpoint + "/v2.2/matchlist/by-summoner/" + String.valueOf(summonerId) +
                 "?rankedQueues=" + QUEUES +
-                "&beginTime=" + beginTime +
-                "&api_key=" + riotApiKey ;
+                "&beginTime=" + beginTime ;
 
         JsonNode rootNode = callApi(endpoint) ;
 
@@ -149,8 +169,7 @@ public class RiotApi {
      */
     public String getFeaturedGames() throws IOException {
         String endpoint = "https://" + region.toString().toLowerCase() +
-                ".api.pvp.net/observer-mode/rest/featured" +
-                "?api_key=" + riotApiKey ;
+                ".api.pvp.net/observer-mode/rest/featured" ;
         return callApiJson(endpoint) ;
     }
 
@@ -183,7 +202,6 @@ public class RiotApi {
 
             String endpoint = String.format("%s/v1.4/summoner/", regionEndpoint) ;
             endpoint += Arrays.stream(ArrayConverter.convertLongToString(array)).collect(Collectors.joining(",")) ;
-            endpoint += "?api_key=" + riotApiKey ;
             JsonNode rootNode = callApi(endpoint) ;
             //Riot has made this api a little silly, so i need to be silly to get the data
             Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields() ;
@@ -197,7 +215,7 @@ public class RiotApi {
 
     public List<Long> getChallengersIds() {
         List<Long> challengerIds = new LinkedList<>() ;
-        String endpoint = String.format("%s/v2.5/league/challenger?type=%s&api_key=%s", regionEndpoint, QueueType.RANKED_SOLO_5x5, riotApiKey) ;
+        String endpoint = String.format("%s/v2.5/league/challenger?type=%s", regionEndpoint, QueueType.RANKED_SOLO_5x5) ;
         JsonNode root = callApi(endpoint) ;
         Iterator<JsonNode> it = root.get("entries").elements() ;
         while (it.hasNext()) {
@@ -209,7 +227,7 @@ public class RiotApi {
 
     public List<Long> getMastersIds() {
         List<Long> challengerIds = new LinkedList<>() ;
-        String endpoint = String.format("%s/v2.5/league/master?type=%s&api_key=%s", regionEndpoint, QueueType.RANKED_SOLO_5x5, riotApiKey) ;
+        String endpoint = String.format("%s/v2.5/league/master?type=%s", regionEndpoint, QueueType.RANKED_SOLO_5x5) ;
         JsonNode root = callApi(endpoint) ;
         Iterator<JsonNode> it = root.get("entries").elements() ;
         while (it.hasNext()) {
@@ -220,12 +238,12 @@ public class RiotApi {
     }
 
     public String getMatchAsJson(long matchId, boolean includeTimeline) {
-        String endpoint = String.format("%s/v2.2/match/%s?includeTimeline=%s&api_key=%s", regionEndpoint, matchId, includeTimeline, riotApiKey) ;
+        String endpoint = String.format("%s/v2.2/match/%s?includeTimeline=%s", regionEndpoint, matchId, includeTimeline) ;
         return callApiJson(endpoint);
     }
 
     public MatchDetail getMatch(long matchId, boolean includeTimeline) {
-        String endpoint = String.format("%s/v2.2/match/%s?includeTimeline=%s&api_key=%s", regionEndpoint, matchId, includeTimeline, riotApiKey) ;
+        String endpoint = String.format("%s/v2.2/match/%s?includeTimeline=%s", regionEndpoint, matchId, includeTimeline) ;
         JsonNode root = callApi(endpoint);
         try {
             return om.treeToValue(root, MatchDetail.class) ;
@@ -247,7 +265,6 @@ public class RiotApi {
             String endpoint = regionEndpoint +
                     "/v2.5/league/by-summoner/" ;
             endpoint += Arrays.stream(ArrayConverter.convertLongToString(array)).collect(Collectors.joining(",")) ;
-            endpoint += "/entry?api_key=" + riotApiKey ;
             JsonNode rootNode = callApi(endpoint) ;
 
             //Riot has made this api a little silly, so i need to be silly to get the data
@@ -280,12 +297,43 @@ public class RiotApi {
         }
 
         return map ;
-
     }
 
     public MatchSummary getMatchSummary(long matchId) {
-        MatchDetail md = getMatch(matchId, true);
-        
+        return Matches.detailToSummary(getMatch(matchId, true));
+    }
+
+    public String getMatchSummaryAsJson(long matchId) {
+        try {
+            return om.writeValueAsString(getMatchSummary(matchId));
+        } catch (JsonProcessingException e) {
+            log.error("Shouldn't be thrown");
+        }
+        throw new RuntimeException("Shouldn't be thrown");
+    }
+
+    /**
+     * I'm really only interested in the gold, so i'm not bringing everything back
+     * @return
+     */
+    public Map<Integer, Item> getItems() {
+        Map<Integer, Item>itemsList = new HashMap<>() ;
+        String endpoint = String.format("%s/v1.2/item?itemListData=gold", staticEndpoint) ;
+        JsonNode root = callApi(endpoint) ;
+        Iterator<JsonNode> it = root.get("data").elements() ;
+        while (it.hasNext()) {
+            JsonNode node = it.next() ;
+            Object name = node.get("name");
+            if (name != null) {
+                Item item = new Item();
+                item.id = node.get("id").asInt();
+                item.name = node.get("name").asText();
+                item.gold = node.get("gold").get("total").asInt();
+                itemsList.put(item.id, item);
+            }
+        }
+        return itemsList ;
+
     }
 
 
@@ -300,7 +348,7 @@ public class RiotApi {
 //        }
 
         //new RiotApi(Region.EUW).getMatch(2969769203L, false) ;
-        new RiotApi(Region.EUW).getLeagueEntries(19920657L,19829477L) ;
+        new RiotApi(Region.EUW).getItems();
     }
 
 

@@ -1,5 +1,6 @@
 package gg.boosted.riotapi.dtos;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -18,15 +19,12 @@ public class MatchSummary {
     public String queueType;
     public String region;
     public String season;
-    public Team team1 ;
-    public Team team2 ;
-
-
+    public Team team1 = new Team();
+    public Team team2 = new Team();
 
     public static class Team {
 
-        public boolean winner ;
-        public List<Summoner> summoners ;
+        public List<Summoner> summoners = new LinkedList<>();
 
     }
 
@@ -35,7 +33,8 @@ public class MatchSummary {
         public long summonerId;
         public int championId ;
         public String role ;
-        public List<Integer> itemsBought ;
+        public List<Integer> itemsBought = new LinkedList<>();
+        public boolean winner = false;
         public int wardsPlaced ;
     }
 

@@ -31,7 +31,6 @@ object LSTest {
 
     val readyToFit = transformed.select($"label", $"itemIdx", $"categoryIdx").map(r => LabeledPoint(r.getInt(0).toDouble, Vectors.dense(r.getDouble(1), r.getDouble(2))))
 
-    new BinaryLogisticRegression
     val model = new LogisticRegression().fit(readyToFit)
 
     println (model.coefficientMatrix)
