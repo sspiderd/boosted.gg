@@ -12,7 +12,7 @@ object Items {
 
     var items = collection.mutable.HashMap.empty[Int, Item]
 
-    var legendaryMinGold = 1200
+    var legendaryCutoff = 1200
 
     val riotApi = new RiotApi(Region.EUW)
 
@@ -40,7 +40,7 @@ object Items {
     }
 
     def legendary():Map[Int, Item] = {
-        items.filter(_._2.gold >= legendaryMinGold).toMap
+        items.filter(_._2.gold >= legendaryCutoff).toMap
     }
 
 

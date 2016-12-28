@@ -55,9 +55,15 @@ object AnalyzerService {
 
         val me = BoostedSummonersAnalyzer.boostedSummonersToMatchSummary(bs)
 
+        import Application.session.implicits._
+        val labeled = me.map(r => LabeledPoint(if (r._1) 1.0 else 0.0, Vectors.dense(r._7)))
+
+        val lrModel = new LogisticRegression().setMaxIter(10).fit(labeled)
+
+        println(s"Coefficients: ${lrModel.coefficients} Intercept: ${lrModel.intercept}")
         me.show()
 
-        import Application.session.implicits._
+
 //        val me = BoostedSummonersAnalyzer.boostedSummonersToMatchSummary(bs, null)
 //
 //        var transforming = new StringIndexer().setInputCol("itemId").setOutputCol("itemIdx").fit(me).transform(me)

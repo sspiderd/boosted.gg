@@ -107,7 +107,7 @@ object BoostedSummonersAnalyzer {
 
 
     def boostedSummonersToMatchSummary(ds:Dataset[BoostedSummoner])
-        :Dataset[(Boolean, Long, String, Long, Int, String, Array[Int])] = {
+        :Dataset[(Boolean, Long, String, Long, Int, String, Array[Double])] = {
 
         import Application.session.implicits._
 
@@ -151,17 +151,14 @@ object BoostedSummonersAnalyzer {
                 val summonerFromSummary = matchSummary.team1.summoners.asScala.find(summoner => summoner.summonerId == summonerId)
                     .getOrElse(matchSummary.team2.summoners.asScala.find(summoner => summoner.summonerId == summonerId).get)
 
-                log.debug(s"${summonerId}, ${matchId}, ${summonerFromSummary.summonerId}, ${summonerFromSummary.itemsBought.size()}")
-
                 //Get legendary items bought for summoner
                 val itemsBought = summonerFromSummary.itemsBought.asScala.filter(Items.byId(_).gold >= 1200)
 
                 //We use expanded items bought so we can do logistic regression afterwards
                 val expandedItemsBoughtList = Array.fill(legendariesToIndex.size){0}
-                log.debug("Items bought " + itemsBought.size)
                 itemsBought.foreach(item => expandedItemsBoughtList(legendariesToIndex(item)) += 1)
 
-                (summonerFromSummary.winner, summonerId, region, matchId, championId, role, expandedItemsBoughtList)
+                (summonerFromSummary.winner, summonerId, region, matchId, championId, role, expandedItemsBoughtList.map(_.toDouble))
             })
         })
     }
