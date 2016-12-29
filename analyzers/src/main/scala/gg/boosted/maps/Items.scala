@@ -39,7 +39,7 @@ object Items {
         }
     }
 
-    def legendary():Map[Int, Item] = {
+    def legendaries():Map[Int, Item] = {
         items.filter(_._2.gold >= legendaryCutoff).toMap
     }
 

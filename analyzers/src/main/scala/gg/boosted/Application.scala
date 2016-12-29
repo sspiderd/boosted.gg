@@ -5,7 +5,7 @@ import gg.boosted.posos.SummonerMatch
 import gg.boosted.services.AnalyzerService
 import gg.boosted.utils.KafkaUtil
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.streaming.{Durations, Minutes, Seconds, StreamingContext}
+import org.apache.spark.streaming.{Minutes, StreamingContext}
 
 /**
   *

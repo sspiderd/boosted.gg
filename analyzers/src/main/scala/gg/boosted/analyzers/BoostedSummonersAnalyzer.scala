@@ -10,8 +10,8 @@ import gg.boosted.riotapi.dtos.MatchSummary
 import gg.boosted.riotapi.{Region, RiotApi}
 import gg.boosted.utils.JsonUtil
 import gg.boosted.{Application, Role}
-import org.apache.spark.ml.linalg.Vectors
-import org.apache.spark.sql.{DataFrame, Dataset}
+import gg.boosted.maps.Items
+import org.apache.spark.sql.Dataset
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
@@ -107,7 +107,7 @@ object BoostedSummonersAnalyzer {
 
 
     def boostedSummonersToMatchSummary(ds:Dataset[BoostedSummoner])
-        :Dataset[(Boolean, Long, String, Long, Int, String, Array[Double])] = {
+        :Dataset[SummonerMatchSummary] = {
 
         import Application.session.implicits._
 
@@ -143,8 +143,6 @@ object BoostedSummonersAnalyzer {
             val role = row.role
 
             row.matches.map(matchId => {
-                val legendariesToIndex = Items.items.values.toList.filter(_.gold >= 1200).map(_.id.toInt).zipWithIndex.toMap
-                val indexToLegendaries = legendariesToIndex.map(_.swap)
 
                 val matchSummary = JsonUtil.fromJson[MatchSummary](RedisStore.getMatch(MatchId(matchId, Region.valueOf(region))).get)
 
@@ -152,15 +150,29 @@ object BoostedSummonersAnalyzer {
                     .getOrElse(matchSummary.team2.summoners.asScala.find(summoner => summoner.summonerId == summonerId).get)
 
                 //Get legendary items bought for summoner
-                val itemsBought = summonerFromSummary.itemsBought.asScala.filter(Items.byId(_).gold >= 1200)
+                val itemsBought = summonerFromSummary.itemsBought.asScala.filter(Items.byId(_).gold >= Items.legendaryCutoff)
 
-                //We use expanded items bought so we can do logistic regression afterwards
-                val expandedItemsBoughtList = Array.fill(legendariesToIndex.size){0}
-                itemsBought.foreach(item => expandedItemsBoughtList(legendariesToIndex(item)) += 1)
-
-                (summonerFromSummary.winner, summonerId, region, matchId, championId, role, expandedItemsBoughtList.map(_.toDouble))
+                SummonerMatchSummary(matchId, summonerId, championId, Role.valueOf(role).roleId,
+                    summonerFromSummary.winner, region, 0, summonerFromSummary.itemsBought.asScala.map(_.toInt).toList)
             })
         })
+    }
+
+    def matchSummaryDecisionTree(ms:Dataset[SummonerMatchSummary]):Unit = {
+        //Flatten the items tree
+        //There are a total of X legendary items, we will flatten by that amount
+        val expanded = ms.map(_match => {
+            val legendariesToIndex = Items.legendaries().values.map(_.id.toInt).zipWithIndex.toMap
+            val indexToLegendaries = legendariesToIndex.map(_.swap)
+
+            val expandedItemsBoughtList = Array.fill(legendariesToIndex.size){0}
+
+            _match.itemsBought.foreach(item => {
+                val legendaryIndex = legendariesToIndex.get(item).getOrElse(-1)
+                if (legendaryIndex != -1) expandedItemsBoughtList(legendaryIndex) +=1
+            })
+        })
+        expanded.show()
     }
 
     private def getNamesAndLoLScore(ds:Dataset[BoostedSummoner]):Unit = {
