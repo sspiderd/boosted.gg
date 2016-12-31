@@ -58,24 +58,24 @@ object AnalyzerService {
 
         log.debug(s"Found ${bs.count()} boosted summoners...")
 
-        val me = BoostedSummonersAnalyzer.boostedSummonersToMatchSummary(bs).map(r =>
-          LabeledPoint(if (r.winner) 1.0 else 0.0, Vectors.dense(
-            r.legendary1, r.legendary2, r.legendary3, r.legendary4, r.legendary5, r.legendary6)
-        ))
+        val me = BoostedSummonersAnalyzer.boostedSummonersToMatchSummary(bs)
 
-        val splits = me.randomSplit(Array(0.7, 0.3))
-        val (trainingData, testData) = (splits(0), splits(1))
+        BoostedSummonersAnalyzer.matchSummaryKMeans(me)
 
-        val numClasses = 2
-        val itemsSize = Items.items.size
-        val categoricalFeaturesInfo = Map[Int, Int](0-> itemsSize, 1-> itemsSize, 2->itemsSize, 3->itemsSize, 4-> itemsSize, 5->itemsSize)
-        val impurity = "gini"
-        val maxDepth = 5
-        val maxBins = 256
-
-
-        val model = DecisionTree.trainClassifier(trainingData.rdd, numClasses, categoricalFeaturesInfo,
-            impurity, maxDepth, maxBins)
+        //BoostedSummonersAnalyzer.matchSummaryDecisionTree(me)
+//        val splits = me.randomSplit(Array(0.7, 0.3))
+//        val (trainingData, testData) = (splits(0), splits(1))
+//
+//        val numClasses = 2
+//        val itemsSize = Items.items.size
+//        val categoricalFeaturesInfo = Map[Int, Int](0-> itemsSize, 1-> itemsSize, 2->itemsSize, 3->itemsSize, 4-> itemsSize, 5->itemsSize)
+//        val impurity = "gini"
+//        val maxDepth = 5
+//        val maxBins = 256
+//
+//
+//        val model = DecisionTree.trainClassifier(trainingData.rdd, numClasses, categoricalFeaturesInfo,
+//            impurity, maxDepth, maxBins)
 
 
 //        val labeled = me.map(r => LabeledPoint(if (r._1) 1.0 else 0.0, Vectors.dense(r._7)))

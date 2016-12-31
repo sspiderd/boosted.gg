@@ -318,18 +318,24 @@ public class RiotApi {
      */
     public Map<Integer, Item> getItems() {
         Map<Integer, Item>itemsList = new HashMap<>() ;
-        String endpoint = String.format("%s/v1.2/item?itemListData=gold", staticEndpoint) ;
+        String endpoint = String.format("%s/v1.2/item?itemListData=gold,stats", staticEndpoint) ;
         JsonNode root = callApi(endpoint) ;
         Iterator<JsonNode> it = root.get("data").elements() ;
         while (it.hasNext()) {
             JsonNode node = it.next() ;
             Object name = node.get("name");
             if (name != null) {
-                Item item = new Item();
-                item.id = node.get("id").asInt();
-                item.name = node.get("name").asText();
-                item.gold = node.get("gold").get("total").asInt();
-                itemsList.put(item.id, item);
+                try {
+                    Item item = new Item();
+                    item.id = node.get("id").asInt();
+                    item.name = node.get("name").asText();
+                    item.gold = node.get("gold").get("total").asInt();
+                    item.stats = om.readValue(node.get("stats").toString(), Stats.class);
+                    itemsList.put(item.id, item);
+                } catch (IOException e) {
+                    throw new RuntimeException("Should'nt have happened") ;
+                }
+
             }
         }
         return itemsList ;

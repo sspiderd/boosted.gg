@@ -12,7 +12,7 @@ object Items {
 
     var items = collection.mutable.HashMap.empty[Int, Item]
 
-    var legendaryCutoff = 1200
+    var legendaryCutoff = 1600
 
     val riotApi = new RiotApi(Region.EUW)
 
