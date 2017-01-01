@@ -197,11 +197,10 @@ object BoostedSummonersAnalyzer {
 
             model.summary.predictions.select("prediction", "chosenItems").collect().groupBy(_.getInt(0)).foreach(row => {
                 println(s"Cluster ${row._1}")
-                row._2.map(row => row.getSeq[Int](1)).foreach(items => {
-                    items.foreach(item => print(Items.byId(item).name + ":"))
-                    println()
-                })
-
+                val set = row._2.map(row => row.getSeq[Int](1)).map(row => {
+                    row.map(Items.byId(_).name).mkString(":")
+                }).toSet[String]
+                set.foreach(println)
             })
             val i = 1
         })
