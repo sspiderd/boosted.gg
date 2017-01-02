@@ -6,6 +6,7 @@ import gg.boosted.riotapi.dtos.match.MatchDetail;
 import gg.boosted.riotapi.dtos.match.Participant;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -52,6 +53,10 @@ public class Matches {
                 frame.events.forEach(event -> {
                     if (event.eventType.equals("ITEM_PURCHASED")) {
                         participantsToSummonerObjects.get(event.participantId).itemsBought.add(event.itemId);
+                    } else if (event.eventType.equals("ITEM_UNDO") && event.itemBefore != 0) {
+                        List<Integer> itemsBought = participantsToSummonerObjects.get(event.participantId).itemsBought;
+                        Integer undoItem = event.itemBefore ;
+                        itemsBought.remove(itemsBought.lastIndexOf(undoItem));
                     }
                 });
             }

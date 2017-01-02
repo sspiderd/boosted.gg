@@ -15,7 +15,7 @@ import org.apache.spark.ml.clustering.KMeans
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.ml.linalg.Vectors
-import org.apache.spark.sql.Dataset
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
@@ -94,7 +94,7 @@ object BoostedSummonersAnalyzer {
         //Use "distinct" so that in case a match got in more than once it will count just once
         import Application.session.implicits._
         ds.distinct().createOrReplaceTempView("MostBoostedSummoners");
-        ds.sparkSession.sql(
+        val result = ds.sparkSession.sql(
             s"""SELECT championId, roleId, summonerId, region, gamesPlayed, winrate, matches,
                |rank() OVER (PARTITION BY championId, roleId ORDER BY winrate DESC, gamesPlayed DESC, summonerId DESC) as rank FROM (
                |SELECT championId, roleId, summonerId, region, count(*) as gamesPlayed, (sum(if (winner=true,1,0))/count(winner)) as winrate, collect_list(matchId) as matches
@@ -107,6 +107,8 @@ object BoostedSummonersAnalyzer {
             //Map from Champion and role ids to their respective names
             .map(r => BoostedSummoner(r.getInt(0), Role.byId(r.getInt(1)).toString, r.getLong(2),
             r.getString(3), r.getLong(4), r.getDouble(5), r.getSeq[Long](6), r.getInt(7)))
+        result.sqlContext.dropTempTable("MostBoostedSummoners")
+        result
     }
 
 
@@ -135,9 +137,7 @@ object BoostedSummonersAnalyzer {
         })
 
         //Create a map and its inverse
-        ds.foreachPartition(partition => {
-            Items.populateMapIfEmpty()
-        })
+        ds.foreachPartition(_ => Items.populateMapIfEmpty())
 
         ds.flatMap(row => {
 
@@ -159,50 +159,67 @@ object BoostedSummonersAnalyzer {
         })
     }
 
+    def championRoleItemsKMeans(championId:Int, roleId:Int, dataset: Dataset[SummonerMatchSummary]):Unit = {
+
+        val df = new VectorAssembler()
+            .setInputCols(Array(
+                "WeightedAttackDamage",
+                "WeightedAbilityPower",
+                "WeightedArmorMod",
+                "WeightedMagicResistance",
+                "WeightedHealth",
+                "WeightedMana",
+                "WeightedHealthRegen",
+                "WeightedManaRegen",
+                "WeightedCriticalStrikeChance",
+                "WeightedAttackSpeed",
+                "WeightedFlatMovementSpeed",
+                "WeightedLifeSteal",
+                "WeightedPercentMovementSpeed"
+            ))
+            .setOutputCol("features").transform(dataset.filter(row => row.championId == championId && row.roleId == roleId))
+        // Trains a k-means model.
+        val model = new KMeans().setK(3).fit(df)
+
+        println(s"Calculated champion ${Champions.byId(championId)} and role ${Role.byId(roleId)}")
+
+        val predictions = model.summary.predictions.cache()
+
+        // Evaluate clustering by computing Within Set Sum of Squared Errors.
+        val WSSSE = model.computeCost(df)
+
+        println(s"Within Set Sum of Squared Errors = $WSSSE")
+        predictions.show(100)
+
+        predictions.createOrReplaceTempView(s"kmeansPredictionsFor_${championId}_${roleId}")
+        predictions.sparkSession.sql(
+            s"""SELECT championId, roleId, prediction as cluster, chosenItems, avg(if (winner=true,1,0)) as winrate, count(*) as gamesPlayed
+               |FROM kmeansPredictionsFor_${championId}_${roleId}
+               |GROUP BY championId, roleId, prediction, chosenItems
+               |HAVING gamesPlayed > 0
+               |ORDER BY cluster, winrate DESC, gamesPlayed DESC
+             """.stripMargin).show(100)
+
+        predictions.select("prediction", "chosenItems").collect().groupBy(_.getInt(0)).foreach(row => {
+            println(s"Cluster ${row._1}")
+            val set = row._2.map(row => row.getSeq[Int](1)).map(row => {
+                row.map(Items.byId(_).name).mkString(":")
+            }).toSet[String]
+            set.foreach(println)
+        })
+
+        //cleanup
+        predictions.unpersist(false)
+        predictions.sqlContext.dropTempTable(s"kmeansPredictionsFor_${championId}_${roleId}")
+
+    }
+
     def matchSummaryKMeans(dataset: Dataset[SummonerMatchSummary]): Unit = {
 
         val ds = dataset.filter(_.chosenItems.size >= 2).cache()
         val championRolesPairs = ds.select("championId", "roleId").distinct().collect()
         championRolesPairs.foreach(pair => {
-            val current = ds.filter(row => row.championId == pair.getInt(0) && row.roleId == pair.getInt(1))
-            val df = new VectorAssembler()
-                .setInputCols(Array(
-                  "WeightedAttackDamage",
-                  "WeightedAbilityPower",
-                  "WeightedArmorMod",
-                  "WeightedMagicResistance",
-                  "WeightedHealth",
-                  "WeightedMana",
-                  "WeightedHealthRegen",
-                  "WeightedManaRegen",
-                  "WeightedCriticalStrikeChance",
-                  "WeightedAttackSpeed",
-                  "WeightedFlatMovementSpeed",
-                  "WeightedLifeSteal",
-                  "WeightedPercentMovementSpeed"
-                ))
-                .setOutputCol("features").transform(current)
-
-
-            // Trains a k-means model.
-            val kmeans = new KMeans().setK(4).setSeed(1L)
-            val model = kmeans.fit(df)
-
-            // Evaluate clustering by computing Within Set Sum of Squared Errors.
-            val WSSSE = model.computeCost(df)
-            println(s"Calculated champion ${Champions.byId(pair.getInt(0))} and role ${Role.byId(pair.getInt(1))}")
-            println(s"Within Set Sum of Squared Errors = $WSSSE")
-
-            model.summary.predictions.show(100)
-
-            model.summary.predictions.select("prediction", "chosenItems").collect().groupBy(_.getInt(0)).foreach(row => {
-                println(s"Cluster ${row._1}")
-                val set = row._2.map(row => row.getSeq[Int](1)).map(row => {
-                    row.map(Items.byId(_).name).mkString(":")
-                }).toSet[String]
-                set.foreach(println)
-            })
-            val i = 1
+            championRoleItemsKMeans(pair.getInt(0), pair.getInt(1), ds)
         })
     }
 
