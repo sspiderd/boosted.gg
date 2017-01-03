@@ -193,7 +193,7 @@ object BoostedSummonersAnalyzer {
 
         predictions.createOrReplaceTempView(s"kmeansPredictionsFor_${championId}_${roleId}")
         predictions.sparkSession.sql(
-            s"""SELECT championId, roleId, prediction as cluster, chosenItems, avg(if (winner=true,1,0)) as winrate, count(*) as gamesPlayed
+            s"""SELECT championId, roleId, prediction as cluster, chosenItems, avg(if (winner=true,1,0)) as winrate, count(*) as gamesPlayed, collect_list(concat(summonerId, ':', matchId)) as summoners
                |FROM kmeansPredictionsFor_${championId}_${roleId}
                |GROUP BY championId, roleId, prediction, chosenItems
                |HAVING gamesPlayed > 0
