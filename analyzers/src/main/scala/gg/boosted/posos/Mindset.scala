@@ -14,6 +14,7 @@ case class MindSetExplained(champion: String, role: String, cluster: Int, coreIt
 object Mindset {
 
     def explain(mindset:Dataset[Mindset]):Dataset[MindSetExplained] = {
+        import gg.boosted.Application.session.implicits._
         mindset.map(row => MindSetExplained(
             Champions.byId(row.championId),
             Role.byId(row.roleId).toString,
