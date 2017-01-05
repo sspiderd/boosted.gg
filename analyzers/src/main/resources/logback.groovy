@@ -6,6 +6,7 @@ appender("STDOUT", ConsoleAppender) {
     }
 }
 
+logger("org.apache.spark.mllib.clustering", ERROR)
 logger("gg.boosted", DEBUG)
 
 root(WARN, ["STDOUT"])

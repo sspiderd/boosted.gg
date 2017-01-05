@@ -29,7 +29,6 @@ object Application {
 
 
   def context():StreamingContext = {
-    //Check every 30 seconds
     val ssc = new StreamingContext(session.sparkContext, Minutes(Configuration.getLong("calculate.every.n.minutes")))
 
     val stream = KafkaUtil.getKafkaSparkContext(ssc).window(Minutes(Configuration.getLong("window.size.minutes"))).map(value => SummonerMatch(value._2))

@@ -6,14 +6,10 @@ import java.util.Date
 import gg.boosted.Application
 import gg.boosted.analyzers.BoostedSummonersAnalyzer
 import gg.boosted.configuration.Configuration
-import gg.boosted.maps.Items
-import gg.boosted.posos.SummonerMatch
-import org.apache.spark.ml.classification.LogisticRegression
-import org.apache.spark.mllib.linalg.Vectors
-import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.mllib.tree.DecisionTree
+import gg.boosted.posos.{Mindset, SummonerMatch}
+import gg.boosted.utils.GeneralUtils._
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.Dataset
+import org.apache.spark.sql.{DataFrame, Dataset, SaveMode}
 import org.apache.spark.streaming.dstream.DStream
 import org.slf4j.LoggerFactory
 
@@ -47,100 +43,31 @@ object AnalyzerService {
 
     }
 
+    def saveFile(df:DataFrame, fileLocation: String):Unit = {
+        if (fileLocation != null && fileLocation != "") {
+            df.write.format("parquet").mode(SaveMode.Overwrite).save(fileLocation)
+        }
+    }
+
     def analyze(ds:Dataset[SummonerMatch]):Unit = {
-        import Application.session.implicits._
         //Get the boosted summoner DF by champion and role
         log.debug(s"Retrieved ${ds.count()} rows")
 
         //BoostedSummonersAnalyzer.process(ds, minGamesPlayed, getDateToLookForwardFrom, maxRank)
 
-        val bs = BoostedSummonersAnalyzer.findBoostedSummoners(ds, 3, 0, 1000)
+        val bs = time(BoostedSummonersAnalyzer.findBoostedSummoners(ds, 3, 0, 1000).cache(), "Find boosted summoners")
+
+        saveFile(bs.toDF(), Configuration.getString("boosted.summoners.file.location"))
 
         log.debug(s"Found ${bs.count()} boosted summoners...")
 
-        val me = BoostedSummonersAnalyzer.boostedSummonersToMatchSummary(bs)
+        val summonerMatchSummaryWithWeights = time(BoostedSummonersAnalyzer.boostedSummonersToWeightedMatchSummary(bs).cache(), "BoostedSummnersToWeightMatchSummary")
+        saveFile(summonerMatchSummaryWithWeights, "/tmp/boostedgg/summaryWithWeights")
 
-        BoostedSummonersAnalyzer.matchSummaryKMeans(me)
+        val clustered = time(BoostedSummonersAnalyzer.cluster(summonerMatchSummaryWithWeights), "Cluster")
 
-        //BoostedSummonersAnalyzer.matchSummaryDecisionTree(me)
-//        val splits = me.randomSplit(Array(0.7, 0.3))
-//        val (trainingData, testData) = (splits(0), splits(1))
-//
-//        val numClasses = 2
-//        val itemsSize = Items.items.size
-//        val categoricalFeaturesInfo = Map[Int, Int](0-> itemsSize, 1-> itemsSize, 2->itemsSize, 3->itemsSize, 4-> itemsSize, 5->itemsSize)
-//        val impurity = "gini"
-//        val maxDepth = 5
-//        val maxBins = 256
-//
-//
-//        val model = DecisionTree.trainClassifier(trainingData.rdd, numClasses, categoricalFeaturesInfo,
-//            impurity, maxDepth, maxBins)
+        saveFile(Mindset.explain(clustered).toDF(), Configuration.getString("clustered.file.location"))
 
-
-//        val labeled = me.map(r => LabeledPoint(if (r._1) 1.0 else 0.0, Vectors.dense(r._7)))
-//
-//        val lrModel = new LogisticRegression().setMaxIter(10).fit(labeled)
-
-        //println(s"Coefficients: ${lrModel.coefficients} Intercept: ${lrModel.intercept}")
-        me.show()
-
-
-//        val me = BoostedSummonersAnalyzer.boostedSummonersToMatchSummary(bs, null)
-//
-//        var transforming = new StringIndexer().setInputCol("itemId").setOutputCol("itemIdx").fit(me).transform(me)
-//
-//        transforming = new OneHotEncoder().setInputCol("itemIdx").setOutputCol("itemVec").transform(transforming)
-//
-//        transforming.show()
-
-
-        //I need to encode itemIds and roles
-//        me.map(r => {
-//              val winnerInt = if (r.winner) 1 else 0
-//              (r.championId,
-//                Role.valueOf(r.role).roleId,
-//                r.timeStamp,
-//                r.itemId,
-//                winnerInt)
-//          }).map(r => LabeledPoint(r._5, Vectors.dense(r._1, r._2, r._3, r._4)))
-//
-//        me.show(10000, false)
-
-        //val lrModel = new LogisticRegression().setMaxIter(10).fit(me)
-
-        //println(s"Coefficients: ${lrModel.coefficients} Intercept: ${lrModel.intercept}")
-
-
-
-
-
-//        val roleIndexer = new StringIndexer()
-//          .setInputCol("role")
-//          .setOutputCol("roleIndex")
-//          .fit(me)
-//
-//        val indexed = roleIndexer.transform(me)
-//
-//        val transformed = new VectorAssembler()
-//          .setInputCols(Array("championId", "roleIndex", "timestamp", "itemId"))
-//          .setOutputCol("features").transform(indexed)
-//
-//        val labeled = transformed.selectExpr("cast (winner as int) winner", "features")
-//
-//        labeled.show()
-//
-//        val lr = new LogisticRegression()
-//          .setMaxIter(10).setLabelCol("winner").setFeaturesCol("features")
-//
-//        val lrModel = lr.fit(labeled)
-
-
-
-
-
-
-        //log.info(s"Retrieved total of ${topSummoners.length} boosted summoners")
     }
 
     def convertToDataSet(rdd:RDD[SummonerMatch]):Dataset[SummonerMatch] = {

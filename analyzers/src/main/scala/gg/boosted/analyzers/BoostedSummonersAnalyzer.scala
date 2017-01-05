@@ -3,6 +3,7 @@ package gg.boosted.analyzers
 import java.util.Date
 
 import com.datastax.spark.connector._
+import gg.boosted.configuration.Configuration
 import gg.boosted.dal.RedisStore
 import gg.boosted.maps.{Champions, Items}
 import gg.boosted.posos._
@@ -10,11 +11,8 @@ import gg.boosted.riotapi.dtos.MatchSummary
 import gg.boosted.riotapi.{Region, RiotApi}
 import gg.boosted.utils.JsonUtil
 import gg.boosted.{Application, Role}
-import org.apache.spark.ml.classification.DecisionTreeClassifier
 import org.apache.spark.ml.clustering.KMeans
-import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.feature.VectorAssembler
-import org.apache.spark.ml.linalg.Vectors
 import org.apache.spark.sql.{DataFrame, Dataset}
 import org.slf4j.LoggerFactory
 
@@ -52,7 +50,7 @@ object BoostedSummonersAnalyzer {
         log.info(s"Originally i had ${ds.count()} rows and now i have ${boostedSummoners.count()}")
 
         //Here i download the the full match profile for the matches i haven't stored in redis yet
-        val matchedEvents = boostedSummonersToMatchSummary(boostedSummoners)
+        val matchedEvents = boostedSummonersToWeightedMatchSummary(boostedSummoners)
 
         //At this point i am at a fix. I need to get the summoner names and lolscore for all summoners that have gotten to this point.
         //The riot api allows me to get names and league entrries for multiple IDs and i need to do it in order to minimize the calls
@@ -94,7 +92,7 @@ object BoostedSummonersAnalyzer {
         //Use "distinct" so that in case a match got in more than once it will count just once
         import Application.session.implicits._
         ds.distinct().createOrReplaceTempView("MostBoostedSummoners");
-        val result = ds.sparkSession.sql(
+        ds.sparkSession.sql(
             s"""SELECT championId, roleId, summonerId, region, gamesPlayed, winrate, matches,
                |rank() OVER (PARTITION BY championId, roleId ORDER BY winrate DESC, gamesPlayed DESC, summonerId DESC) as rank FROM (
                |SELECT championId, roleId, summonerId, region, count(*) as gamesPlayed, (sum(if (winner=true,1,0))/count(winner)) as winrate, collect_list(matchId) as matches
@@ -107,13 +105,11 @@ object BoostedSummonersAnalyzer {
             //Map from Champion and role ids to their respective names
             .map(r => BoostedSummoner(r.getInt(0), Role.byId(r.getInt(1)).toString, r.getLong(2),
             r.getString(3), r.getLong(4), r.getDouble(5), r.getSeq[Long](6), r.getInt(7)))
-        result.sqlContext.dropTempTable("MostBoostedSummoners")
-        result
     }
 
 
-    def boostedSummonersToMatchSummary(ds: Dataset[BoostedSummoner])
-    : Dataset[SummonerMatchSummary] = {
+    def boostedSummonersToWeightedMatchSummary(ds: Dataset[BoostedSummoner])
+    :DataFrame = {
 
         import Application.session.implicits._
 
@@ -136,10 +132,9 @@ object BoostedSummonersAnalyzer {
             })
         })
 
-        //Create a map and its inverse
         ds.foreachPartition(_ => Items.populateMapIfEmpty())
-
-        ds.flatMap(row => {
+        import org.apache.spark.sql.functions._
+        val sm = ds.flatMap(row => {
 
             val summonerId = row.summonerId
             val region = row.region
@@ -153,138 +148,88 @@ object BoostedSummonersAnalyzer {
                 val summonerFromSummary = matchSummary.team1.summoners.asScala.find(summoner => summoner.summonerId == summonerId)
                     .getOrElse(matchSummary.team2.summoners.asScala.find(summoner => summoner.summonerId == summonerId).get)
 
-                SummonerMatchSummary(matchId, summonerId, championId, Role.valueOf(role).roleId,
-                    summonerFromSummary.winner, region, 0, summonerFromSummary.itemsBought.asScala.map(_.toInt).toList)
+                //Get the X (2) legendaryItems
+                val numberOfCoreItems = Configuration.getInt("number.of.core.items")
+                val coreItems = summonerFromSummary.itemsBought.asScala.map(_.toInt)
+                    .map(Items.items.get(_).get).filter(_.gold >= Items.legendaryCutoff).take(numberOfCoreItems).map(_.id)
+
+                (matchId, summonerId, region, championId, Role.valueOf(role).roleId, if (summonerFromSummary.winner) 1 else 0,
+                coreItems)
+
+//                WeightedSummonerMatchSummary.create(matchId, summonerId, championId, Role.valueOf(role).roleId,
+//                    summonerFromSummary.winner, region, 0, summonerFromSummary.itemsBought.asScala.map(_.toInt).toList, 2)
             })
-        })
+        }).toDF("matchId", "summonerId", "region", "championId", "roleId", "winner", "coreItems")
+            .where(size(col("coreItems")) >= Configuration.getInt("number.of.core.items"))
+        sm.createOrReplaceTempView("SummonerMatchSummary")
+        //This here will return the number of games played with the core items for each champion/role combo
+        val summonerMatchSummary = sm.sqlContext.sql(
+            s"""
+               |SELECT matchId, summonerId, region, A.championId, A.roleId, winner, A.coreItems, gamesPlayedWithCoreItems
+               |FROM (
+               |SELECT * FROM SummonerMatchSummary B join (
+               |SELECT championId, roleId, coreItems, count(coreItems) as gamesPlayedWithCoreItems
+               |FROM SummonerMatchSummary
+               |GROUP BY championId, roleId, coreItems
+               |) A on A.championId = B.championId and A.roleId = B.roleId and A.coreItems = B.coreItems
+               |WHERE gamesPlayedWithCoreItems >= ${Configuration.getInt("min.number.of.games.played.with.core.items")}
+               |)
+             """.stripMargin)
+        //Add weights...
+        val summonerMatchSummaryWithWeights = summonerMatchSummary.map(row => {
+            val coreItems = row.getSeq[Int](6)
+            val aw = coreItems.map(Items.byId).map(Items.weights).reduce(Items.accumulatedWeight)
+            (row.getLong(0), row.getLong(1), row.getString(2), row.getInt(3), row.getInt(4), row.getInt(5), coreItems, row.getLong(7),
+            aw.attackDamage, aw.abilityPower, aw.armor, aw.magicResistance, aw.health, aw.mana, aw.healthRegen, aw.manaRegen,
+            aw.criticalStrikeChance, aw.attackSpeed, aw.flatMovementSpeed, aw.lifeSteal, aw.percentMovementSpeed)
+        }).toDF("matchId", "summonerId", "region", "championId", "roleId", "winner", "coreItems", "gamesPlayedWithCoreItems",
+        "ad", "ap", "armor", "mr", "health", "mana", "healthRegen", "manaRegen", "criticalStrikeChance", "as", "flatMS", "lifeSteal",
+        "percentMS")
+        summonerMatchSummaryWithWeights
     }
 
-    def championRoleItemsKMeans(championId:Int, roleId:Int, dataset: Dataset[SummonerMatchSummary]):Unit = {
+    def cluster(summonerMatchSummaryWithWeights:DataFrame):Dataset[Mindset] = {
+        import Application.session.implicits._
 
+        summonerMatchSummaryWithWeights.createOrReplaceTempView("WeightedSummary")
+        val championRolesPairs = summonerMatchSummaryWithWeights.select("championId", "roleId").distinct().collect()
+        var unioned = summonerMatchSummaryWithWeights.sqlContext.createDataset(Application.session.sparkContext.emptyRDD[Mindset])
+        championRolesPairs.foreach(pair => {
+            unioned = championRoleItemsKMeans(pair.getInt(0), pair.getInt(1), summonerMatchSummaryWithWeights).union(unioned)
+        })
+        unioned
+    }
+
+    def championRoleItemsKMeans(championId:Int, roleId:Int, dataset: DataFrame):Dataset[Mindset] = {
+
+        import Application.session.implicits._
         val df = new VectorAssembler()
             .setInputCols(Array(
-                "WeightedAttackDamage",
-                "WeightedAbilityPower",
-                "WeightedArmorMod",
-                "WeightedMagicResistance",
-                "WeightedHealth",
-                "WeightedMana",
-                "WeightedHealthRegen",
-                "WeightedManaRegen",
-                "WeightedCriticalStrikeChance",
-                "WeightedAttackSpeed",
-                "WeightedFlatMovementSpeed",
-                "WeightedLifeSteal",
-                "WeightedPercentMovementSpeed"
+                "ad", "ap", "armor", "mr", "health", "mana", "healthRegen", "manaRegen", "criticalStrikeChance", "as",
+                "flatMS", "lifeSteal", "percentMS"
             ))
-            .setOutputCol("features").transform(dataset.filter(row => row.championId == championId && row.roleId == roleId))
-        // Trains a k-means model.
+            .setOutputCol("features").transform(dataset)
+        // Trains a k-means model. We use 3 groups
         val model = new KMeans().setK(3).fit(df)
 
-        println(s"Calculated champion ${Champions.byId(championId)} and role ${Role.byId(roleId)}")
+        println(s"Calculating for champion ${Champions.byId(championId)} and role ${Role.byId(roleId)}")
 
-        val predictions = model.summary.predictions.cache()
+        val predictions = model.summary.predictions
 
         // Evaluate clustering by computing Within Set Sum of Squared Errors.
-        val WSSSE = model.computeCost(df)
-
-        println(s"Within Set Sum of Squared Errors = $WSSSE")
-        predictions.show(100)
+        //  val WSSSE = model.computeCost(df)
+        //  println(s"Within Set Sum of Squared Errors = $WSSSE")
 
         predictions.createOrReplaceTempView(s"kmeansPredictionsFor_${championId}_${roleId}")
         predictions.sparkSession.sql(
-            s"""SELECT championId, roleId, prediction as cluster, chosenItems, avg(if (winner=true,1,0)) as winrate, count(*) as gamesPlayed, collect_list(concat(summonerId, ':', matchId)) as summoners
+            s"""SELECT championId, roleId, prediction as cluster, coreItems, avg(winner) as winrate, count(*) as gamesPlayed, collect_list(concat(summonerId, ':', matchId)) as summonerMatches
                |FROM kmeansPredictionsFor_${championId}_${roleId}
-               |GROUP BY championId, roleId, prediction, chosenItems
+               |WHERE championId = ${championId} and roleId = ${roleId}
+               |GROUP BY championId, roleId, prediction, coreItems
                |HAVING gamesPlayed > 0
                |ORDER BY cluster, winrate DESC, gamesPlayed DESC
-             """.stripMargin).show(100)
-
-        predictions.select("prediction", "chosenItems").collect().groupBy(_.getInt(0)).foreach(row => {
-            println(s"Cluster ${row._1}")
-            val set = row._2.map(row => row.getSeq[Int](1)).map(row => {
-                row.map(Items.byId(_).name).mkString(":")
-            }).toSet[String]
-            set.foreach(println)
-        })
-
-        //cleanup
-        predictions.unpersist(false)
-        predictions.sqlContext.dropTempTable(s"kmeansPredictionsFor_${championId}_${roleId}")
-
+             """.stripMargin).as[Mindset]
     }
-
-    def matchSummaryKMeans(dataset: Dataset[SummonerMatchSummary]): Unit = {
-
-        val ds = dataset.filter(_.chosenItems.size >= 2).cache()
-        val championRolesPairs = ds.select("championId", "roleId").distinct().collect()
-        championRolesPairs.foreach(pair => {
-            championRoleItemsKMeans(pair.getInt(0), pair.getInt(1), ds)
-        })
-    }
-
-
-    //    def matchSummaryDecisionTree(ms:Dataset[SummonerMatchSummary]):Unit = {
-    //        import Application.session.implicits._
-    //
-    //        val cached = ms.cache()
-    //        val championRolesPairs = cached.select($"championId", $"roleId").distinct().collect()
-    //        championRolesPairs.foreach(row => {
-    //            val championId = row.getInt(0)
-    //            val roleId = row.getInt(1)
-    //
-    //            val current = cached.filter(row => row.championId == championId && row.roleId == roleId)
-    //
-    //            //Flatten the items tree
-    //            //There are a total of X legendary items, we will flatten by that amount
-    //            val legendariesToIndex = Items.legendaries().values.map(_.id.toInt).zipWithIndex.toMap
-    //            val indexToLegendaries = legendariesToIndex.map(_.swap)
-    //
-    //
-    //            val expanded = current.map(_match => {
-    //                val expandedItemsBoughtList = Array.fill(legendariesToIndex.size){0}
-    //
-    //                _match.itemsBought.foreach(item => {
-    //                    val legendaryIndex = legendariesToIndex.getOrElse(item, -1)
-    //                    if (legendaryIndex != -1) expandedItemsBoughtList(legendaryIndex) +=1
-    //                })
-    //                val winnerNum = if (_match.winner) 1.0 else 0.0
-    //                (_match.matchId, _match.summonerId, _match.championId, _match.roleId, winnerNum, _match.region, _match.date, Vectors.dense(expandedItemsBoughtList.map(_.toDouble)))
-    //            })
-    //            //val legendaryNames = indexToLegendaries.map(r => Items.legendaries()(r._2).name)
-    //
-    //            val list = List("matchId", "summonerId", "championId", "roleId", "winner", "region", "date", "legendary item ids")
-    //            val df = expanded.toDF(list:_*)
-    //
-    //
-    //            val splits = df.randomSplit(Array(0.8, 0.2))
-    //            val (trainingData, testData) = (splits(0), splits(1))
-    //
-    //            val model = new DecisionTreeClassifier()
-    //                .setLabelCol("winner")
-    //                .setFeaturesCol("legendary item ids")
-    //                .setImpurity("entropy")
-    //                .setMaxDepth(20)
-    //                .setMaxBins(24)
-    //                .fit(trainingData)
-    //
-    //
-    //            // Make predictions.
-    //            val predictions = model.transform(testData)
-    //
-    //            // Select (prediction, true label) and compute test error
-    //            val evaluator = new MulticlassClassificationEvaluator()
-    //                .setLabelCol("winner")
-    //                .setPredictionCol("prediction")
-    //                .setMetricName("accuracy")
-    //            val accuracy = evaluator.evaluate(predictions)
-    //            println(s"Test Error for ${Champions.byId(championId)}/${Role.byId(roleId)}=" + (1.0 - accuracy))
-    //
-    //            //predictions.show()
-    //            //df.show()
-    //        })
-    //
-    //    }
 
     private def getNamesAndLoLScore(ds: Dataset[BoostedSummoner]): Unit = {
         ds.foreachPartition(partitionOfRecords => {
