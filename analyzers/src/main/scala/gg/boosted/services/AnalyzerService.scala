@@ -3,6 +3,7 @@ package gg.boosted.services
 import java.time.{LocalDateTime, Period, ZoneId}
 import java.util.Date
 
+import com.datastax.spark.connector.SomeColumns
 import gg.boosted.Application
 import gg.boosted.analyzers.BoostedSummonersAnalyzer
 import gg.boosted.configuration.Configuration
@@ -36,6 +37,8 @@ object AnalyzerService {
     def analyze(rdd:RDD[SummonerMatch]):Unit = {
         //Convert the rdd to ds so we can use Spark SQL on it
         if (rdd != null) {
+            val ds = convertToDataSet(rdd)
+            saveFile(ds.toDF(), Configuration.getString("summoner.match.file.location"), SaveMode.Append)
             analyze(convertToDataSet(rdd))
         } else {
             log.debug("RDD is empty")
@@ -43,9 +46,9 @@ object AnalyzerService {
 
     }
 
-    def saveFile(df:DataFrame, fileLocation: String):Unit = {
+    def saveFile(df:DataFrame, fileLocation: String, saveMode: SaveMode = SaveMode.Overwrite):Unit = {
         if (fileLocation != null && fileLocation != "") {
-            df.write.format("parquet").mode(SaveMode.Overwrite).save(fileLocation)
+            df.write.format("parquet").mode(saveMode).save(fileLocation)
         }
     }
 
@@ -64,7 +67,8 @@ object AnalyzerService {
         val summonerMatchSummaryWithWeights = time(BoostedSummonersAnalyzer.boostedSummonersToWeightedMatchSummary(bs).cache(), "BoostedSummnersToWeightMatchSummary")
         saveFile(summonerMatchSummaryWithWeights, "/tmp/boostedgg/summaryWithWeights")
 
-        val clustered = time(BoostedSummonersAnalyzer.cluster(summonerMatchSummaryWithWeights), "Cluster")
+        import Application.session.implicits._
+        val clustered = time(BoostedSummonersAnalyzer.cluster(summonerMatchSummaryWithWeights.repartition($"championId", $"roleId")).cache(), "Cluster")
 
         saveFile(Mindset.explain(clustered).toDF(), Configuration.getString("clustered.file.location"))
 

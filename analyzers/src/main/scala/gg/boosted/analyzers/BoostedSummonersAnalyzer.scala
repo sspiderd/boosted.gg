@@ -9,7 +9,7 @@ import gg.boosted.maps.{Champions, Items}
 import gg.boosted.posos._
 import gg.boosted.riotapi.dtos.MatchSummary
 import gg.boosted.riotapi.{Region, RiotApi}
-import gg.boosted.utils.JsonUtil
+import gg.boosted.utils.{GeneralUtils, JsonUtil}
 import gg.boosted.{Application, Role}
 import org.apache.spark.ml.clustering.KMeans
 import org.apache.spark.ml.feature.VectorAssembler
@@ -190,12 +190,12 @@ object BoostedSummonersAnalyzer {
 
     def cluster(summonerMatchSummaryWithWeights:DataFrame):Dataset[Mindset] = {
         import Application.session.implicits._
-
         summonerMatchSummaryWithWeights.createOrReplaceTempView("WeightedSummary")
         val championRolesPairs = summonerMatchSummaryWithWeights.select("championId", "roleId").distinct().collect()
         var unioned = summonerMatchSummaryWithWeights.sqlContext.createDataset(Application.session.sparkContext.emptyRDD[Mindset])
         championRolesPairs.foreach(pair => {
-            unioned = championRoleItemsKMeans(pair.getInt(0), pair.getInt(1), summonerMatchSummaryWithWeights).union(unioned)
+            unioned = GeneralUtils.time(championRoleItemsKMeans(pair.getInt(0), pair.getInt(1), summonerMatchSummaryWithWeights).union(unioned),
+                s"clustering for ${Champions.byId(pair.getInt(0))}:${Role.byId(pair.getInt(1)).toString}")
         })
         unioned
     }
