@@ -160,6 +160,8 @@ public class RiotApi {
 
         JsonNode rootNode = callApi(endpoint) ;
 
+        if (rootNode.get("matches") == null) return new LinkedList<>() ;
+
         return om.readValue(rootNode.get("matches").toString(), new TypeReference<List<MatchReference>>(){}) ;
     }
 

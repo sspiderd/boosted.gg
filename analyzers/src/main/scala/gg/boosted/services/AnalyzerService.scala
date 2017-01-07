@@ -67,9 +67,10 @@ object AnalyzerService {
         val summonerMatchSummaryWithWeights = time(BoostedSummonersAnalyzer.boostedSummonersToWeightedMatchSummary(bs).cache(), "BoostedSummnersToWeightMatchSummary")
         saveFile(summonerMatchSummaryWithWeights, "/tmp/boostedgg/summaryWithWeights")
 
-        import Application.session.implicits._
-        val clustered = time(BoostedSummonersAnalyzer.cluster(summonerMatchSummaryWithWeights.repartition($"championId", $"roleId")).cache(), "Cluster")
+        val clustered = time(BoostedSummonersAnalyzer.cluster(summonerMatchSummaryWithWeights), "Cluster")
 
+        import Application.session.implicits._
+        //Mindset.explain(clustered).toDF().write.format("parquet").mode(SaveMode.Overwrite).sortBy("champion", "role").save(Configuration.getString("clustered.file.location"))
         saveFile(Mindset.explain(clustered).toDF(), Configuration.getString("clustered.file.location"))
 
     }

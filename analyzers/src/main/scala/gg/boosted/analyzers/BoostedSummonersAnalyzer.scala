@@ -192,9 +192,10 @@ object BoostedSummonersAnalyzer {
         import Application.session.implicits._
         summonerMatchSummaryWithWeights.createOrReplaceTempView("WeightedSummary")
         val championRolesPairs = summonerMatchSummaryWithWeights.select("championId", "roleId").distinct().collect()
-        var unioned = summonerMatchSummaryWithWeights.sqlContext.createDataset(Application.session.sparkContext.emptyRDD[Mindset])
+        val repartitioned = summonerMatchSummaryWithWeights.repartition(championRolesPairs.size, $"championId", $"roleId").cache()
+        var unioned = repartitioned.sqlContext.createDataset(Application.session.sparkContext.emptyRDD[Mindset])
         championRolesPairs.foreach(pair => {
-            unioned = GeneralUtils.time(championRoleItemsKMeans(pair.getInt(0), pair.getInt(1), summonerMatchSummaryWithWeights).union(unioned),
+            unioned = GeneralUtils.time(championRoleItemsKMeans(pair.getInt(0), pair.getInt(1), repartitioned).union(unioned),
                 s"clustering for ${Champions.byId(pair.getInt(0))}:${Role.byId(pair.getInt(1)).toString}")
         })
         unioned
@@ -208,11 +209,13 @@ object BoostedSummonersAnalyzer {
                 "ad", "ap", "armor", "mr", "health", "mana", "healthRegen", "manaRegen", "criticalStrikeChance", "as",
                 "flatMS", "lifeSteal", "percentMS"
             ))
-            .setOutputCol("features").transform(dataset)
+            .setOutputCol("features").transform(dataset.filter(s"championId = ${championId} and roleId = ${roleId}"))
+
+        println(s"Calculating for champion ${Champions.byId(championId)} and role ${Role.byId(roleId)}")
         // Trains a k-means model. We use 3 groups
         val model = new KMeans().setK(3).fit(df)
 
-        println(s"Calculating for champion ${Champions.byId(championId)} and role ${Role.byId(roleId)}")
+
 
         val predictions = model.summary.predictions
 
@@ -224,7 +227,6 @@ object BoostedSummonersAnalyzer {
         predictions.sparkSession.sql(
             s"""SELECT championId, roleId, prediction as cluster, coreItems, avg(winner) as winrate, count(*) as gamesPlayed, collect_list(concat(summonerId, ':', matchId)) as summonerMatches
                |FROM kmeansPredictionsFor_${championId}_${roleId}
-               |WHERE championId = ${championId} and roleId = ${roleId}
                |GROUP BY championId, roleId, prediction, coreItems
                |HAVING gamesPlayed > 0
                |ORDER BY cluster, winrate DESC, gamesPlayed DESC

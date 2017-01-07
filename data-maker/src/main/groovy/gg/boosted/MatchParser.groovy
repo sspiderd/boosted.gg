@@ -10,6 +10,7 @@ import groovy.transform.CompileStatic
 class MatchParser {
 
     static List<SummonerMatch> parseMatch(MatchDetail match) {
+        if (!match) return new LinkedList<SummonerMatch>()
         match.participants.collect {
             SummonerMatch summonerMatch = new SummonerMatch()
             summonerMatch.championId = it.championId
