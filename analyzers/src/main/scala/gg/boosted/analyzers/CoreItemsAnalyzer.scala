@@ -1,23 +1,27 @@
 package gg.boosted.analyzers
 
-import gg.boosted.{Application, Role}
 import gg.boosted.configuration.Configuration
 import gg.boosted.dal.RedisStore
 import gg.boosted.maps.{Champions, Items}
 import gg.boosted.posos.{BoostedSummoner, MatchId, Mindset}
-import gg.boosted.riotapi.{Region, RiotApi}
 import gg.boosted.riotapi.dtos.MatchSummary
+import gg.boosted.riotapi.{Region, RiotApi}
 import gg.boosted.utils.{GeneralUtils, JsonUtil}
+import gg.boosted.{Application, Role}
 import org.apache.spark.ml.clustering.KMeans
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.sql.{DataFrame, Dataset}
+import org.slf4j.LoggerFactory
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 /**
   * Created by ilan on 1/10/17.
   */
 object CoreItemsAnalyzer {
+
+    val log = LoggerFactory.getLogger(CoreItemsAnalyzer.getClass)
 
 
     def boostedSummonersToWeightedMatchSummary(ds: Dataset[BoostedSummoner]):DataFrame = {
@@ -47,8 +51,6 @@ object CoreItemsAnalyzer {
         import org.apache.spark.sql.functions._
 
         var columnNames = Seq[String]("matchId", "summonerId", "region", "championId", "roleId", "winner", "coreItems")
-
-        columnNames += "3"
 
         val sm = ds.flatMap(row => {
 
