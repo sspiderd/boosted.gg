@@ -64,7 +64,7 @@ object AnalyzerService {
         log.debug(s"Found ${bs.count()} boosted summoners...")
 
         val summonerMatchSummaryWithWeights = time(CoreItemsAnalyzer.boostedSummonersToWeightedMatchSummary(bs).cache(), "BoostedSummnersToWeightMatchSummary")
-        saveFile(summonerMatchSummaryWithWeights, "/tmp/boostedgg/summaryWithWeights")
+        saveFile(summonerMatchSummaryWithWeights, Configuration.getString("weighted.summary.file.location"))
 
         val clustered = time(CoreItemsAnalyzer.cluster(summonerMatchSummaryWithWeights), "Cluster")
         //Mindset.explain(clustered).toDF().write.format("parquet").mode(SaveMode.Overwrite).sortBy("champion", "role").save(Configuration.getString("clustered.file.location"))
