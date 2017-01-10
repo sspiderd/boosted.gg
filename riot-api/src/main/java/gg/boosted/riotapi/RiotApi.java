@@ -10,6 +10,7 @@ import gg.boosted.riotapi.dtos.*;
 import gg.boosted.riotapi.dtos.match.Event;
 import gg.boosted.riotapi.dtos.match.Frame;
 import gg.boosted.riotapi.dtos.match.MatchDetail;
+import gg.boosted.riotapi.dtos.match.Rune;
 import gg.boosted.riotapi.throttlers.DistributedThrottler;
 import gg.boosted.riotapi.throttlers.IThrottler;
 import gg.boosted.riotapi.utilities.ArrayChunker;
@@ -343,8 +344,37 @@ public class RiotApi {
             }
         }
         return itemsList ;
-
     }
+
+//    public List<Rune> getRunes() {
+//        List<Rune> runeList = new LinkedList<>();
+//
+//        String endpoint = String.format("%s/v1.2/rune?runeListData=basic", staticEndpoint) ;
+//        JsonNode root = callApi(endpoint) ;
+//        Iterator<JsonNode> it = root.get("data").elements() ;
+//        while (it.hasNext()) {
+//            JsonNode node = it.next() ;
+//            Object name = node.get("name");
+//            if (name != null) {
+//                try {
+//                    RuneDef rune = new RuneDef();
+//                    rune.id = node.get("id").asInt();
+//                    rune.name = node.get("name").asText();
+//                    rune.tier = node.get("rune").get()
+//                    rune.gold = node.get("gold").get("total").asInt();
+//                    rune.stats = om.readValue(node.get("stats").toString(), Stats.class);
+//                    runeList.add(rune.id, rune);
+//                } catch (IOException e) {
+//                    throw new RuntimeException("Should'nt have happened") ;
+//                }
+//
+//            }
+//        }
+//        return runeList ;
+//    }
+
+
+
 
 
     public static void main(String[] args) throws IOException {

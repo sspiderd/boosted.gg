@@ -3,9 +3,8 @@ package gg.boosted.services
 import java.time.{LocalDateTime, Period, ZoneId}
 import java.util.Date
 
-import com.datastax.spark.connector.SomeColumns
 import gg.boosted.Application
-import gg.boosted.analyzers.BoostedSummonersAnalyzer
+import gg.boosted.analyzers.{BoostedSummonersAnalyzer, CoreItemsAnalyzer}
 import gg.boosted.configuration.Configuration
 import gg.boosted.posos.{Mindset, SummonerMatch}
 import gg.boosted.utils.GeneralUtils._
@@ -64,12 +63,10 @@ object AnalyzerService {
 
         log.debug(s"Found ${bs.count()} boosted summoners...")
 
-        val summonerMatchSummaryWithWeights = time(BoostedSummonersAnalyzer.boostedSummonersToWeightedMatchSummary(bs).cache(), "BoostedSummnersToWeightMatchSummary")
+        val summonerMatchSummaryWithWeights = time(CoreItemsAnalyzer.boostedSummonersToWeightedMatchSummary(bs).cache(), "BoostedSummnersToWeightMatchSummary")
         saveFile(summonerMatchSummaryWithWeights, "/tmp/boostedgg/summaryWithWeights")
 
-        val clustered = time(BoostedSummonersAnalyzer.cluster(summonerMatchSummaryWithWeights), "Cluster")
-
-        import Application.session.implicits._
+        val clustered = time(CoreItemsAnalyzer.cluster(summonerMatchSummaryWithWeights), "Cluster")
         //Mindset.explain(clustered).toDF().write.format("parquet").mode(SaveMode.Overwrite).sortBy("champion", "role").save(Configuration.getString("clustered.file.location"))
         saveFile(Mindset.explain(clustered).toDF(), Configuration.getString("clustered.file.location"))
 
