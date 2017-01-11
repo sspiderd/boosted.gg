@@ -62,7 +62,7 @@ object BoostedSummonersAnalyzer {
 //        //TODO: I should delete from cassandra first, but for now it's ok
 //
 //        mapWithNames.rdd.saveToCassandra("boostedgg", "boosted_summoners",
-//            SomeColumns("champion", "role", "summoner_name", "region", "winrate", "rank", "summoner_id",
+//            SomeColum`ns("champion", "role", "summoner_name", "region", "winrate", "rank", "summoner_id",
 //                "tier", "division", "league_points", "lol_score", "games_played", "matches"))
 //
 //        log.info(s"Saved ${mapWithNames.count()} rows to cassandra")
@@ -83,7 +83,7 @@ object BoostedSummonersAnalyzer {
 
         //Use "distinct" so that in case a match got in more than once it will count just once
         import Application.session.implicits._
-        ds.distinct().createOrReplaceTempView("MostBoostedSummoners");
+        ds.distinct().createOrReplaceTempView("MostBoostedSummoners")
         ds.sparkSession.sql(
             s"""SELECT championId, roleId, summonerId, region, gamesPlayed, winrate, matches,
                |rank() OVER (PARTITION BY championId, roleId ORDER BY winrate DESC, gamesPlayed DESC, summonerId DESC) as rank FROM (
@@ -93,10 +93,7 @@ object BoostedSummonersAnalyzer {
                |GROUP BY championId, roleId, summonerId, region
                |HAVING winrate > 0.5 AND gamesPlayed >= $minGamesPlayed
                |) having rank <= $maxRank
-      """.stripMargin)
-            //Map from Champion and role ids to their respective names
-            .map(r => BoostedSummoner(r.getInt(0), Role.byId(r.getInt(1)).toString, r.getLong(2),
-            r.getString(3), r.getLong(4), r.getDouble(5), r.getSeq[Long](6), r.getInt(7)))
+      """.stripMargin).as[BoostedSummoner]
     }
 
     private def getNamesAndLoLScore(ds: Dataset[BoostedSummoner]): Unit = {

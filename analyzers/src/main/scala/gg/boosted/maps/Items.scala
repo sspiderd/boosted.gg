@@ -73,7 +73,7 @@ object Items {
     }
 
     /**
-      * Returns the accumulated weight of 2 items
+      * Returns the accumulated weight of 2 runes
       * @param item1
       * @param item2
       * @return

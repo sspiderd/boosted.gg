@@ -29,7 +29,7 @@ class FromRiot {
         //RedisStore.reset()
 
         region = Region.EUNE
-        riotApi = new RiotApi(region) ;
+        riotApi = new RiotApi(region)
 
         extract()
     }

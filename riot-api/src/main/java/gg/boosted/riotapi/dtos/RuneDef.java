@@ -9,4 +9,5 @@ public class RuneDef {
     public String name ;
     public Integer tier ;
     public String type ;
+    public Stats stats ;
 }

@@ -57,7 +57,7 @@ object CoreItemsAnalyzer {
             val summonerId = row.summonerId
             val region = row.region
             val championId = row.championId
-            val role = row.role
+            val role = Role.byId(row.roleId).toString
 
             row.matches.map(matchId => {
 
@@ -80,7 +80,7 @@ object CoreItemsAnalyzer {
         }).toDF(columnNames:_*)
             .where(size(col("coreItems")) >= Configuration.getInt("number.of.core.items"))
         sm.createOrReplaceTempView("SummonerMatchSummary")
-        //This here will return the number of games played with the core items for each champion/role combo
+        //This here will return the number of games played with the core runes for each champion/role combo
         val summonerMatchSummary = sm.sqlContext.sql(
             s"""
                |SELECT matchId, summonerId, region, A.championId, A.roleId, winner, A.coreItems, gamesPlayedWithCoreItems

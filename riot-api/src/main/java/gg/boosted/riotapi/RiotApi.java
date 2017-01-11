@@ -346,32 +346,29 @@ public class RiotApi {
         return itemsList ;
     }
 
-//    public List<Rune> getRunes() {
-//        List<Rune> runeList = new LinkedList<>();
-//
-//        String endpoint = String.format("%s/v1.2/rune?runeListData=basic", staticEndpoint) ;
-//        JsonNode root = callApi(endpoint) ;
-//        Iterator<JsonNode> it = root.get("data").elements() ;
-//        while (it.hasNext()) {
-//            JsonNode node = it.next() ;
-//            Object name = node.get("name");
-//            if (name != null) {
-//                try {
-//                    RuneDef rune = new RuneDef();
-//                    rune.id = node.get("id").asInt();
-//                    rune.name = node.get("name").asText();
-//                    rune.tier = node.get("rune").get()
-//                    rune.gold = node.get("gold").get("total").asInt();
-//                    rune.stats = om.readValue(node.get("stats").toString(), Stats.class);
-//                    runeList.add(rune.id, rune);
-//                } catch (IOException e) {
-//                    throw new RuntimeException("Should'nt have happened") ;
-//                }
-//
-//            }
-//        }
-//        return runeList ;
-//    }
+    public Map<Integer, RuneDef> getRuneDefs() {
+        Map<Integer, RuneDef> runeList = new HashMap<>();
+
+        String endpoint = String.format("%s/v1.2/rune?runeListData=stats", staticEndpoint) ;
+        JsonNode root = callApi(endpoint) ;
+        Iterator<JsonNode> it = root.get("data").elements() ;
+        while (it.hasNext()) {
+            JsonNode node = it.next() ;
+            try {
+                RuneDef rune = new RuneDef();
+                rune.id = node.get("id").asInt();
+                rune.name = node.get("name").asText();
+                rune.tier = node.get("rune").get("tier").asInt();
+                rune.type = node.get("rune").get("type").asText();
+                rune.stats = om.readValue(node.get("stats").toString(), Stats.class);
+                runeList.put(rune.id, rune);
+            } catch (Exception e) {
+                throw new RuntimeException("Should'nt have happened", e) ;
+            }
+
+        }
+        return runeList ;
+    }
 
 
 
@@ -388,7 +385,8 @@ public class RiotApi {
 //        }
 
         //new RiotApi(Region.EUW).getMatch(2969769203L, false) ;
-        new RiotApi(Region.EUNE).getMatchSummary(1585972833L) ;
+        //new RiotApi(Region.EUNE).getMatchSummary(1585972833L) ;
+        new RiotApi(Region.BR).getRuneDefs();
 
     }
 
