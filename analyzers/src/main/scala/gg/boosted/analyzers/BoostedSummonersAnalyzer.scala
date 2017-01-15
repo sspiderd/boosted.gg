@@ -96,48 +96,5 @@ object BoostedSummonersAnalyzer {
       """.stripMargin).as[BoostedSummoner]
     }
 
-    private def getNamesAndLoLScore(ds: Dataset[BoostedSummoner]): Unit = {
-        ds.foreachPartition(partitionOfRecords => {
-
-            Champions.populateMapIfEmpty()
-
-            //Run over all the records and get the summonerId field of each one
-            val summonerIds = new ListBuffer[SummonerId]
-            partitionOfRecords.foreach(row => summonerIds += SummonerId(row.summonerId, Region.valueOf(row.region)))
-
-            //Find names and scores that we don't know yet
-            val unknownNames = new ListBuffer[SummonerId]
-            val unknownScores = new ListBuffer[SummonerId]
-
-            summonerIds.foreach(id => {
-                RedisStore.getSummonerName(id).getOrElse(unknownNames += id)
-                RedisStore.getSummonerLOLScore(id).getOrElse(unknownScores += id)
-            })
-
-            //group by regions and call their apis
-            //TODO: Execute this in parallel for each region and call redis store async
-            unknownNames.groupBy(_.region).par.foreach(tuple => {
-                val region = tuple._1
-                val ids = tuple._2
-                val api = new RiotApi(region)
-                api.getSummonerNamesByIds(ids.map(_.id).map(Long.box): _*).asScala.foreach(
-                    mapping => RedisStore.addSummonerName(SummonerId(mapping._1, region), mapping._2))
-            })
-
-            unknownScores.groupBy(_.region).par.foreach(tuple => {
-                val region = tuple._1
-                val ids = tuple._2
-                val api = new RiotApi(region)
-
-                api.getLeagueEntries(ids.map(_.id).map(Long.box): _*).asScala.foreach(
-                    mapping => {
-                        val lolScore = LoLScore(mapping._2.tier, mapping._2.division, mapping._2.leaguePoints)
-                        RedisStore.addSummonerLOLScore(SummonerId(mapping._1, region), lolScore)
-                    })
-            })
-
-        })
-    }
-
 
 }

@@ -47,7 +47,6 @@ object CoreItemsAnalyzer {
             })
         })
 
-        ds.foreachPartition(_ => Items.populateMapIfEmpty())
         import org.apache.spark.sql.functions._
 
         var columnNames = Seq[String]("matchId", "summonerId", "region", "championId", "roleId", "winner", "coreItems")

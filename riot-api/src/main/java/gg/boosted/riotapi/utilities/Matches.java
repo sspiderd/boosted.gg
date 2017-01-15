@@ -43,6 +43,8 @@ public class Matches {
             summoner.championId = participant.championId;
             summoner.role = roleForParticipant(participant);
             summoner.winner = participant.stats.winner;
+            summoner.runes = participant.runes;
+            summoner.masteries = participant.masteries;
 
 
         });

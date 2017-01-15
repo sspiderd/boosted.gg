@@ -8,6 +8,7 @@ import gg.boosted.analyzers.{BoostedSummonersAnalyzer, CoreItemsAnalyzer, Matche
 import gg.boosted.configuration.Configuration
 import gg.boosted.posos.{Mindset, SummonerMatch}
 import gg.boosted.dal.Matches
+import gg.boosted.maps.Items
 import gg.boosted.utils.GeneralUtils._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Dataset, SaveMode}
@@ -56,6 +57,9 @@ object AnalyzerService {
         //Get the boosted summoner DF by champion and role
         log.debug(s"Retrieved ${ds.count()} rows")
 
+        //Populate and populateAndBroadcast items
+        Items.populateAndBroadcast()
+
         //BoostedSummonersAnalyzer.process(ds, minGamesPlayed, getDateToLookForwardFrom, maxRank)
 
         val bs = time(BoostedSummonersAnalyzer.findBoostedSummoners(ds, 3, 0, 1000).cache(), "Find boosted summoners")
@@ -65,8 +69,9 @@ object AnalyzerService {
         log.debug(s"Found ${bs.count()} boosted summoners...")
 
         val summaries = MatchesAnalyzer.boostedSummonersToSummaries(bs)
+        saveFile(summaries.toDF(), Configuration.getString("summoner.match.summary.location"))
 
-        val summonerMatchSummaryWithWeights = time(CoreItemsAnalyzer.boostedSummonersToWeightedMatchSummary(bs).cache(), "BoostedSummnersToWeightMatchSummary")
+        val summonerMatchSummaryWithWeights = time(MatchesAnalyzer.summariesToWeightedSummaries(summaries).cache(), "BoostedSummnersToWeightMatchSummary")
         saveFile(summonerMatchSummaryWithWeights, Configuration.getString("weighted.summary.file.location"))
 
         val clustered = time(CoreItemsAnalyzer.cluster(summonerMatchSummaryWithWeights), "Cluster")

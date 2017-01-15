@@ -1,5 +1,8 @@
 package gg.boosted.riotapi.dtos;
 
+import gg.boosted.riotapi.dtos.match.Mastery;
+import gg.boosted.riotapi.dtos.match.Rune;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,6 +37,8 @@ public class MatchSummary {
         public int championId ;
         public String role ;
         public List<Integer> itemsBought = new LinkedList<>();
+        public List<Rune> runes = new LinkedList<>();
+        public List<Mastery> masteries = new LinkedList<>();
         public boolean winner = false;
         public int wardsPlaced ;
     }

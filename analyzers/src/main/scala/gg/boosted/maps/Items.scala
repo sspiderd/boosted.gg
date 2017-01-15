@@ -3,6 +3,7 @@ package gg.boosted.maps
 import gg.boosted.Application
 import gg.boosted.riotapi.dtos.Item
 import gg.boosted.riotapi.{Region, RiotApi}
+import org.apache.spark.broadcast.Broadcast
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
@@ -15,39 +16,36 @@ case class ItemWeights(attackDamage:Double, abilityPower:Double, armor:Double, m
 object Items {
     val log:Logger = LoggerFactory.getLogger(Items.getClass) ;
 
-    var items = collection.mutable.HashMap.empty[Int, Item]
-
     var legendaryCutoff = 1600
+
+    var itemsBr:Broadcast[Map[Int,Item]] = _
 
     val riotApi = new RiotApi(Region.EUW)
 
-    def populateMap(): Unit = {
+    def populateAndBroadcast():Unit = {
         import collection.JavaConverters._
-
-        riotApi.getItems.asScala.foreach(item => items(item._1) = item._2)
-
-        //items = Application.session.sparkContext.broadcast(items)
+        val items = riotApi.getItems.asScala.map {case (k,v) => (k.toInt, v)}.toMap
+        itemsBr = Application.session.sparkContext.broadcast(items)
     }
 
-    def populateMapIfEmpty(): Unit = {
-        if (items.size == 0) {
-            populateMap()
-        }
+    def items():Map[Int,Item] = {
+        itemsBr.value
     }
+
 
     def byId(id:Int):Item = {
-        items.get(id) match {
+        items().get(id) match {
             case Some(item) => item
             case None =>
                 log.debug("Item id {} not found. Downloading from riot..", id)
                 //We can't find the id, load it from riot
-                populateMap()
+                populateAndBroadcast()
                 items.get(id).get
         }
     }
 
     def legendaries():Map[Int, Item] = {
-        items.filter(_._2.gold >= legendaryCutoff).toMap
+        items().filter(_._2.gold >= legendaryCutoff).toMap
     }
 
     /**

@@ -1,9 +1,11 @@
 package gg.boosted.riotapi.dtos;
 
+import java.io.Serializable;
+
 /**
  * Created by ilan on 12/31/16.
  */
-public class Stats {
+public class Stats implements Serializable{
 
     public double FlatArmorMod;
     public double FlatAttackSpeedMod;
