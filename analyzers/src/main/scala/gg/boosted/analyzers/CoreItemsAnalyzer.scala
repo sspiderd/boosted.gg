@@ -1,7 +1,7 @@
 package gg.boosted.analyzers
 
 import gg.boosted.configuration.Configuration
-import gg.boosted.dal.RedisStore
+import gg.boosted.dal.{Matches, RedisStore}
 import gg.boosted.maps.{Champions, Items}
 import gg.boosted.posos.{BoostedSummoner, MatchId, Mindset}
 import gg.boosted.riotapi.dtos.MatchSummary
@@ -61,7 +61,7 @@ object CoreItemsAnalyzer {
 
             row.matches.map(matchId => {
 
-                val matchSummary = JsonUtil.fromJson[MatchSummary](RedisStore.getMatch(MatchId(matchId, Region.valueOf(region))).get)
+                val matchSummary = Matches.get(matchId, region)
 
                 val summonerFromSummary = matchSummary.team1.summoners.asScala.find(summoner => summoner.summonerId == summonerId)
                     .getOrElse(matchSummary.team2.summoners.asScala.find(summoner => summoner.summonerId == summonerId).get)

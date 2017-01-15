@@ -9,5 +9,8 @@ case class SummonerMatchSummary(
                                    region: String,
                                    championId: Int,
                                    roleId: Int,
+                                   runes: Seq[Int],
+                                   masteries: Seq[Int],
+                                   boughtItems: Seq[Int],
                                    winner: Boolean
                                )

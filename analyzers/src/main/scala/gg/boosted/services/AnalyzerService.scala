@@ -4,9 +4,10 @@ import java.time.{LocalDateTime, Period, ZoneId}
 import java.util.Date
 
 import gg.boosted.Application
-import gg.boosted.analyzers.{BoostedSummonersAnalyzer, CoreItemsAnalyzer}
+import gg.boosted.analyzers.{BoostedSummonersAnalyzer, CoreItemsAnalyzer, MatchesAnalyzer}
 import gg.boosted.configuration.Configuration
 import gg.boosted.posos.{Mindset, SummonerMatch}
+import gg.boosted.dal.Matches
 import gg.boosted.utils.GeneralUtils._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Dataset, SaveMode}
@@ -62,6 +63,8 @@ object AnalyzerService {
         saveFile(bs.toDF(), Configuration.getString("boosted.summoners.file.location"))
 
         log.debug(s"Found ${bs.count()} boosted summoners...")
+
+        val summaries = MatchesAnalyzer.boostedSummonersToSummaries(bs)
 
         val summonerMatchSummaryWithWeights = time(CoreItemsAnalyzer.boostedSummonersToWeightedMatchSummary(bs).cache(), "BoostedSummnersToWeightMatchSummary")
         saveFile(summonerMatchSummaryWithWeights, Configuration.getString("weighted.summary.file.location"))

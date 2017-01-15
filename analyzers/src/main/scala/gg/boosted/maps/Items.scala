@@ -1,5 +1,6 @@
 package gg.boosted.maps
 
+import gg.boosted.Application
 import gg.boosted.riotapi.dtos.Item
 import gg.boosted.riotapi.{Region, RiotApi}
 import org.slf4j.{Logger, LoggerFactory}
@@ -24,6 +25,8 @@ object Items {
         import collection.JavaConverters._
 
         riotApi.getItems.asScala.foreach(item => items(item._1) = item._2)
+
+        //items = Application.session.sparkContext.broadcast(items)
     }
 
     def populateMapIfEmpty(): Unit = {
