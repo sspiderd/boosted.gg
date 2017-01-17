@@ -46,6 +46,8 @@ object SummonerMatches {
         })
     }
 
+    def matchesToSummonerMatches(matches:Set[])
+
     def get(summonerId:Long, _matchId: Long, region: String): SummonerMatchDetails  =
         get(SummonerMatchId(summonerId, _matchId, Region.valueOf(region)))
 
