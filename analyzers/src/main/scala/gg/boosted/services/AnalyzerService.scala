@@ -7,7 +7,7 @@ import gg.boosted.Application
 import gg.boosted.analyzers.{BoostedSummonersAnalyzer, CoreItemsAnalyzer, MatchesAnalyzer}
 import gg.boosted.configuration.Configuration
 import gg.boosted.posos.{Mindset, SummonerMatch}
-import gg.boosted.dal.Matches
+import gg.boosted.dal.SummonerMatches
 import gg.boosted.maps.Items
 import gg.boosted.utils.GeneralUtils._
 import org.apache.spark.rdd.RDD

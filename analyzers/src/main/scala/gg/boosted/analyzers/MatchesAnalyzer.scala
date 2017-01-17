@@ -2,7 +2,7 @@ package gg.boosted.analyzers
 
 import gg.boosted.Role
 import gg.boosted.configuration.Configuration
-import gg.boosted.dal.Matches
+import gg.boosted.dal.SummonerMatches
 import gg.boosted.maps.Items
 import gg.boosted.posos.{BoostedSummoner, SummonerMatchSummary}
 import org.apache.spark.sql.{DataFrame, Dataset}
@@ -19,7 +19,7 @@ object MatchesAnalyzer {
     val log = LoggerFactory.getLogger(MatchesAnalyzer.getClass)
 
     def boostedSummonersToSummaries(boostedSummoners: Dataset[BoostedSummoner]): Dataset[SummonerMatchSummary] = {
-        Matches.populateMatches(boostedSummoners.toDF())
+        SummonerMatches.populateSummonerMatches(boostedSummoners.toDF())
 
         boostedSummoners.flatMap(row => {
 
@@ -29,16 +29,13 @@ object MatchesAnalyzer {
             val roleId = row.roleId
 
             row.matches.map(matchId => {
-                val matchSummary = Matches.get(matchId, region)
-
-                val summonerFromSummary = matchSummary.team1.summoners.asScala.find(summoner => summoner.summonerId == summonerId)
-                    .getOrElse(matchSummary.team2.summoners.asScala.find(summoner => summoner.summonerId == summonerId).get)
+                val summonerMatch = SummonerMatches.get(summonerId, matchId, region)
 
                 SummonerMatchSummary(matchId, summonerId, region, championId, roleId,
-                    summonerFromSummary.runes.asScala.map(rune => (rune.runeId, rune.rank)).toMap,
-                    summonerFromSummary.masteries.asScala.map(mastery => (mastery.masteryId, mastery.rank)).toMap,
-                    summonerFromSummary.itemsBought.asScala.map(_.toInt),
-                    summonerFromSummary.winner)
+                    summonerMatch.runes.asScala.map(rune => (rune.runeId, rune.rank)).toMap,
+                    summonerMatch.masteries.asScala.map(mastery => (mastery.masteryId, mastery.rank)).toMap,
+                    summonerMatch.itemsBought.asScala.map(_.toInt),
+                    summonerMatch.winner)
             })
         })
     }
@@ -66,15 +63,15 @@ object MatchesAnalyzer {
 
         }).toDF(columnNames: _*)
             .where(size(col("coreItems")) >= Configuration.getInt("number.of.core.items"))
-        sm.createOrReplaceTempView("SummonerMatchSummary")
+        sm.createOrReplaceTempView("SummonerMatchDetails")
         //This here will return the number of games played with the core runes for each champion/role combo
         val summonerMatchSummary = sm.sqlContext.sql(
             s"""
                |SELECT matchId, summonerId, region, A.championId, A.roleId, winner, A.coreItems, gamesPlayedWithCoreItems
                |FROM (
-               |SELECT * FROM SummonerMatchSummary B join (
+               |SELECT * FROM SummonerMatchDetails B join (
                |SELECT championId, roleId, coreItems, count(coreItems) as gamesPlayedWithCoreItems
-               |FROM SummonerMatchSummary
+               |FROM SummonerMatchDetails
                |GROUP BY championId, roleId, coreItems
                |) A on A.championId = B.championId and A.roleId = B.roleId and A.coreItems = B.coreItems
                |WHERE gamesPlayedWithCoreItems >= ${Configuration.getInt("min.number.of.games.played.with.core.items")}

@@ -1,7 +1,7 @@
 package gg.boosted.dal
 
 import gg.boosted.configuration.Configuration
-import gg.boosted.posos.{LoLScore, MatchId, SummonerId}
+import gg.boosted.posos.{LoLScore, SummonerMatchId, SummonerId}
 import org.sedis._
 import redis.clients.jedis.{JedisPool, JedisPoolConfig}
 
@@ -18,8 +18,11 @@ object RedisStore {
     val summonerIdToLOLScoreKey = "summonerIdToLOLScore"
     val summonerLOLScoreTTL = Configuration.getInt("summoner.to.lolscore.retention.period.seconds")
 
-    val matchIdKey = "fullMatch"
-    val matchIdTTL = Configuration.getInt("full.match.retention.period.seconds")
+//    val matchIdKey = "fullMatch"
+//    val matchIdTTL = Configuration.getInt("full.match.retention.period.seconds")
+
+    val summonerMatchIdKey = "summonerMatchDetail"
+    val summonerMatchIdTTL = Configuration.getInt("summoner.match.retention.period.seconds")
 
     def getSummonerName(id:SummonerId):Option[String] = {
         pool.withClient { _.get(s"$summonerIdToNameKey:${id.region}:${id.id}")}
@@ -52,18 +55,30 @@ object RedisStore {
         })
     }
 
-    /**
-      * Return the json representation of a full match
-      * @param id
-      * @return
-      */
-    def getMatch(id:MatchId):Option[String] = {
-        pool.withClient { _.get(s"$matchIdKey:${id.region}:${id.id}")}
+
+    def getSummonerMatch(summonerMatchId: SummonerMatchId):Option[String] =
+        getSummonerMatch(summonerMatchId.summonerId, summonerMatchId.matchId, summonerMatchId.region.toString)
+
+    def getSummonerMatch(summonerId:Long, matchId:Long, region:String):Option[String] = {
+        pool.withClient { _.get(s"$summonerMatchIdKey:${summonerId}:${matchId}:${region}") }
     }
 
-    def addMatch(id:MatchId, matchJson:String):Unit = {
-        pool.withClient { _.setex(s"$matchIdKey:${id.region}:${id.id}", matchIdTTL, matchJson) }
+    def addSummonerMatch(summonerId:Long, matchId:Long, region:String, matchJson:String) ={
+        pool.withClient { _.setex(s"$summonerMatchIdKey:${summonerId}:${matchId}:${region}", summonerMatchIdTTL, matchJson) }
     }
+
+//    /**
+//      * Return the json representation of a full match
+//      * @param id
+//      * @return
+//      */
+//    def getMatch(id:MatchId):Option[String] = {
+//        pool.withClient { _.get(s"$matchIdKey:${id.region}:${id.id}")}
+//    }
+//
+//    def addMatch(id:MatchId, matchJson:String):Unit = {
+//        pool.withClient { _.setex(s"$matchIdKey:${id.region}:${id.id}", matchIdTTL, matchJson) }
+//    }
 
 
 }

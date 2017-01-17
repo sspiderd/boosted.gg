@@ -7,10 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import gg.boosted.riotapi.constants.QueueType;
 import gg.boosted.riotapi.dtos.*;
-import gg.boosted.riotapi.dtos.match.Event;
-import gg.boosted.riotapi.dtos.match.Frame;
 import gg.boosted.riotapi.dtos.match.MatchDetail;
-import gg.boosted.riotapi.dtos.match.Rune;
 import gg.boosted.riotapi.throttlers.DistributedThrottler;
 import gg.boosted.riotapi.throttlers.IThrottler;
 import gg.boosted.riotapi.utilities.ArrayChunker;
@@ -304,13 +301,13 @@ public class RiotApi {
         return map ;
     }
 
-    public MatchSummary getMatchSummary(long matchId) {
-        return Matches.detailToSummary(getMatch(matchId, true));
+    public SummonerMatchDetails getSummonerMatchDetails(long summonerId, long matchId) {
+        return Matches.detailToSummonerSummary(summonerId, getMatch(matchId, true));
     }
 
-    public String getMatchSummaryAsJson(long matchId) {
+    public String getSummonerMatchDetailsAsJson(long summonerId, long matchId) {
         try {
-            return om.writeValueAsString(getMatchSummary(matchId));
+            return om.writeValueAsString(getSummonerMatchDetails(summonerId, matchId));
         } catch (JsonProcessingException e) {
             log.error("Shouldn't be thrown");
         }
@@ -385,7 +382,7 @@ public class RiotApi {
 //        }
 
         //new RiotApi(Region.EUW).getMatch(2969769203L, false) ;
-        //new RiotApi(Region.EUNE).getMatchSummary(1585972833L) ;
+        //new RiotApi(Region.EUNE).getSummonerMatchDetails(1585972833L) ;
         new RiotApi(Region.BR).getRuneDefs();
 
     }
