@@ -26,8 +26,6 @@ object MatchesAnalyzer {
 
             val summonerId = row.summonerId
             val region = row.region
-            val championId = row.championId
-            val roleId = row.roleId
 
             row.matches.map(matchId =>
                 JsonUtil.fromJson[SummonerMatchSummary](RedisStore.getSummonerMatch(summonerId, matchId, region.toString).

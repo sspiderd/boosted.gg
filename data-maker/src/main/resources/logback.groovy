@@ -7,6 +7,7 @@ appender("STDOUT", ConsoleAppender) {
 }
 
 logger("gg.boosted", DEBUG)
+logger("gg.boosted.riotapi.throttlers", INFO)
 logger("net.rithms", DEBUG)
 
 root(WARN, ["STDOUT"])

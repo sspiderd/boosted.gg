@@ -86,7 +86,7 @@ public class RiotApi {
                 beforeApiCall = System.currentTimeMillis() ;
                 String response = target.request(MediaType.APPLICATION_JSON_TYPE).get(String.class);
                 roundTrip = System.currentTimeMillis() - beforeApiCall;
-                log.debug("Roundtrip {}", roundTrip);
+                log.trace("Roundtrip {}", roundTrip);
                 return response ;
 
             } catch (ClientErrorException cer) {

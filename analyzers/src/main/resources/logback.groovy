@@ -7,6 +7,7 @@ appender("STDOUT", ConsoleAppender) {
 }
 
 logger("org.apache.spark.mllib.clustering", ERROR)
+logger("gg.boosted.riotapi.throttler", INFO)
 logger("gg.boosted", DEBUG)
 
 root(WARN, ["STDOUT"])

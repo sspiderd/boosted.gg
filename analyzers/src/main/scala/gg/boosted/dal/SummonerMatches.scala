@@ -4,11 +4,14 @@ import gg.boosted.posos.{SummonerMatchId, SummonerMatchSummary}
 import gg.boosted.riotapi.{Region, RiotApi}
 import gg.boosted.utils.JsonUtil
 import org.apache.spark.sql.DataFrame
+import org.slf4j.LoggerFactory
 
 /**
   * Created by ilan on 1/15/17.
   */
 object SummonerMatches {
+
+    val log = LoggerFactory.getLogger(SummonerMatches.getClass)
 
     /**
       * Send me a dataframe that has columns: "summonerId", "matches", "region", each row should contain a list of matches
