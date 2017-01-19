@@ -12,7 +12,6 @@ import gg.boosted.riotapi.throttlers.DistributedThrottler;
 import gg.boosted.riotapi.throttlers.IThrottler;
 import gg.boosted.riotapi.utilities.ArrayChunker;
 import gg.boosted.riotapi.utilities.ArrayConverter;
-import gg.boosted.riotapi.utilities.Matches;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -299,19 +298,6 @@ public class RiotApi {
         }
 
         return map ;
-    }
-
-    public SummonerMatchDetails getSummonerMatchDetails(long summonerId, long matchId) {
-        return Matches.detailToSummonerSummary(summonerId, getMatch(matchId, true));
-    }
-
-    public String getSummonerMatchDetailsAsJson(long summonerId, long matchId) {
-        try {
-            return om.writeValueAsString(getSummonerMatchDetails(summonerId, matchId));
-        } catch (JsonProcessingException e) {
-            log.error("Shouldn't be thrown");
-        }
-        throw new RuntimeException("Shouldn't be thrown");
     }
 
     /**

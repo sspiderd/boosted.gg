@@ -2,7 +2,7 @@ package gg.boosted.analyzers
 
 import gg.boosted.Role
 import gg.boosted.configuration.Configuration
-import gg.boosted.dal.SummonerMatches
+import gg.boosted.dal.{RedisStore, SummonerMatches}
 import gg.boosted.maps.Items
 import gg.boosted.posos.{BoostedSummoner, SummonerMatchSummary}
 import org.apache.spark.sql.{DataFrame, Dataset}
@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import gg.boosted.Application.session.implicits._
+import gg.boosted.utils.JsonUtil
 
 /**
   * Created by ilan on 1/15/17.
@@ -28,15 +29,9 @@ object MatchesAnalyzer {
             val championId = row.championId
             val roleId = row.roleId
 
-            row.matches.map(matchId => {
-                val summonerMatch = SummonerMatches.get(summonerId, matchId, region)
-
-                SummonerMatchSummary(matchId, summonerId, region, championId, roleId,
-                    summonerMatch.runes.asScala.map(rune => (rune.runeId, rune.rank)).toMap,
-                    summonerMatch.masteries.asScala.map(mastery => (mastery.masteryId, mastery.rank)).toMap,
-                    summonerMatch.itemsBought.asScala.map(_.toInt),
-                    summonerMatch.winner)
-            })
+            row.matches.map(matchId =>
+                JsonUtil.fromJson[SummonerMatchSummary](RedisStore.getSummonerMatch(summonerId, matchId, region.toString).
+                    getOrElse(throw new RuntimeException("This can't happen"))))
         })
     }
 
@@ -51,7 +46,7 @@ object MatchesAnalyzer {
             val summonerId = row.summonerId
             val region = row.region
             val championId = row.championId
-            val role = Role.byId(row.roleId).toString
+            val role = row.role.toString
 
             //Get the X (2) legendaryItems
             val numberOfCoreItems = Configuration.getInt("number.of.core.items")

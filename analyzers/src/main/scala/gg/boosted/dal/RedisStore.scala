@@ -63,8 +63,8 @@ object RedisStore {
         pool.withClient { _.get(s"$summonerMatchIdKey:${summonerId}:${matchId}:${region}") }
     }
 
-    def addSummonerMatch(summonerId:Long, matchId:Long, region:String, matchJson:String) ={
-        pool.withClient { _.setex(s"$summonerMatchIdKey:${summonerId}:${matchId}:${region}", summonerMatchIdTTL, matchJson) }
+    def addSummonerMatch(summonerId:Long, matchId:Long, region:String, summonerMatchJson:String) ={
+        pool.withClient { _.setex(s"$summonerMatchIdKey:${summonerId}:${matchId}:${region}", summonerMatchIdTTL, summonerMatchJson) }
     }
 
 //    /**
@@ -76,8 +76,8 @@ object RedisStore {
 //        pool.withClient { _.get(s"$matchIdKey:${id.region}:${id.id}")}
 //    }
 //
-//    def addMatch(id:MatchId, matchJson:String):Unit = {
-//        pool.withClient { _.setex(s"$matchIdKey:${id.region}:${id.id}", matchIdTTL, matchJson) }
+//    def addMatch(id:MatchId, summonerMatchJson:String):Unit = {
+//        pool.withClient { _.setex(s"$matchIdKey:${id.region}:${id.id}", matchIdTTL, summonerMatchJson) }
 //    }
 
 

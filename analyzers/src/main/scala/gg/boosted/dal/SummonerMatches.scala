@@ -1,7 +1,6 @@
 package gg.boosted.dal
 
 import gg.boosted.posos.{SummonerMatchId, SummonerMatchSummary}
-import gg.boosted.riotapi.dtos.{MatchSummary, SummonerMatchDetails}
 import gg.boosted.riotapi.{Region, RiotApi}
 import gg.boosted.utils.JsonUtil
 import org.apache.spark.sql.DataFrame
@@ -41,19 +40,18 @@ object SummonerMatches {
                 val region = tuple._1
                 val ids = tuple._2
                 val api = new RiotApi(region)
-                ids.foreach(id => RedisStore.addSummonerMatch(id.summonerId, id.matchId, region.toString, api.getSummonerMatchDetailsAsJson(id.summonerId, id.matchId)))
+                ids.foreach(id => RedisStore.addSummonerMatch(id.summonerId, id.matchId, region.toString,
+                    JsonUtil.toJson(SummonerMatchSummary(id.summonerId, api.getMatch(id.matchId, true)))))
             })
         })
     }
 
-    def matchesToSummonerMatches(matches:Set[])
-
-    def get(summonerId:Long, _matchId: Long, region: String): SummonerMatchDetails  =
+    def get(summonerId:Long, _matchId: Long, region: String): SummonerMatchSummary  =
         get(SummonerMatchId(summonerId, _matchId, Region.valueOf(region)))
 
-    def get(summonerMatch: SummonerMatchId): SummonerMatchDetails = {
+    def get(summonerMatch: SummonerMatchId): SummonerMatchSummary = {
         RedisStore.getSummonerMatch(summonerMatch) match {
-            case Some(x) => JsonUtil.fromJson[SummonerMatchDetails](x)
+            case Some(x) => JsonUtil.fromJson[SummonerMatchSummary](x)
             case None => throw new RuntimeException(s"The match ${summonerMatch.matchId} for summoner ${summonerMatch.summonerId} at ${summonerMatch.region.toString} is unaccounted for. did you populate first?")
         }
     }

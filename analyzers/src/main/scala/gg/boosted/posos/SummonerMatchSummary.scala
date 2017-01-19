@@ -1,7 +1,6 @@
 package gg.boosted.posos
 
-import gg.boosted.riotapi.dtos.SummonerMatchDetails
-import gg.boosted.riotapi.dtos.`match`.{MatchDetail, Participant, ParticipantIdentity}
+import gg.boosted.riotapi.dtos.`match`.{MatchDetail, Participant}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
@@ -15,7 +14,7 @@ case class SummonerMatchSummary(
                                    summonerName: String,
                                    region: String,
                                    championId: Int,
-                                   roleId: Int,
+                                   role: String,
 
                                    matchCreation: Long,
                                    matchDuration: Long,
@@ -32,7 +31,7 @@ case class SummonerMatchSummary(
                                    winner: Boolean
                                )
 
-case class MatchParticipant(summonerId:Long, championId:Int, roleId:Int)
+case class MatchParticipant(championId:Int, role:String)
 
 
 object SummonerMatchSummary {
@@ -45,7 +44,7 @@ object SummonerMatchSummary {
     val runesMap = participant.runes.asScala.map(rune => (rune.runeId, rune.rank)).toMap
     val masteriesMap = participant.masteries.asScala.map(mastery => (mastery.masteryId, mastery.rank)).toMap
 
-    var itemsBought = ListBuffer[Int]()
+    val itemsBought = ListBuffer[Int]()
 
     md.timeline.frames.asScala.foreach(frame => {
       if (frame.events != null) {
@@ -61,20 +60,40 @@ object SummonerMatchSummary {
       }
     })
 
-    val skillsLevelUp = md.timeline.frames.asScala.foreach(frame =>{
-      if (frame.events != null) {
-        frame.events.asScala.filter(event => event.participantId == participantId && event.eventType == "SKILL_LEVEL_UP")
-          .map(_.skillSlot)
-      }
-    })
+    val skillsLevelUp = md.timeline.frames.asScala.filter(_.events != null).map(_.events.asScala
+        .filter(event => event.participantId == participantId && event.eventType == "SKILL_LEVEL_UP").map(_.skillSlot))
 
-    //Friends and foes
-    md.participants.asScala.foreach(participantInGame => {
-      SummonerMatchDetails.Summoner other = new SummonerMatchDetails.Summoner(participantInGame.championId, roleForParticipant(participantInGame));
-      if (participantInGame.teamId == participant.teamId && participantInGame.participantId != participant.participantId) ms.friendlies.add(other) else {
-        ms.foes.add(other);
-      }
-    })
+
+
+    val friendlies = md.participants.asScala.filter(participantInGame => participantInGame.teamId == participant.teamId &&
+                                                participantInGame.participantId != participantId)
+            .map(p => MatchParticipant(p.championId, roleForParticipant(p)))
+
+    val foes = md.participants.asScala.filter(participantInGame => participantInGame.teamId != participant.teamId)
+        .map(p => MatchParticipant(p.championId, roleForParticipant(p)))
+
+    new SummonerMatchSummary(
+      md.matchId,
+      summonerId,
+      participantIdentity.player.summonerName,
+      md.region,
+      participant.championId,
+      roleForParticipant(participant),
+
+      md.matchCreation,
+      md.matchDuration,
+      md.matchMode,
+      md.matchType,
+      md.matchVersion,
+
+      runesMap,
+      masteriesMap,
+      itemsBought,
+      null,
+      friendlies,
+      foes,
+      participant.stats.winner
+    )
   }
 
   def roleForParticipant(p: Participant): String = {
