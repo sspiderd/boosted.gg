@@ -27,7 +27,9 @@ object CoreItemsAnalyzer {
         import Application.session.implicits._
         summonerMatchSummaryWithWeights.createOrReplaceTempView("WeightedSummary")
         val championRolesPairs = summonerMatchSummaryWithWeights.select("championId", "roleId").distinct().collect()
-        val repartitioned = summonerMatchSummaryWithWeights.repartition(championRolesPairs.size, $"championId", $"roleId").cache()
+        //Repartition to the number of cores we have
+        val defPar = Application.session.sparkContext.defaultParallelism
+        val repartitioned = summonerMatchSummaryWithWeights.repartition(defPar, $"championId", $"roleId").cache()
         var unioned = repartitioned.sqlContext.createDataset(Application.session.sparkContext.emptyRDD[Mindset])
         championRolesPairs.foreach(pair => {
             unioned = GeneralUtils.time(championRoleItemsKMeans(pair.getInt(0), pair.getInt(1), repartitioned).union(unioned),
@@ -47,6 +49,14 @@ object CoreItemsAnalyzer {
             .setOutputCol("features").transform(dataset.filter(s"championId = ${championId} and roleId = ${roleId}"))
 
         log.debug(s"Calculating for champion ${Champions.byId(championId)} and role ${Role.byId(roleId)}")
+
+        //We need to find the optimal number of clusters
+        //TODO: Implement this
+//        for (k <- 1 to 5) {
+//            val model = new KMeans().setK(k).fit(df)
+//            val WSSSE = model.computeCost(df)
+//        }
+
         // Trains a k-means model. We use 3 groups
         val model = new KMeans().setK(3).fit(df)
 
