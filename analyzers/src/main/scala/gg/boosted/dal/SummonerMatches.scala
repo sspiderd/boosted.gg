@@ -39,12 +39,30 @@ object SummonerMatches {
             var unknownMatches = Set[SummonerMatchId]()
             allSummonerMatchIds.foreach(id => RedisStore.getSummonerMatch(id.summonerId, id.matchId, id.region.toString).getOrElse(unknownMatches += id))
 
-            unknownMatches.groupBy(_.region).par.foreach(tuple => {
-                val region = tuple._1
-                val ids = tuple._2
-                val api = new RiotApi(region)
-                ids.foreach(id => RedisStore.addSummonerMatch(id.summonerId, id.matchId, region.toString,
-                    JsonUtil.toJson(SummonerMatchSummary(id.summonerId, api.getMatch(id.matchId, true)))))
+            //Get all matches
+            //First group by region
+            //then group by matches
+            //then for each summoner create a SummonerMatchSummary and put in the redis
+            unknownMatches.groupBy(_.region).par.foreach(regionGroup => {
+
+                if (log.isDebugEnabled) {
+                    val matches = regionGroup._2.groupBy(_.matchId)
+                    val summoners = matches.map(_._2.map(_.summonerId))
+                    log.debug(s"Retrieving ${matches.size} matches for ${summoners.size} summoners in '${regionGroup._1.toString}'")
+                }
+
+                regionGroup._2.groupBy(_.matchId).foreach(tuple => {
+                    val matchId = tuple._1
+                    val summonerIds = tuple._2.map(_.summonerId)
+                    val region = regionGroup._1
+                    val api = new RiotApi(region)
+                    val fullMatch = api.getMatch(matchId, true)
+
+                    summonerIds.foreach(summoner => {
+                        val sms = SummonerMatchSummary(summoner, fullMatch)
+                        RedisStore.addSummonerMatch(summoner, matchId, region.toString, JsonUtil.toJson(sms))
+                    })
+                })
             })
         })
     }

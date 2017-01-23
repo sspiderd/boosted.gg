@@ -83,8 +83,11 @@ class FromRiot {
                     List<SummonerMatch> summonerMatchList = MatchParser.parseMatch(match)
 
                     //Send them all to the broker
-                    summonerMatchList.each {
-                        KafkaSummonerMatchProducer.send(it)
+                    //Disregard matches that are shorter than 20 minutes
+                    if (match.matchDuration >= 1200) {
+                        summonerMatchList.each {
+                            KafkaSummonerMatchProducer.send(it)
+                        }
                     }
 
                     //Add the match to "seen matches"

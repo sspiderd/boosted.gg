@@ -22,8 +22,8 @@ case class SummonerMatchSummary(
                                    matchType: String,
                                    matchVersion: String,
 
-                                   runes: Map[Int, Int],
-                                   masteries: Map[Int, Int],
+                                   runes: Map[String, Int],
+                                   masteries: Map[String, Int],
                                    itemsBought: Seq[Int],
                                    skillsLevelUp: Seq[Int],
                                    friendlies: Seq[MatchParticipant],
@@ -41,8 +41,8 @@ object SummonerMatchSummary {
         val participant = md.participants.asScala.filter(_.participantId == participantIdentity.participantId).head
         val participantId = participantIdentity.participantId
 
-        val runesMap = participant.runes.asScala.map(rune => (rune.runeId, rune.rank)).toMap
-        val masteriesMap = participant.masteries.asScala.map(mastery => (mastery.masteryId, mastery.rank)).toMap
+        val runesMap = participant.runes.asScala.map(rune => (rune.runeId.toString, rune.rank)).toMap
+        val masteriesMap = participant.masteries.asScala.map(mastery => (mastery.masteryId.toString, mastery.rank)).toMap
 
         val itemsBought = ListBuffer[Int]()
 
