@@ -1,7 +1,9 @@
 package gg.boosted.maps
 
+import gg.boosted.Application
+import gg.boosted.riotapi.dtos.RuneDef
 import gg.boosted.riotapi.{Region, RiotApi}
-import gg.boosted.riotapi.dtos.Item
+import org.apache.spark.broadcast.Broadcast
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
@@ -10,29 +12,27 @@ import org.slf4j.{Logger, LoggerFactory}
 object Runes {
     val log:Logger = LoggerFactory.getLogger(Items.getClass) ;
 
-    var runes = collection.mutable.HashMap.empty[Int, Item]
+    var runesBr:Broadcast[Map[String,RuneDef]] = _
 
     val riotApi = new RiotApi(Region.EUW)
 
-    def populateMap(): Unit = {
+    def populateAndBroadcast():Unit = {
         import collection.JavaConverters._
-
-        riotApi.getItems.asScala.foreach(item => runes(item._1) = item._2)
+        val runes = riotApi.getRuneDefs.asScala.map {case (k,v) => (k, v)}.toMap
+        runesBr = Application.session.sparkContext.broadcast(runes)
     }
 
-    def populateMapIfEmpty(): Unit = {
-        if (runes.size == 0) {
-            populateMap()
-        }
+    def runes():Map[String,RuneDef] = {
+        runesBr.value
     }
 
-    def byId(id:Int):Item = {
-        runes.get(id) match {
-            case Some(item) => item
+    def byId(id:String):RuneDef = {
+        runes().get(id) match {
+            case Some(rune) => rune
             case None =>
                 log.debug("Item id {} not found. Downloading from riot..", id)
                 //We can't find the id, load it from riot
-                populateMap()
+                populateAndBroadcast()
                 runes.get(id).get
         }
     }

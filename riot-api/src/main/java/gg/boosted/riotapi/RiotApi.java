@@ -329,8 +329,8 @@ public class RiotApi {
         return itemsList ;
     }
 
-    public Map<Integer, RuneDef> getRuneDefs() {
-        Map<Integer, RuneDef> runeList = new HashMap<>();
+    public Map<String, RuneDef> getRuneDefs() {
+        Map<String, RuneDef> runeList = new HashMap<>();
 
         String endpoint = String.format("%s/v1.2/rune?runeListData=stats", staticEndpoint) ;
         JsonNode root = callApi(endpoint) ;
@@ -344,7 +344,7 @@ public class RiotApi {
                 rune.tier = node.get("rune").get("tier").asInt();
                 rune.type = node.get("rune").get("type").asText();
                 rune.stats = om.readValue(node.get("stats").toString(), Stats.class);
-                runeList.put(rune.id, rune);
+                runeList.put(rune.id.toString(), rune);
             } catch (Exception e) {
                 throw new RuntimeException("Should'nt have happened", e) ;
             }
