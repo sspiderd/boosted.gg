@@ -27,10 +27,12 @@ object RunesAnalyzer {
 
       //Currently i'm keeping it simple
       //Find the most prominent rune in each category
-      //runeSet.filter(_.tier == 3).groupBy(_.color).find(_._2.map(_.amount).max)
+
+      def max(r1:Rune, r2:Rune):Rune = if (r1.amount > r2.amount) r1 else r2
+
+      //http://alvinalexander.com/scala/scala-use-reduceleft-get-max-min-from-collection
+      runeSet.filter(_.tier == 3).groupBy(_.color).map(_._2)
     })
-
-
   }
 
 }
