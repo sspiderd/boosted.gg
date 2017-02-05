@@ -1,8 +1,8 @@
 package gg.boosted.analyzers
 
+import gg.boosted.Application.session.implicits._
 import gg.boosted.maps.Runes
 import gg.boosted.posos.SummonerMatchSummary
-import gg.boosted.riotapi.dtos.RuneDef
 import org.apache.spark.sql.Dataset
 
 /**
@@ -12,14 +12,14 @@ object RunesAnalyzer {
 
   case class Rune(id: String, color: String, amount: Int, tier: Int)
 
-  case class RuneSetup(runes: Iterable[Rune], winner: Boolean)
+  case class RuneSetup(runes: Seq[Rune], winner: Boolean)
 
   object RuneSetup {
     def apply(sms:SummonerMatchSummary):RuneSetup = {
-      val runes:Iterable[Rune] = sms.runes.map {case (id, amount) => {
+      val runes:List[Rune] = sms.runes.map {case (id, amount) => {
         val runeDef = Runes.byId(id)
         Rune(id, runeDef.`type`, amount, runeDef.tier)
-      }}
+      }}.toList
       RuneSetup(runes, sms.winner)
     }
   }
@@ -45,12 +45,23 @@ object RunesAnalyzer {
     def max(r1: Rune, r2: Rune): Rune = if (r1.amount > r2.amount) r1 else r2
     ds.map(setup => {
 
-      RuneSetup(setup.runes.groupBy(_.color).map(_._2).map(_.reduce(max(_, _))).map(rune => Rune(rune.id, rune.color,
+      RuneSetup(setup.runes.groupBy(_.color).map(_._2).map(_.reduce(max(_, _))).toSeq.map(rune => Rune(rune.id, rune.color,
         rune.color match {
           case "black" => 3
           case _ => 9
         },
         rune.tier)), setup.winner)
+    })
+  }
+
+  private def singleRuness(dataset: Dataset[RuneSetup]):Dataset[SingleRuneSetup] = {
+    val standarizedRunes = standarize(dataset)
+    standarizedRunes.map(runeSetup => {
+      val red = runeSetup.runes.filter(_.color == "red").head.id
+      val yellow = runeSetup.runes.filter(_.color == "yellow").head.id
+      val blue = runeSetup.runes.filter(_.color == "blue").head.id
+      val black = runeSetup.runes.filter(_.color == "black").head.id
+      SingleRuneSetup(red, yellow, blue, black, runeSetup.winner)
     })
   }
 
@@ -60,13 +71,23 @@ object RunesAnalyzer {
     * @param ds
     * @return
     */
-  def optimalRunes(ds: Dataset[RuneSetup]): Map[String, Int] = {
+  def optimalRunes(ds: Dataset[RuneSetup], runesSetupSeenAtLeastXTimes: Int): Map[String, Int] = {
 
-
-    val standardRunes = standarize(ds)
-
-
-
+    //Make a dataset of type (9 red, 9 yellow, 9 blue, 3 black) of the same type
+    val singleRunes = singleRuness(ds)
+    singleRunes.createOrReplaceTempView("RunesSetup")
+    val optimal = singleRunes.sqlContext.sql(
+      s"""
+        |SELECT red, yellow, blue, black, mean(if (winner=true,1,0)) as winrate, count(*) as gamesPlayed
+        |FROM RunesSetup
+        |GROUP BY red, yellow, blue, black
+        |HAVING gamesPlayed >= ${runesSetupSeenAtLeastXTimes}
+        |ORDER BY winrate DESC
+      """.stripMargin).head()
+    Map[String, Int](optimal.getString(0) -> 9,
+      optimal.getString(1) -> 9,
+      optimal.getString(2) -> 9,
+      optimal.getString(3) -> 3)
   }
 
   def main(args: Array[String]): Unit = {
@@ -78,7 +99,7 @@ object RunesAnalyzer {
 
     def max(r1: Rune, r2: Rune): Rune = if (r1.amount > r2.amount) r1 else r2
 
-    val runeSetup = RuneSetup(setup.runes.groupBy(_.color).map(_._2).map(_.reduce(max(_, _))).map(rune => Rune(rune.id, rune.color, 9, rune.tier)), true)
+    val runeSetup = RuneSetup(setup.runes.groupBy(_.color).map(_._2).map(_.reduce(max(_, _))).toSeq.map(rune => Rune(rune.id, rune.color, 9, rune.tier)), true)
     println(runeSetup)
   }
 

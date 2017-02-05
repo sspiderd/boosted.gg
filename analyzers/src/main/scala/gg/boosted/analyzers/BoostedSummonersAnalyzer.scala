@@ -1,15 +1,9 @@
 package gg.boosted.analyzers
 
-import gg.boosted.dal.RedisStore
-import gg.boosted.maps.Champions
+import gg.boosted.Application
 import gg.boosted.posos._
-import gg.boosted.riotapi.{Region, RiotApi}
-import gg.boosted.{Application, Role}
 import org.apache.spark.sql.Dataset
 import org.slf4j.LoggerFactory
-
-import scala.collection.JavaConverters._
-import scala.collection.mutable.ListBuffer
 
 
 

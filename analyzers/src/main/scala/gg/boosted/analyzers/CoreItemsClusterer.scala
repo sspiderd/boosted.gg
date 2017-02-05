@@ -1,21 +1,15 @@
 package gg.boosted.analyzers
 
+import gg.boosted.Application.session.implicits._
 import gg.boosted.configuration.Configuration
-import gg.boosted.dal.{RedisStore, SummonerMatches}
 import gg.boosted.maps.{Champions, Items}
-import gg.boosted.posos.{BoostedSummoner, Mindset, SummonerMatchId, SummonerMatchSummary}
-import gg.boosted.riotapi.dtos.MatchSummary
-import gg.boosted.riotapi.{Region, RiotApi}
-import gg.boosted.utils.{GeneralUtils, JsonUtil}
+import gg.boosted.posos.{Mindset, SummonerMatchSummary}
+import gg.boosted.utils.GeneralUtils
 import gg.boosted.{Application, Role}
 import org.apache.spark.ml.clustering.KMeans
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.sql.{DataFrame, Dataset}
 import org.slf4j.LoggerFactory
-
-import gg.boosted.Application.session.implicits._
-import scala.collection.JavaConverters._
-import scala.collection.mutable
 
 /**
   *

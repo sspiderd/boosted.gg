@@ -16,15 +16,15 @@ case class ItemWeights(attackDamage:Double, abilityPower:Double, armor:Double, m
 object Items {
     val log:Logger = LoggerFactory.getLogger(Items.getClass) ;
 
-    var legendaryCutoff = 1600
+    val legendaryCutoff = 1600
+
+    val advancedCutoff = 800
 
     var itemsBr:Broadcast[Map[Int,Item]] = _
 
-    val riotApi = new RiotApi(Region.EUW)
-
     def populateAndBroadcast():Unit = {
         import collection.JavaConverters._
-        val items = riotApi.getItems.asScala.map {case (k,v) => (k.toInt, v)}.toMap
+        val items = new RiotApi(Region.EUW).getItems.asScala.map {case (k,v) => (k.toInt, v)}.toMap
         itemsBr = Application.session.sparkContext.broadcast(items)
     }
 
@@ -45,8 +45,13 @@ object Items {
     }
 
     def legendaries():Map[Int, Item] = {
-        items().filter(_._2.gold >= legendaryCutoff).toMap
+        items().filter(_._2.gold >= legendaryCutoff)
     }
+
+    def advanced():Map[Int, Item] = {
+        items().filter(item => item._2.gold < legendaryCutoff && item._2.gold >= advancedCutoff)
+    }
+
 
     /**
       * Returns the scaled stats of the item, weighted by gold (YEA!)
