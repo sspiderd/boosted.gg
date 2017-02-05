@@ -24,7 +24,8 @@ case class SummonerMatchSummary(
 
                                    runes: Map[String, Int],
                                    masteries: Map[String, Int],
-                                   itemsBought: Seq[Int],
+                                   firstItemsBought: Seq[String],
+                                   itemsBought: Seq[String],
                                    skillsLevelUp: Seq[Int],
                                    friendlies: Seq[MatchParticipant],
                                    foes: Seq[MatchParticipant],
@@ -44,14 +45,26 @@ object SummonerMatchSummary {
         val runesMap = participant.runes.asScala.map(rune => (rune.runeId.toString, rune.rank)).toMap
         val masteriesMap = participant.masteries.asScala.map(mastery => (mastery.masteryId.toString, mastery.rank)).toMap
 
-        val itemsBought = ListBuffer[Int]()
+        val firstItemsBought = ListBuffer[String]()
+        val itemsBought = ListBuffer[String]()
+
+
+        md.timeline.frames.asScala.filter(frame => frame.events != null &&
+          frame.events.asScala.filter(_.eventType == "ITEM_PURCHASED").size > 0).head.events.asScala.foreach(event => {
+            event.eventType match {
+                case "ITEM_PURCHASED" => firstItemsBought += event.itemId.toString
+                case "ITEM_UNDO" => {
+                    val undoItem = event.itemBefore
+                    firstItemsBought.remove(firstItemsBought.lastIndexOf(undoItem))
+                }
+        })
 
         md.timeline.frames.asScala.foreach(frame => {
             if (frame.events != null) {
                 frame.events.asScala.filter(event => event.participantId == participantId &&
                     (event.eventType == "ITEM_PURCHASED" || (event.eventType == "ITEM_UNDO" && event.itemBefore != 0)))
                     .foreach(event => event.eventType match {
-                        case "ITEM_PURCHASED" => itemsBought += event.itemId
+                        case "ITEM_PURCHASED" => itemsBought += event.itemId.toString
                         case "ITEM_UNDO" => {
                             val undoItem = event.itemBefore
                             itemsBought.remove(itemsBought.lastIndexOf(undoItem))
@@ -87,6 +100,7 @@ object SummonerMatchSummary {
 
             runesMap,
             masteriesMap,
+            firstItemsBought,
             itemsBought,
             skillsLevelUp,
             friendlies,
