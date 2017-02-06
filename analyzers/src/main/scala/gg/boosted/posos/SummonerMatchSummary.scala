@@ -9,27 +9,27 @@ import scala.collection.mutable.ListBuffer
   * Created by ilan on 1/4/17.
   */
 case class SummonerMatchSummary(
-                                   matchId: Long,
-                                   summonerId: Long,
-                                   summonerName: String,
-                                   region: String,
-                                   championId: Int,
-                                   role: String,
+                                 matchId: Long,
+                                 summonerId: Long,
+                                 summonerName: String,
+                                 region: String,
+                                 championId: Int,
+                                 role: String,
 
-                                   matchCreation: Long,
-                                   matchDuration: Long,
-                                   matchMode: String,
-                                   matchType: String,
-                                   matchVersion: String,
+                                 matchCreation: Long,
+                                 matchDuration: Long,
+                                 matchMode: String,
+                                 matchType: String,
+                                 matchVersion: String,
 
-                                   runes: Map[String, Int],
-                                   masteries: Map[String, Int],
-                                   firstItemsBought: Seq[String],
-                                   itemsBought: Seq[String],
-                                   skillsLevelUp: Seq[Int],
-                                   friendlies: Seq[MatchParticipant],
-                                   foes: Seq[MatchParticipant],
-                                   winner: Boolean
+                                 runes: Map[String, Int],
+                                 masteries: Map[String, Int],
+                                 startingItems: Seq[String],
+                                 itemsBought: Seq[String],
+                                 skillsLevelUp: Seq[Int],
+                                 friendlies: Seq[MatchParticipant],
+                                 foes: Seq[MatchParticipant],
+                                 winner: Boolean
                                )
 
 case class MatchParticipant(championId: Int, role: String)
@@ -57,7 +57,7 @@ object SummonerMatchSummary {
                     val undoItem = event.itemBefore
                     firstItemsBought.remove(firstItemsBought.lastIndexOf(undoItem))
                 }
-        })
+        }})
 
         md.timeline.frames.asScala.foreach(frame => {
             if (frame.events != null) {

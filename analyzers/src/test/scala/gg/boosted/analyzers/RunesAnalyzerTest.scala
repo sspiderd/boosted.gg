@@ -2,9 +2,7 @@ package gg.boosted.analyzers
 
 import java.util.Date
 
-import gg.boosted.Role
 import gg.boosted.analyzers.RunesAnalyzer.{Rune, RuneSetup}
-import gg.boosted.posos.{SummonerMatch, SummonerMatchSummary}
 import org.apache.spark.sql.SparkSession
 import org.scalatest.{BeforeAndAfter, FlatSpec}
 

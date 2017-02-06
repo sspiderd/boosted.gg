@@ -61,7 +61,7 @@ object CoreItemsClusterer {
              """.stripMargin)
         //Add weights...
         summonerMatchSummary.map(row => {
-            val coreItems = row.getSeq[Int](6)
+            val coreItems = row.getSeq[String](6)
             val aw = coreItems.map(Items.byId).map(Items.weights).reduce(Items.accumulatedWeight)
             (row.getLong(0), row.getLong(1), row.getString(2), row.getInt(3), row.getInt(4), row.getInt(5), coreItems, row.getLong(7),
               aw.attackDamage, aw.abilityPower, aw.armor, aw.magicResistance, aw.health, aw.mana, aw.healthRegen, aw.manaRegen,

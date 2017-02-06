@@ -7,7 +7,7 @@ import org.apache.spark.sql.Dataset
 /**
   * Created by ilan on 1/3/17.
   */
-case class Mindset(championId:Int, roleId:Int, cluster: Int, coreItems:Seq[Int], winrate: Double, gamesPlayed:Long, summonerMatches:Seq[String])
+case class Mindset(championId:Int, roleId:Int, cluster: Int, coreItems:Seq[String], winrate: Double, gamesPlayed:Long, summonerMatches:Seq[String])
 
 case class MindSetExplained(champion: String, role: String, cluster: Int, coreItems:Seq[String], winrate: Double, gamesPlayed: Long)
 

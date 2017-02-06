@@ -20,20 +20,20 @@ object Items {
 
     val advancedCutoff = 800
 
-    var itemsBr:Broadcast[Map[Int,Item]] = _
+    var itemsBr:Broadcast[Map[String,Item]] = _
 
     def populateAndBroadcast():Unit = {
         import collection.JavaConverters._
-        val items = new RiotApi(Region.EUW).getItems.asScala.map {case (k,v) => (k.toInt, v)}.toMap
+        val items = new RiotApi(Region.EUW).getItems.asScala.toMap
         itemsBr = Application.session.sparkContext.broadcast(items)
     }
 
-    def items():Map[Int,Item] = {
+    def items():Map[String,Item] = {
         itemsBr.value
     }
 
 
-    def byId(id:Int):Item = {
+    def byId(id:String):Item = {
         items().get(id) match {
             case Some(item) => item
             case None =>
@@ -44,11 +44,11 @@ object Items {
         }
     }
 
-    def legendaries():Map[Int, Item] = {
+    def legendaries():Map[String, Item] = {
         items().filter(_._2.gold >= legendaryCutoff)
     }
 
-    def advanced():Map[Int, Item] = {
+    def advanced():Map[String, Item] = {
         items().filter(item => item._2.gold < legendaryCutoff && item._2.gold >= advancedCutoff)
     }
 
@@ -104,6 +104,6 @@ object Items {
 
 
     def main(args: Array[String]): Unit = {
-        print (Items.byId(2010).name)
+        print (Items.byId("2010").name)
     }
 }
