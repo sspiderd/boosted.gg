@@ -18,7 +18,7 @@ package gg.boosted.riotapi.dtos.match;
 
 public class Mastery  {
 	
-	public int masteryId;
+	public String masteryId;
 	public int rank;
 	
 }

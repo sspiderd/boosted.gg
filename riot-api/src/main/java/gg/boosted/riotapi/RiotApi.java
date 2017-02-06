@@ -353,6 +353,24 @@ public class RiotApi {
         return runeList ;
     }
 
+    public List<Mastery> getMasteries() {
+        List<Mastery> masteryList = new LinkedList<>();
+        String endpoint = String.format("%s/v1.2/mastery?masteryListData=all", staticEndpoint) ;
+        JsonNode root = callApi(endpoint) ;
+        Iterator<JsonNode> it = root.get("data").elements() ;
+        while (it.hasNext()) {
+
+            try {
+                JsonNode node = it.next() ;
+                masteryList.add(om.treeToValue(node, Mastery.class));
+            } catch (Exception e) {
+                throw new RuntimeException("Should'nt have happened", e) ;
+            }
+
+        }
+        return masteryList;
+    }
+
 
 
 
@@ -369,7 +387,7 @@ public class RiotApi {
 
         //new RiotApi(Region.EUW).getMatch(2969769203L, false) ;
         //new RiotApi(Region.EUNE).getSummonerMatchDetails(1585972833L) ;
-        new RiotApi(Region.BR).getRuneDefs();
+        new RiotApi(Region.EUW).getMasteries();
 
     }
 

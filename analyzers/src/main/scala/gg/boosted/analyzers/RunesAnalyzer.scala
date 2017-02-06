@@ -45,7 +45,7 @@ object RunesAnalyzer {
     def max(r1: Rune, r2: Rune): Rune = if (r1.amount > r2.amount) r1 else r2
     ds.map(setup => {
 
-      RuneSetup(setup.runes.groupBy(_.color).map(_._2).map(_.reduce(max(_, _))).toSeq.map(rune => Rune(rune.id, rune.color,
+      RuneSetup(setup.runes.groupBy(_.color).values.map(_.reduce(max)).toSeq.map(rune => Rune(rune.id, rune.color,
         rune.color match {
           case "black" => 3
           case _ => 9
