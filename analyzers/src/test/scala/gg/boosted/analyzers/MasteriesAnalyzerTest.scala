@@ -23,7 +23,7 @@ class MasteriesAnalyzerTest extends FlatSpec with BeforeAndAfter{
   import spark.implicits._
 
   "Sending masteries" should "return themselves" in {
-    val mastery1 = Seq[Mastery]
+    //val mastery1 = Seq[Mastery]
   }
 
 }

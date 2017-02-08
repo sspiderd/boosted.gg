@@ -3,6 +3,8 @@ package gg.boosted.analyzers
 import gg.boosted.maps.Masteries
 import gg.boosted.riotapi.dtos.`match`.Mastery
 import org.apache.spark.sql.Dataset
+import org.apache.spark.sql.functions._
+import gg.boosted.Application.session.implicits._
 
 /**
   * Created by ilan on 2/5/17.
@@ -27,7 +29,7 @@ object MasteriesAnalyzer {
       //(.
 
       //So now we eliminate the (mastery11, mastery12) part. the mastery with the higher rank wins
-      val standardHeightGroups = heightGroups.map(group => (group._1, group._2.map(height => (height._1, height._2.reduce(max))))
+      val standardHeightGroups = heightGroups.map(group => (group._1, group._2.map(height => (height._1, height._2.reduce(max)))))
 
       val sortedMasteries = standardHeightGroups.toSeq.flatMap(_._2.values).sortBy(_.masteryId)
       MasterySetup(sortedMasteries, setup.winner)
@@ -43,7 +45,7 @@ object MasteriesAnalyzer {
          |FROM OptimalMasteries
          |GROUP BY maseries
          |ORDER BY winrate DESC
-       """.stripMargin).map(_.getSeq[String](0))
+       """.stripMargin).map(_.getSeq[String](0)).head()
   }
 
 

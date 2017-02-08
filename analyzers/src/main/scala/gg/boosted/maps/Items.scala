@@ -48,6 +48,10 @@ object Items {
         items().filter(_._2.gold >= legendaryCutoff)
     }
 
+    def isLegendary(id:String):Boolean = {
+        return legendaries().contains(id)
+    }
+
     def advanced():Map[String, Item] = {
         items().filter(item => item._2.gold < legendaryCutoff && item._2.gold >= advancedCutoff)
     }

@@ -5,6 +5,8 @@ import java.util.Date
 import gg.boosted.analyzers.StartingItemsAnalyzer.StartingItemsSetup
 import org.apache.spark.sql.SparkSession
 import org.scalatest.{BeforeAndAfter, FlatSpec}
+import org.apache.spark.sql.functions._
+import gg.boosted.Application.session.implicits._
 
 /**
   * Created by ilan on 2/6/17.
@@ -56,5 +58,6 @@ class StartingItemsTest extends FlatSpec with BeforeAndAfter{
     assert (result(0) === "a")
     assert (result(1) === "b")
   }
+
 
 }
