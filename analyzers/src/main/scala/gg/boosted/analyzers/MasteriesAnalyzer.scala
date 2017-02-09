@@ -1,7 +1,6 @@
 package gg.boosted.analyzers
 
 import gg.boosted.maps.Masteries
-import gg.boosted.riotapi.dtos.`match`.Mastery
 import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.functions._
 import gg.boosted.Application.session.implicits._
@@ -11,14 +10,16 @@ import gg.boosted.Application.session.implicits._
   */
 object MasteriesAnalyzer {
 
+  case class Mastery(id: String, rank: Int)
+
   case class MasterySetup(masteries: Seq[Mastery], winner: Boolean)
 
   private def standarize(ds: Dataset[MasterySetup]): Dataset[MasterySetup] = {
     def max(m1: Mastery, m2: Mastery): Mastery = if (m1.rank > m2.rank) m1 else m2
     ds.map(setup => {
 
-      val treeGroups = setup.masteries.groupBy(mastery => Masteries.tree(mastery.masteryId))
-      val heightGroups = treeGroups.map(group => (group._1, group._2.groupBy(mastery => Masteries.height(mastery.masteryId))))
+      val treeGroups = setup.masteries.groupBy(mastery => Masteries.tree(mastery.id))
+      val heightGroups = treeGroups.map(group => (group._1, group._2.groupBy(mastery => Masteries.height(mastery.id))))
 
       //Now it looks like this:
       //(tree1 -> ( height1 -> (mastery11, mastery12)
@@ -31,21 +32,37 @@ object MasteriesAnalyzer {
       //So now we eliminate the (mastery11, mastery12) part. the mastery with the higher rank wins
       val standardHeightGroups = heightGroups.map(group => (group._1, group._2.map(height => (height._1, height._2.reduce(max)))))
 
-      val sortedMasteries = standardHeightGroups.toSeq.flatMap(_._2.values).sortBy(_.masteryId)
+      val sortedMasteries = standardHeightGroups.toSeq.flatMap(_._2.values).sortBy(_.id)
       MasterySetup(sortedMasteries, setup.winner)
 
     })
   }
 
+  /**
+    * Return the dissimilarity of 2 mastery setups
+    * it goes like this:
+    * 1. standarize the masteries
+    * 2. i'll think about it later
+    * @param ms1
+    * @param ms2
+    * @return
+    */
+  def masteriesSetupDissimilarity(ms1: MasterySetup, ms2: MasterySetup):Int = {
+
+  }
+
   def optimalMasteries(ds:Dataset[MasterySetup]):Seq[String] = {
-    standarize(ds).createOrReplaceTempView("OptimalMasteries")
+    standarize(ds).map (row => {
+      //Once the rows are standarized, i don't actually need the rank for each mastery
+      (row.masteries.map(_.id), row.winner)
+    }).toDF("masteries", "winner")createOrReplaceTempView("OptimalMasteries")
     ds.sqlContext.sql(
       s"""
          |SELECT masteries, mean(if(winner=true,1,0)) as winrate
          |FROM OptimalMasteries
-         |GROUP BY maseries
+         |GROUP BY masteries
          |ORDER BY winrate DESC
-       """.stripMargin).map(_.getSeq[String](0)).head()
+       """.stripMargin).head().getSeq[String](0)
   }
 
 

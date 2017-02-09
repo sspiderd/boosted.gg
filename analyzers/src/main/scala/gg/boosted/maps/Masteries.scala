@@ -41,10 +41,10 @@ object Masteries {
   /**
     * I don't really have the height of the mastery, but as it seems right now, it goes like this
     * mastery ID:
-    * First char: always seems to be 6
+    * First char: always seems to be 6 (season?)
     * Second char: Which mastery tree
     * Third char: The height
-    * Fourth char: Position of the mastery in the level (it's really meaningless)
+    * Fourth char: Position of the mastery in the level
     *
     * So i'm just returning the third char for now
     * @param masteryId
