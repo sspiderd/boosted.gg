@@ -38,24 +38,12 @@ object MasteriesAnalyzer {
     })
   }
 
-  /**
-    * Return the dissimilarity of 2 mastery setups
-    * it goes like this:
-    * 1. standarize the masteries
-    * 2. i'll think about it later
-    * @param ms1
-    * @param ms2
-    * @return
-    */
-  def masteriesSetupDissimilarity(ms1: MasterySetup, ms2: MasterySetup):Int = {
-
-  }
 
   def optimalMasteries(ds:Dataset[MasterySetup]):Seq[String] = {
     standarize(ds).map (row => {
       //Once the rows are standarized, i don't actually need the rank for each mastery
       (row.masteries.map(_.id), row.winner)
-    }).toDF("masteries", "winner")createOrReplaceTempView("OptimalMasteries")
+    }).toDF("masteries", "winner").createOrReplaceTempView("OptimalMasteries")
     ds.sqlContext.sql(
       s"""
          |SELECT masteries, mean(if(winner=true,1,0)) as winrate
