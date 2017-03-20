@@ -8,10 +8,10 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class SummonerMatch {
 
-    Long matchId
-    Long summonerId
     Integer championId
     Integer roleId
+    Long matchId
+    Long summonerId
     Boolean winner
     String region
     Long date
