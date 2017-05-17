@@ -14,10 +14,10 @@ class MatchParser {
         match.participants.collect {
             SummonerMatch summonerMatch = new SummonerMatch()
             summonerMatch.championId = it.championId
-            summonerMatch.winner = it.stats.winner
+            summonerMatch.winner = it.stats.winner ? 1 : 0
             summonerMatch.matchId = match.matchId
             summonerMatch.region = match.region.toString()
-            summonerMatch.date = match.matchCreation
+            summonerMatch.creationDate = match.matchCreation
 
             //Ok, so these were easy, now the next 2 are a bit more difficult
             String lane = it.timeline.lane

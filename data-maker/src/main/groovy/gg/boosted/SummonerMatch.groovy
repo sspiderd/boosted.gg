@@ -12,7 +12,7 @@ class SummonerMatch {
     Integer roleId
     Long matchId
     Long summonerId
-    Boolean winner
+    Byte winner
     String region
-    Long date
+    Long creationDate
 }

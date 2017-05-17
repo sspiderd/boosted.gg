@@ -24,7 +24,7 @@ class OptimalSkillOrderTest extends FlatSpec with BeforeAndAfter{
   import spark.implicits._
 
   "A test with no name" should "be returned" in {
-    SkillOrderAnalyzer.optimalSkillOrder()
+
   }
 
 }

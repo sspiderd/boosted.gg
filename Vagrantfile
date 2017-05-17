@@ -27,7 +27,7 @@ Vagrant.configure(2) do |config|
   #config.vm.network "forwarded_port", guest: 9092, host: 9092
   #config.vm.network "forwarded_port", guest: 2181, host: 2181
 
-  ["zookeeper", "kafka", "docker-containers", "transparent_hugepage"].each do |service|
+  ["docker-containers", "transparent_hugepage"].each do |service|
   #I have to copy it to /tmp and later copy it with the provision_late.sh since the "file" provisioner is done with the vagrant user, rather than root
     config.vm.provision "file", source: "provision/#{service}.service", destination: "/tmp/#{service}.service"
   end

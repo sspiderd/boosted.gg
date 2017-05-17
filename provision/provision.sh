@@ -10,26 +10,35 @@ echo updating and adding repositories
 #apt-get install -y software-properties-common
 #add-apt-repository -y ppa:brightbox/ruby-ng
 
-#java 8
+#java 8oracle
 #echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
 #add-apt-repository -y ppa:webupd8team/java
 
-apt-get update && apt-get install -y ca-certificates apt-transport-https vim curl linux-image-extra-$(uname -r) openjdk-8-jre redis-tools
-	#ruby2.3 ruby2.3-dev \
+apt-get update && apt-get install -y ca-certificates apt-transport-https vim curl linux-image-extra-$(uname -r) openjdk-8-jre redis-tools software-properties-common
 
-curl https://get.docker.com | sh > /dev/null
+#Install docker
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+apt-get update
+apt-get install -y docker-ce
 usermod ubuntu -a -G docker
+
+
 sed -i 's/\"set background=dark/set background=dark/' /etc/vim/vimrc
 
 #kafka
-curl -SL http://www-eu.apache.org/dist/kafka/$KAFKA_VERSION/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz | tar xz -C /opt
-ln -s /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION}/ /opt/kafka
+#curl -SL http://www-eu.apache.org/dist/kafka/$KAFKA_VERSION/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz | tar xz -C /opt
+#ln -s /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION}/ /opt/kafka
 
-mkdir -p /var/log/zookeeper /var/log/kafka /usr/lib/systemd/system /opt/cassandra-init
+#mkdir -p /var/log/zookeeper /var/log/kafka /usr/lib/systemd/system /opt/cassandra-init
 
-sed -i 's@#listeners=PLAINTEXT://:9092@listeners=PLAINTEXT://10.0.0.3:9092@' /opt/kafka/config/server.properties
-sed -i 's@#delete.topic.enable=true@delete.topic.enable=true@' /opt/kafka/config/server.properties
-echo "auto.create.topics.enable=true" >> /opt/kafka/config/server.properties
+#sed -i 's@#listeners=PLAINTEXT://:9092@listeners=PLAINTEXT://10.0.0.3:9092@' /opt/kafka/config/server.properties
+#sed -i 's@#delete.topic.enable=true@delete.topic.enable=true@' /opt/kafka/config/server.properties
+#echo "auto.create.topics.enable=true" >> /opt/kafka/config/server.properties
 
 #docker build -t kafka /dockerfiles/kafka-zookeeper && docker run -d -p 2181:2181 -p 9092:9092 kafka 
 
@@ -51,8 +60,10 @@ echo never > /sys/kernel/mm/transparent_hugepage/enabled
 #Run
 docker run --name redis -d -v /var/lib/redis:/data -p 6379:6379 redis:alpine redis-server --appendonly yes
 
-systemctl enable zookeeper kafka docker-containers transparent_hugepage
-systemctl start zookeeper kafka
+#systemctl enable zookeeper kafka docker-containers transparent_hugepage
+#systemctl start zookeeper kafka
+
+systemctl enable docker-containers transparent_hugepage
 
 docker run -d -v /var/lib/cassandra:/var/lib/cassandra -v /opt/cassandra-init:/opt/cassandra-init -p 9042:9042 --name cassandra cassandra
 
@@ -60,7 +71,7 @@ docker run -d -v /var/lib/cassandra:/var/lib/cassandra -v /opt/cassandra-init:/o
 sleep 60
 
 #Create a topic
-/opt/kafka/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic boostedgg 
+#/opt/kafka/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic boostedgg 
 
 #Create cassandra keyspace and tables
 docker exec cassandra cqlsh -f /opt/cassandra-init/cassandra.init

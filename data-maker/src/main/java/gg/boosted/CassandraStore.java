@@ -5,34 +5,30 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.google.common.util.concurrent.ListenableFuture;
+import gg.boosted.configuration.Configuration;
+import groovy.transform.CompileStatic;
 
 /**
  * Created by ilan on 3/20/17.
  */
+@CompileStatic
 public class CassandraStore {
 
     private static Cluster cluster = null;
+    private static Session session = null;
 
     static {
 
-        try {
-            cluster = Cluster.builder()                                                    // (1)
-                    .addContactPoint("127.0.0.1")
+            cluster = Cluster.builder()
+                    .addContactPoint(Configuration.getString("cassandra.location"))
                     .build();
-            Session session = cluster.connect();                                           // (2)
-
-            ResultSet rs = session.execute("select release_version from system.local");    // (3)
-            Row row = rs.one();
-            System.out.println(row.getString("release_version"));                          // (4)
-        } finally {
-            if (cluster != null) cluster.close();                                          // (5)
-        }
+            session = cluster.connect();
     }
 
     public static void saveMatch(SummonerMatch sm) {
         Session session = cluster.connect();
         session.executeAsync(
-                String.format("INSERT INTO SummonerMatches" +
+                String.format("INSERT INTO SummonerMatches " +
                 "VALUES (%d, %d, %d, %d, %d, %s, %d)",
                         sm.getChampionId(),
                         sm.getRoleId(),
@@ -40,7 +36,7 @@ public class CassandraStore {
                         sm.getSummonerId(),
                         sm.getWinner(),
                         sm.getRegion(),
-                        sm.getDate())
+                        sm.getCreationDate())
         );
     }
 

@@ -86,7 +86,8 @@ class FromRiot {
                     //Disregard matches that are shorter than 20 minutes
                     if (match.matchDuration >= 1200) {
                         summonerMatchList.each {
-                            KafkaSummonerMatchProducer.send(it)
+                            CassandraStore.saveMatch(it)
+                            //KafkaSummonerMatchProducer.send(it)
                         }
                     }
 
