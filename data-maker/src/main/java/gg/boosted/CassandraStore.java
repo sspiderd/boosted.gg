@@ -32,9 +32,8 @@ public class CassandraStore {
     }
 
     public static void saveMatch(SummonerMatch sm) {
-        Session session = cluster.connect();
         ResultSetFuture future = session.executeAsync(
-                String.format("INSERT INTO SUMMONER_MATCHES " +
+                String.format("INSERT INTO BoostedGG.SUMMONER_MATCHES " +
                         "(champion_id," +
                                 "  role_id," +
                                 "  creation_date," +
@@ -51,7 +50,7 @@ public class CassandraStore {
                         sm.getMatchId(),
                         sm.getSummonerId(),
                         sm.getWinner(),
-                        "\"" + sm.getRegion() + "\"",
+                        "'" + sm.getRegion() + "'",
                         sm.getPatchMajorVersion(),
                         sm.getPatchMinorVersion())
         );
