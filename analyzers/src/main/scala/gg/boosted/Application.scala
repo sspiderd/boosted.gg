@@ -6,6 +6,7 @@ import gg.boosted.services.AnalyzerService
 import gg.boosted.utils.KafkaUtil
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Minutes, StreamingContext}
+import org.apache.spark.sql.cassandra._
 
 /**
   *
@@ -24,7 +25,7 @@ object Application {
     .builder()
     .appName(appName)
     .master(master)
-      .config("spark.cassandra.connection.host", Configuration.getString("cassandra.location"))
+    .config("spark.cassandra.connection.host", Configuration.getString("cassandra.location"))
     .getOrCreate()
 
 
@@ -40,10 +41,18 @@ object Application {
 
   def main(args: Array[String]): Unit = {
 
-    val ssc = StreamingContext.getOrCreate(checkPointDir, context _)
+    val sc = session.read.cassandraFormat("SUMMONER_MATCHES", "BoostedGG").load()
+//    val sc = session.read.format("org.apache.spark.sql.cassandra")
+//      .options(Map( "table" -> "SUMMONER_MATCHES", "keyspace" -> "BoostedGG"))
+//      .load()
 
-    ssc.start()
-    ssc.awaitTermination()
+    import Application.session.implicits._
+    //AnalyzerService.analyze(sc.rdd.toDS())
+
+    //val ssc = StreamingContext.getOrCreate(checkPointDir, context _)
+
+    //ssc.start()
+    //ssc.awaitTermination()
   }
 
 }
