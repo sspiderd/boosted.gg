@@ -3,14 +3,17 @@ package gg.boosted
 import gg.boosted.riotapi.dtos.match.MatchDetail
 import groovy.transform.CompileStatic
 
+import java.util.regex.Matcher
+
 /**
  * Created by ilan on 8/11/16.
  */
-@CompileStatic
 class MatchParser {
 
     static List<SummonerMatch> parseMatch(MatchDetail match) {
+
         if (!match) return new LinkedList<SummonerMatch>()
+        Matcher patch = (match.matchVersion =~ /(\d+)\.(\d+).*/)
         match.participants.collect {
             SummonerMatch summonerMatch = new SummonerMatch()
             summonerMatch.championId = it.championId
@@ -18,6 +21,9 @@ class MatchParser {
             summonerMatch.matchId = match.matchId
             summonerMatch.region = match.region.toString()
             summonerMatch.creationDate = match.matchCreation
+
+            summonerMatch.patchMajorVersion = patch[0][1].toInteger()
+            summonerMatch.patchMinorVersion = patch[0][2].toInteger()
 
             //Ok, so these were easy, now the next 2 are a bit more difficult
             String lane = it.timeline.lane

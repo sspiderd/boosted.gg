@@ -43,6 +43,7 @@ sed -i 's/\"set background=dark/set background=dark/' /etc/vim/vimrc
 #docker build -t kafka /dockerfiles/kafka-zookeeper && docker run -d -p 2181:2181 -p 9092:9092 kafka 
 
 mv /tmp/*service /usr/lib/systemd/system
+mkdir /opt/cassandra-init
 mv /tmp/cassandra.init /opt/cassandra-init
 
 #Redis

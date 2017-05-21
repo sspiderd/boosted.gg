@@ -13,7 +13,7 @@ import redis.clients.jedis.Jedis
 /**
  * Created by ilan on 8/11/16.
  */
-@CompileStatic
+//@CompileStatic
 class FromFile {
 
     static Logger log = LoggerFactory.getLogger(FromFile.class)

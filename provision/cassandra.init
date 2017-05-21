@@ -19,7 +19,7 @@ CREATE TABLE BoostedGG.Test (
 ) WITH default_time_to_live=5;
 
 -- TTL is 2 weeks
-CREATE TABLE BoostedGG.SummonerMatches (
+CREATE TABLE BoostedGG.SUMMONER_MATCHES (
   champion_id int,
   role_id int,
   creation_date timestamp,
@@ -27,6 +27,8 @@ CREATE TABLE BoostedGG.SummonerMatches (
   summoner_id bigint,
   winner int,
   region varchar,
+  patch_major_version int,
+  patch_minor_version int,
   PRIMARY KEY ((champion_id, role_id), creation_date)
 ) WITH default_time_to_live=1209600;
 

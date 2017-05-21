@@ -12,7 +12,9 @@ class SummonerMatch {
     Integer roleId
     Long matchId
     Long summonerId
-    Byte winner
+    Integer winner
     String region
     Long creationDate
+    Integer patchMajorVersion
+    Integer patchMinorVersion
 }

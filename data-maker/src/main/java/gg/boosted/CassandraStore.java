@@ -1,18 +1,24 @@
 package gg.boosted;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
+import com.datastax.driver.core.*;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import gg.boosted.configuration.Configuration;
 import groovy.transform.CompileStatic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by ilan on 3/20/17.
  */
 @CompileStatic
 public class CassandraStore {
+
+    static Logger log = LoggerFactory.getLogger(CassandraStore.class);
 
     private static Cluster cluster = null;
     private static Session session = null;
@@ -27,16 +33,39 @@ public class CassandraStore {
 
     public static void saveMatch(SummonerMatch sm) {
         Session session = cluster.connect();
-        session.executeAsync(
-                String.format("INSERT INTO SummonerMatches " +
-                "VALUES (%d, %d, %d, %d, %d, %s, %d)",
+        ResultSetFuture future = session.executeAsync(
+                String.format("INSERT INTO SUMMONER_MATCHES " +
+                        "(champion_id," +
+                                "  role_id," +
+                                "  creation_date," +
+                                "  match_id," +
+                                "  summoner_id," +
+                                "  winner," +
+                                "  region," +
+                                "  patch_major_version," +
+                                "  patch_minor_version) " +
+                "VALUES (%d, %d, %s, %d, %d, %d, %s, %d, %d)",
                         sm.getChampionId(),
                         sm.getRoleId(),
+                        sm.getCreationDate(),
                         sm.getMatchId(),
                         sm.getSummonerId(),
                         sm.getWinner(),
-                        sm.getRegion(),
-                        sm.getCreationDate())
+                        "\"" + sm.getRegion() + "\"",
+                        sm.getPatchMajorVersion(),
+                        sm.getPatchMinorVersion())
+        );
+        Futures.addCallback(future,
+                new FutureCallback<ResultSet>() {
+                    @Override public void onSuccess(ResultSet result) {
+                        log.debug("Success inserting to cassandra");
+                    }
+
+                    @Override public void onFailure(Throwable t) {
+                        log.error("", t);
+                    }
+                },
+                MoreExecutors.directExecutor()
         );
     }
 

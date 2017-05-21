@@ -150,7 +150,7 @@ public class RiotApi {
     }
 
     public List<MatchReference> getMatchList(long summonerId, long beginTime) throws IOException {
-        String QUEUES = "RANKED_SOLO_5x5,TEAM_BUILDER_RANKED_SOLO" ;
+        String QUEUES = "TEAM_BUILDER_RANKED_SOLO" ;
         String endpoint = regionEndpoint + "/v2.2/matchlist/by-summoner/" + String.valueOf(summonerId) +
                 "?rankedQueues=" + QUEUES +
                 "&beginTime=" + beginTime ;
