@@ -12,7 +12,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <properties>
-        <scala.version>2.11.8</scala.version>
+        <scala.version>2.11.11</scala.version>
         <spark.version>2.1.1</spark.version>
     </properties>
 

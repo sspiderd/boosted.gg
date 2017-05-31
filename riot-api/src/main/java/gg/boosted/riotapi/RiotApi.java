@@ -47,22 +47,15 @@ public class RiotApi {
         }
         regionEndpoint = "https://" +
                 region.toString().toLowerCase() +
-                ".api.pvp.net/api/lol/" +
-                region.toString().toLowerCase() ;
+                ".api.riotgames.com/lol/platform/v3" ;
 
-        staticEndpoint = "https://global.api.pvp.net/api/lol/static-data/" + region.toString().toLowerCase() ;
+        staticEndpoint = "https://" +
+                region.toString().toLowerCase() +
+                ".api.riotgames.com/lol/static-data/v3" ;
         throttler = new DistributedThrottler(10, 500, region) ;
     }
 
     private String callApiJson(String endpoint) {
-
-        //Add the riotApi key to the endpoint
-        if (endpoint.contains("?")) {
-            endpoint += "&";
-        } else {
-            endpoint += "?";
-        }
-        endpoint += "api_key=" + riotApiKey;
 
         WebTarget target = client.target(endpoint) ;
 
@@ -84,7 +77,10 @@ public class RiotApi {
                 }
                 log.debug("API Called: {}", endpoint);
                 beforeApiCall = System.currentTimeMillis() ;
-                String response = target.request(MediaType.APPLICATION_JSON_TYPE).get(String.class);
+                String response = target
+                        .request(MediaType.APPLICATION_JSON_TYPE)
+                        .header("X-Riot-Token", riotApiKey)
+                        .get(String.class);
                 roundTrip = System.currentTimeMillis() - beforeApiCall;
                 log.trace("Roundtrip {}", roundTrip);
                 return response ;
@@ -135,7 +131,7 @@ public class RiotApi {
     }
 
     public List<Champion> getChampionsList() throws IOException {
-        String endpoint = staticEndpoint + "/v1.2/champion";
+        String endpoint = staticEndpoint + "/champions";
 
         JsonNode rootNode = callApi(endpoint) ;
 
@@ -387,7 +383,9 @@ public class RiotApi {
 
         //new RiotApi(Region.EUW).getMatch(2969769203L, false) ;
         //new RiotApi(Region.EUNE).getSummonerMatchDetails(1585972833L) ;
-        new RiotApi(Region.EUW).getMasteries();
+        new RiotApi(Region.EUW1).getChampionsList() ;
+        int i = 1;
+
 
     }
 

@@ -112,7 +112,7 @@ public class DistributedThrottler implements IThrottler{
     }
 
     public static void main(String[] args) {
-        DistributedThrottler dt = new DistributedThrottler(10, 500, Region.EUW) ;
+        DistributedThrottler dt = new DistributedThrottler(10, 500, Region.EUW1) ;
         while (true) {
             dt.waitFor();
             log.debug("Called API");

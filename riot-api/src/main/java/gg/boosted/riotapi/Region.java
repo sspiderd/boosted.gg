@@ -4,17 +4,15 @@ package gg.boosted.riotapi;
  * Created by ilan on 12/9/16.
  */
 public enum Region {
-    BR,
-    EUNE,
-    EUW,
-    JP,
-    KR,
-    LAS,
-    LAN,
-    NA,
-    OCE,
-    PBE,
     RU,
-    TR,
-    GLOBAL;
+    KR,
+    BR1,
+    OC1,
+    JP1,
+    NA1,
+    EUN1,
+    EUW1,
+    TR1,
+    LA1,
+    LA2
 }
