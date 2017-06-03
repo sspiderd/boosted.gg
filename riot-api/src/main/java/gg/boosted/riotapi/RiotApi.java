@@ -47,7 +47,7 @@ public class RiotApi {
         }
         regionEndpoint = "https://" +
                 region.toString().toLowerCase() +
-                ".api.riotgames.com/lol/platform/v3" ;
+                ".api.riotgames.com/lol" ;
 
         staticEndpoint = "https://" +
                 region.toString().toLowerCase() +
@@ -130,6 +130,14 @@ public class RiotApi {
         throw new RuntimeException("How did i get here??");
     }
 
+    private <T> T callApi(String endpoint, Class<T> clazz) throws IOException {
+        JsonNode node = callApi(endpoint) ;
+        if (node instanceof NullNode) return null ;
+        return om.treeToValue(node, clazz) ;
+
+
+    }
+
     public List<Champion> getChampionsList() throws IOException {
         String endpoint = staticEndpoint + "/champions";
 
@@ -145,10 +153,16 @@ public class RiotApi {
         return champions ;
     }
 
-    public List<MatchReference> getMatchList(long summonerId, long beginTime) throws IOException {
-        String QUEUES = "TEAM_BUILDER_RANKED_SOLO" ;
-        String endpoint = regionEndpoint + "/v2.2/matchlist/by-summoner/" + String.valueOf(summonerId) +
-                "?rankedQueues=" + QUEUES +
+    public Summoner getSummoner(long summonerId) throws IOException {
+        String endpoint = regionEndpoint + "/summoner/v3/summoners/" + String.valueOf(summonerId) ;
+        return callApi(endpoint, Summoner.class) ;
+    }
+
+    public List<MatchReference> getMatchList(long accountId, long beginTime) throws IOException {
+        String QUEUE = "420" ;
+        String endpoint = regionEndpoint + "/match/v3/matchlists/by-account/"
+                + String.valueOf(accountId) +
+                "?queue=" + QUEUE +
                 "&beginTime=" + beginTime ;
 
         JsonNode rootNode = callApi(endpoint) ;
@@ -165,8 +179,7 @@ public class RiotApi {
      * @return
      */
     public String getFeaturedGames() throws IOException {
-        String endpoint = "https://" + region.toString().toLowerCase() +
-                ".api.pvp.net/observer-mode/rest/featured" ;
+        String endpoint = regionEndpoint + "/spectator/v3/featured-games" ;
         return callApiJson(endpoint) ;
     }
 
@@ -212,7 +225,7 @@ public class RiotApi {
 
     public List<Long> getChallengersIds() {
         List<Long> challengerIds = new LinkedList<>() ;
-        String endpoint = String.format("%s/v2.5/league/challenger?type=%s", regionEndpoint, QueueType.RANKED_SOLO_5x5) ;
+        String endpoint = String.format("%s/league/v3/challengerleagues/by-queue/%s", regionEndpoint, QueueType.RANKED_SOLO_5x5) ;
         JsonNode root = callApi(endpoint) ;
         Iterator<JsonNode> it = root.get("entries").elements() ;
         while (it.hasNext()) {
@@ -224,7 +237,7 @@ public class RiotApi {
 
     public List<Long> getMastersIds() {
         List<Long> challengerIds = new LinkedList<>() ;
-        String endpoint = String.format("%s/v2.5/league/master?type=%s", regionEndpoint, QueueType.RANKED_SOLO_5x5) ;
+        String endpoint = String.format("%s/league/v3/masterleagues/by-queue/%s", regionEndpoint, QueueType.RANKED_SOLO_5x5) ;
         JsonNode root = callApi(endpoint) ;
         Iterator<JsonNode> it = root.get("entries").elements() ;
         while (it.hasNext()) {
@@ -369,7 +382,27 @@ public class RiotApi {
 
 
 
+   //TODO: Make real tests
+    public static void test1() throws IOException {
+        RiotApi r = new RiotApi(Region.EUW1) ;
+        Long challenger = r.getChallengersIds().get(0) ;
+        System.out.println("Challenger id found: " + challenger);
+        Summoner s = r.getSummoner(challenger) ;
+        System.out.println("Account for summoner " + challenger + " is " + s.accountId);
+        List<MatchReference> matches = r.getMatchList(s.accountId, 11);
+        int i = 1;
+    }
 
+    public static void test2() throws IOException {
+        RiotApi r = new RiotApi(Region.EUW1) ;
+        Long challenger = r.getChallengersIds().get(0) ;
+        System.out.println("Challenger id found: " + challenger);
+        Summoner s = r.getSummoner(challenger) ;
+        System.out.println("Account for summoner " + challenger + " is " + s.accountId);
+        List<MatchReference> matches = r.getMatchList(s.accountId, 11);
+
+        int i = 1;
+    }
 
     public static void main(String[] args) throws IOException {
         //new RiotApi(Region.EUW).getChampionsList() ;
@@ -383,9 +416,8 @@ public class RiotApi {
 
         //new RiotApi(Region.EUW).getMatch(2969769203L, false) ;
         //new RiotApi(Region.EUNE).getSummonerMatchDetails(1585972833L) ;
-        new RiotApi(Region.EUW1).getChampionsList() ;
-        int i = 1;
-
+       //new RiotApi(Region.EUW1).getChallengersIds() ;
+        test1();
 
     }
 

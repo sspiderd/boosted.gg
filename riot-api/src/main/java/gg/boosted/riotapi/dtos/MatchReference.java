@@ -5,13 +5,13 @@ package gg.boosted.riotapi.dtos;
  */
 public class MatchReference {
 
-    public long timestamp ;
-    public long champion ;
-    public String region ;
-    public String queue ;
-    public String season ;
-    public long matchId ;
-    public String role ;
-    public String platformId ;
     public String lane ;
+    public long gameId ;
+    public int champion ;
+    public String platformId ;
+    public int season ;
+    public int queue ;
+    public String role ;
+    public long timestamp ;
+
 }
