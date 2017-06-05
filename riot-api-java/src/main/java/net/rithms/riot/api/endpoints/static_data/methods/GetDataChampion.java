@@ -20,17 +20,18 @@ import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.UrlParameter;
 import net.rithms.riot.api.endpoints.static_data.StaticDataApiMethod;
 import net.rithms.riot.api.endpoints.static_data.constant.ChampData;
+import net.rithms.riot.api.endpoints.static_data.constant.Locale;
 import net.rithms.riot.api.endpoints.static_data.dto.Champion;
-import net.rithms.riot.constant.Region;
-import net.rithms.util.Convert;
+import net.rithms.riot.constant.Platform;
+import net.rithms.util.RiotApiUtil;
 
 public class GetDataChampion extends StaticDataApiMethod {
 
-	public GetDataChampion(ApiConfig config, Region region, int id, String locale, String version, ChampData... champData) {
+	public GetDataChampion(ApiConfig config, Platform platform, int id, Locale locale, String version, ChampData... champData) {
 		super(config);
-		setRegion(region);
+		setPlatform(platform);
 		setReturnType(Champion.class);
-		setUrlBase("https://global.api.pvp.net/api/lol/static-data/" + region + "/v1.2/champion/" + id);
+		setUrlBase(platform.getHost() + "/lol/static-data/v3/champions/" + id);
 		if (locale != null) {
 			add(new UrlParameter("locale", locale));
 		}
@@ -38,7 +39,7 @@ public class GetDataChampion extends StaticDataApiMethod {
 			add(new UrlParameter("version", version));
 		}
 		if (champData[0] != null) {
-			add(new UrlParameter("champData", Convert.joinString(",", (Object[]) champData)));
+			add(new UrlParameter("champData", RiotApiUtil.joinString(",", (Object[]) champData)));
 		}
 		addApiKeyParameter();
 	}

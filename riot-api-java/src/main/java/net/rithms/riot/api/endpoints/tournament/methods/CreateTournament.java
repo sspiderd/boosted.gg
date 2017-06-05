@@ -16,12 +16,13 @@
 
 package net.rithms.riot.api.endpoints.tournament.methods;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.endpoints.tournament.TournamentApiMethod;
 import net.rithms.riot.api.request.RequestMethod;
-
-import java.util.HashMap;
-import java.util.Map;
+import net.rithms.riot.constant.Platform;
 
 public class CreateTournament extends TournamentApiMethod {
 
@@ -29,8 +30,14 @@ public class CreateTournament extends TournamentApiMethod {
 		super(config);
 		setMethod(RequestMethod.POST);
 		setReturnType(Integer.class);
-		setUrlBase("https://global.api.pvp.net/tournament/public/v1/tournament");
+		if (config.getTournamentMockMode()) {
+			setUrlBase(Platform.GLOBAL.getHost() + "/lol/tournament-stub/v3/tournaments");
+		} else {
+			setUrlBase(Platform.GLOBAL.getHost() + "/lol/tournament/v3/tournaments");
+		}
 		addTournamentApiKeyParameter();
+		allowMockMode();
+
 		Map<String, Object> body = new HashMap<String, Object>();
 		body.put("name", (tournamentName == null) ? "" : tournamentName);
 		body.put("providerId", providerId);

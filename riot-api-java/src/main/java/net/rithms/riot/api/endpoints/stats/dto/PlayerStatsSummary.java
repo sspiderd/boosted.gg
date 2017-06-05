@@ -13,9 +13,9 @@
 
 package net.rithms.riot.api.endpoints.stats.dto;
 
-import net.rithms.riot.api.Dto;
-
 import java.io.Serializable;
+
+import net.rithms.riot.api.Dto;
 
 public class PlayerStatsSummary extends Dto implements Serializable {
 

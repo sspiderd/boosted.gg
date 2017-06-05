@@ -7,9 +7,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import gg.boosted.riotapi.constants.QueueType;
 import gg.boosted.riotapi.dtos.*;
-import gg.boosted.riotapi.dtos.match.MatchDetail;
+import gg.boosted.riotapi.dtos.match.Match;
 import gg.boosted.riotapi.throttlers.DistributedThrottler;
 import gg.boosted.riotapi.throttlers.IThrottler;
+import gg.boosted.riotapi.throttlers.SimpleThrottler;
 import gg.boosted.riotapi.utilities.ArrayChunker;
 import gg.boosted.riotapi.utilities.ArrayConverter;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ public class RiotApi {
     private String staticEndpoint;
     Client client = ClientBuilder.newClient() ;
     ObjectMapper om = new ObjectMapper() ;
-    private IThrottler throttler ;
+    IThrottler throttler ;
 
     public RiotApi(Region region) {
         this.region = region ;
@@ -130,12 +131,15 @@ public class RiotApi {
         throw new RuntimeException("How did i get here??");
     }
 
-    private <T> T callApi(String endpoint, Class<T> clazz) throws IOException {
+    private <T> T callApi(String endpoint, Class<T> clazz)  {
         JsonNode node = callApi(endpoint) ;
         if (node instanceof NullNode) return null ;
-        return om.treeToValue(node, clazz) ;
-
-
+        try {
+            return om.treeToValue(node, clazz) ;
+        } catch (JsonProcessingException e) {
+            log.error("Processing exception", e);
+            throw new RuntimeException(e) ;
+        }
     }
 
     public List<Champion> getChampionsList() throws IOException {
@@ -252,15 +256,9 @@ public class RiotApi {
         return callApiJson(endpoint);
     }
 
-    public MatchDetail getMatch(long matchId, boolean includeTimeline) {
-        String endpoint = String.format("%s/v2.2/match/%s?includeTimeline=%s", regionEndpoint, matchId, includeTimeline) ;
-        JsonNode root = callApi(endpoint);
-        try {
-            return om.treeToValue(root, MatchDetail.class) ;
-        } catch (JsonProcessingException e) {
-            log.error("Processing exception", e);
-            throw new RuntimeException(e) ;
-        }
+    public Match getMatch(long matchId) {
+        String endpoint = String.format("%s/match/v3/matches/%s", regionEndpoint, matchId) ;
+        return callApi(endpoint, Match.class);
     }
 
     public Map<Long, LeagueEntry> getLeagueEntries(Long... summonerIds) {
@@ -385,16 +383,18 @@ public class RiotApi {
    //TODO: Make real tests
     public static void test1() throws IOException {
         RiotApi r = new RiotApi(Region.EUW1) ;
+        r.throttler = new SimpleThrottler(10, 500) ;
         Long challenger = r.getChallengersIds().get(0) ;
         System.out.println("Challenger id found: " + challenger);
         Summoner s = r.getSummoner(challenger) ;
         System.out.println("Account for summoner " + challenger + " is " + s.accountId);
         List<MatchReference> matches = r.getMatchList(s.accountId, 11);
-        int i = 1;
+        r.getMatch(matches.get(0).gameId) ;
     }
 
     public static void test2() throws IOException {
         RiotApi r = new RiotApi(Region.EUW1) ;
+        r.throttler = new SimpleThrottler(10, 500) ;
         Long challenger = r.getChallengersIds().get(0) ;
         System.out.println("Challenger id found: " + challenger);
         Summoner s = r.getSummoner(challenger) ;

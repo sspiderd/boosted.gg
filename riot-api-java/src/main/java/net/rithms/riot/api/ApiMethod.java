@@ -16,19 +16,23 @@
 
 package net.rithms.riot.api;
 
-import com.google.gson.Gson;
-import net.rithms.riot.api.request.RequestMethod;
-import net.rithms.riot.constant.Region;
-
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gson.Gson;
+
+import net.rithms.riot.api.request.RequestMethod;
+import net.rithms.riot.constant.Platform;
+import net.rithms.riot.constant.Region;
+
 abstract public class ApiMethod {
 
 	private final ApiConfig config;
 	private final String service;
+	private Platform platform = null;
+	@Deprecated
 	private Region region = null;
 	private String urlBase;
 	private final List<UrlParameter> urlParameters = new LinkedList<UrlParameter>();
@@ -36,6 +40,8 @@ abstract public class ApiMethod {
 	private RequestMethod method = RequestMethod.GET;
 	private String body = null;
 	private Type returnType = null;
+
+	private boolean requireApiKey = false;
 
 	protected ApiMethod(ApiConfig config, String service) {
 		this.config = config;
@@ -51,25 +57,36 @@ abstract public class ApiMethod {
 	}
 
 	protected void addApiKeyParameter() {
-		add(new UrlParameter("api_key", config.getKey()));
-	}
-
-	protected void addTournamentApiKeyHttpHeadParameter() {
-		add(new HttpHeadParameter("X-Riot-Token", config.getTournamentKey()));
-	}
-
-	protected void addTournamentApiKeyParameter() {
-		add(new UrlParameter("api_key", config.getTournamentKey()));
+		add(new HttpHeadParameter("X-Riot-Token", getConfig().getKey()));
 	}
 
 	public void buildJsonBody(Map<String, Object> map) {
 		body = new Gson().toJson(map);
 	}
 
+	public void checkRequirements() throws RiotApiException {
+		if (doesRequireApiKey() && getConfig().getKey() == null) {
+			throw new RiotApiException(RiotApiException.MISSING_API_KEY);
+		}
+	}
+
+	public boolean doesRequireApiKey() {
+		return requireApiKey;
+	}
+
 	public String getBody() {
 		return body;
 	}
 
+	protected ApiConfig getConfig() {
+		return config;
+	}
+
+	public Platform getPlatform() {
+		return platform;
+	}
+
+	@Deprecated
 	public Region getRegion() {
 		return region;
 	}
@@ -100,11 +117,20 @@ abstract public class ApiMethod {
 		return url.toString();
 	}
 
-	public void setRegion(Region region) {
+	protected void requireApiKey() {
+		requireApiKey = true;
+	}
+
+	protected void setPlatform(Platform platform) {
+		this.platform = platform;
+	}
+
+	@Deprecated
+	protected void setRegion(Region region) {
 		this.region = region;
 	}
 
-	public void setReturnType(Type returnType) {
+	protected void setReturnType(Type returnType) {
 		this.returnType = returnType;
 	}
 

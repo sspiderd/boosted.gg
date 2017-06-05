@@ -18,10 +18,38 @@ package net.rithms.riot.api.endpoints.tournament;
 
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.ApiMethod;
+import net.rithms.riot.api.HttpHeadParameter;
+import net.rithms.riot.api.RiotApiException;
 
 abstract public class TournamentApiMethod extends ApiMethod {
 
+	private boolean allowMockMode = false;
+	private boolean requireTournamentApiKey = false;
+
 	protected TournamentApiMethod(ApiConfig config) {
 		super(config, "tournament");
+		requireTournamentApiKey();
+	}
+
+	protected void addTournamentApiKeyParameter() {
+		add(new HttpHeadParameter("X-Riot-Token", getConfig().getTournamentKey()));
+	}
+
+	protected void allowMockMode() {
+		allowMockMode = true;
+	}
+
+	@Override
+	public void checkRequirements() throws RiotApiException {
+		if (!allowMockMode && getConfig().getTournamentMockMode()) {
+			throw new RiotApiException(RiotApiException.FORBIDDEN, "This method isn't available in tournament mock mode");
+		}
+		if (requireTournamentApiKey && getConfig().getTournamentKey() == null) {
+			throw new RiotApiException(RiotApiException.MISSING_TOURNAMENT_API_KEY);
+		}
+	}
+
+	protected void requireTournamentApiKey() {
+		requireTournamentApiKey = true;
 	}
 }

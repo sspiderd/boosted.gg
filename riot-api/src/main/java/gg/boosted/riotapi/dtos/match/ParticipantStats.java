@@ -1,26 +1,15 @@
-/*
- * Copyright 2014 Taylor Caldwell
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package gg.boosted.riotapi.dtos.match;
 
-public class ParticipantStats {
+public class ParticipantStats  {
 
+	public int altarsCaptured;
+	public int altarsNeutralized;
 	public int assists;
 	public int champLevel;
 	public int combatPlayerScore;
+	public long damageDealtToObjectives;
+	public long damageDealtToTurrets;
+	public long damageSelfMitigated;
 	public int deaths;
 	public int doubleKills;
 	public boolean firstBloodAssist;
@@ -44,10 +33,10 @@ public class ParticipantStats {
 	public int largestCriticalStrike;
 	public int largestKillingSpree;
 	public int largestMultiKill;
-	public int magicDamageDealt;
-	public int magicDamageDealtToChampions;
-	public int magicDamageTaken;
-	public int minionsKilled;
+	public int longestTimeSpentLiving;
+	public long magicDamageDealt;
+	public long magicDamageDealtToChampions;
+	public long magicalDamageTaken;
 	public int neutralMinionsKilled;
 	public int neutralMinionsKilledEnemyJungle;
 	public int neutralMinionsKilledTeamJungle;
@@ -56,30 +45,34 @@ public class ParticipantStats {
 	public int nodeNeutralize;
 	public int nodeNeutralizeAssist;
 	public int objectivePlayerScore;
+	public int participantId;
 	public int pentaKills;
-	public int physicalDamageDealt;
-	public int physicalDamageDealtToChampions;
-	public int physicalDamageTaken;
+	public long physicalDamageDealt;
+	public long physicalDamageDealtToChampions;
+	public long physicalDamageTaken;
 	public int quadraKills;
 	public int sightWardsBoughtInGame;
 	public int teamObjective;
-	public int totalDamageDealt;
-	public int totalDamageDealtToChampions;
-	public int totalDamageTaken;
-	public int totalHeal;
+	public int timeCCingOthers;
+	public long totalDamageDealt;
+	public long totalDamageDealtToChampions;
+	public long totalDamageTaken;
+	public long totalHeal;
+	public int totalMinionsKilled;
 	public int totalPlayerScore;
 	public int totalScoreRank;
 	public int totalTimeCrowdControlDealt;
 	public int totalUnitsHealed;
-	public int towerKills;
 	public int tripleKills;
-	public int trueDamageDealt;
-	public int trueDamageDealtToChampions;
-	public int trueDamageTaken;
+	public long trueDamageDealt;
+	public long trueDamageDealtToChampions;
+	public long trueDamageTaken;
+	public int turretKills;
 	public int unrealKills;
+	public long visionScore;
 	public int visionWardsBoughtInGame;
 	public int wardsKilled;
 	public int wardsPlaced;
-	public boolean winner;
-	
+	public boolean win;
+
 }

@@ -16,9 +16,9 @@
 
 package net.rithms.riot.api.endpoints.match.dto;
 
-import net.rithms.riot.api.Dto;
-
 import java.io.Serializable;
+
+import net.rithms.riot.api.Dto;
 
 public class Rune extends Dto implements Serializable {
 

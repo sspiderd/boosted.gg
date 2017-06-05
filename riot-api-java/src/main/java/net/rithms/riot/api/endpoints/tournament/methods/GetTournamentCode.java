@@ -19,13 +19,14 @@ package net.rithms.riot.api.endpoints.tournament.methods;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.endpoints.tournament.TournamentApiMethod;
 import net.rithms.riot.api.endpoints.tournament.dto.TournamentCode;
+import net.rithms.riot.constant.Platform;
 
 public class GetTournamentCode extends TournamentApiMethod {
 
 	public GetTournamentCode(ApiConfig config, String tournamentCode) {
 		super(config);
 		setReturnType(TournamentCode.class);
-		setUrlBase("https://global.api.pvp.net/tournament/public/v1/code/" + tournamentCode);
+		setUrlBase(Platform.GLOBAL.getHost() + "/lol/tournament/v3/codes/" + tournamentCode);
 		addTournamentApiKeyParameter();
 	}
 }

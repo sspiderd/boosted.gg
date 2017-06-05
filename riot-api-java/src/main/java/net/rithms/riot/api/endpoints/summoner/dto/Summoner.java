@@ -16,19 +16,24 @@
 
 package net.rithms.riot.api.endpoints.summoner.dto;
 
-import net.rithms.riot.api.Dto;
-
 import java.io.Serializable;
+
+import net.rithms.riot.api.Dto;
 
 public class Summoner extends Dto implements Serializable {
 
 	private static final long serialVersionUID = -8213488199644701555L;
 
+	private long accountId;
 	private long id;
 	private String name;
 	private int profileIconId;
 	private long revisionDate;
 	private int summonerLevel;
+
+	public long getAccountId() {
+		return accountId;
+	}
 
 	public long getId() {
 		return id;

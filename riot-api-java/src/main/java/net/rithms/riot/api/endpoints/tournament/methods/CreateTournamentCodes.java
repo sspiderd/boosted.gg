@@ -16,18 +16,20 @@
 
 package net.rithms.riot.api.endpoints.tournament.methods;
 
-import com.google.gson.reflect.TypeToken;
-import net.rithms.riot.api.ApiConfig;
-import net.rithms.riot.api.UrlParameter;
-import net.rithms.riot.api.endpoints.tournament.TournamentApiMethod;
-import net.rithms.riot.api.request.RequestMethod;
-import net.rithms.riot.constant.PickType;
-import net.rithms.riot.constant.SpectatorType;
-import net.rithms.riot.constant.TournamentMap;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.google.gson.reflect.TypeToken;
+
+import net.rithms.riot.api.ApiConfig;
+import net.rithms.riot.api.UrlParameter;
+import net.rithms.riot.api.endpoints.tournament.TournamentApiMethod;
+import net.rithms.riot.api.endpoints.tournament.constant.PickType;
+import net.rithms.riot.api.endpoints.tournament.constant.SpectatorType;
+import net.rithms.riot.api.endpoints.tournament.constant.TournamentMap;
+import net.rithms.riot.api.request.RequestMethod;
+import net.rithms.riot.constant.Platform;
 
 public class CreateTournamentCodes extends TournamentApiMethod {
 
@@ -37,10 +39,16 @@ public class CreateTournamentCodes extends TournamentApiMethod {
 		setMethod(RequestMethod.POST);
 		setReturnType(new TypeToken<List<String>>() {
 		}.getType());
-		setUrlBase("https://global.api.pvp.net/tournament/public/v1/code");
+		if (config.getTournamentMockMode()) {
+			setUrlBase(Platform.GLOBAL.getHost() + "/lol/tournament-stub/v3/codes");
+		} else {
+			setUrlBase(Platform.GLOBAL.getHost() + "/lol/tournament/v3/codes");
+		}
 		add(new UrlParameter("tournamentId", tournamentId));
 		add(new UrlParameter("count", count));
 		addTournamentApiKeyParameter();
+		allowMockMode();
+
 		Map<String, Object> body = new HashMap<String, Object>();
 		body.put("teamSize", teamSize);
 		body.put("mapType", mapType);

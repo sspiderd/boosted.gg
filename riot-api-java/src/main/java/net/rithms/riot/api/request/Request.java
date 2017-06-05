@@ -16,42 +16,41 @@
 
 package net.rithms.riot.api.request;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import net.rithms.riot.api.*;
-import net.rithms.riot.api.request.ratelimit.RateLimit;
-import net.rithms.riot.api.request.ratelimit.RateLimitException;
-import net.rithms.riot.api.request.ratelimit.RateLimitList;
-import net.rithms.riot.api.request.ratelimit.RespectedRateLimitException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
-import static java.lang.Thread.sleep;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
+import net.rithms.riot.api.ApiConfig;
+import net.rithms.riot.api.ApiMethod;
+import net.rithms.riot.api.HttpHeadParameter;
+import net.rithms.riot.api.RiotApi;
+import net.rithms.riot.api.RiotApiException;
+import net.rithms.riot.api.request.ratelimit.RateLimit;
+import net.rithms.riot.api.request.ratelimit.RateLimitException;
+import net.rithms.riot.api.request.ratelimit.RateLimitList;
+import net.rithms.riot.api.request.ratelimit.RespectedRateLimitException;
 
 /**
  * This class is used to fire synchronous call at the Riot Api. You should not construct these requests manually. To fire synchronous
  * requests, use a {@link RiotApi} object.
- *
+ * 
  * @author Daniel 'Linnun' Figge
  * @see RiotApi
  */
 public class Request {
-
-	static Logger log = LoggerFactory.getLogger(Request.class);
-
 	public static final int CODE_SUCCESS_OK = 200;
 	public static final int CODE_SUCCESS_NO_CONTENT = 204;
 	public static final int CODE_ERROR_BAD_REQUEST = 400;
@@ -63,21 +62,31 @@ public class Request {
 	public static final int CODE_ERROR_UNPROCESSABLE_ENTITY = 422;
 	public static final int CODE_ERROR_RATE_LIMITED = 429;
 	public static final int CODE_ERROR_SERVER_ERROR = 500;
+	public static final int CODE_ERROR_BAD_GATEWAY = 502;
 	public static final int CODE_ERROR_SERVICE_UNAVAILABLE = 503;
+	public static final int CODE_ERROR_GATEWAY_TIMEOUT = 504;
 
-	private static final Map<String, RateLimitList> rateLimitMap = new ConcurrentHashMap<String, RateLimitList>();
+	protected enum RequestState {
+		Waiting,
+		Cancelled,
+		Succeeded,
+		Failed,
+		Timeout
+	}
 
-	private RequestState state = RequestState.Waiting;
+	private static final ConcurrentHashMap<String, RateLimitList> rateLimitMap = new ConcurrentHashMap<String, RateLimitList>();
+
+	private volatile RequestState state = RequestState.Waiting;
 	private RequestResponse response = null;
 
 	protected ApiConfig config;
 	protected ApiMethod object;
 	protected HttpURLConnection connection = null;
-	private RiotApiException exception = null;
+	private volatile RiotApiException exception = null;
 
 	/**
 	 * Constructs a synchronous request
-	 *
+	 * 
 	 * @param config
 	 *            Configuration to use
 	 * @param method
@@ -85,42 +94,9 @@ public class Request {
 	 * @see ApiConfig
 	 * @see ApiMethod
 	 */
-	public Request(ApiConfig config, ApiMethod object) throws RiotApiException {
+	public Request(ApiConfig config, ApiMethod object) throws RateLimitException, RiotApiException {
 		init(config, object);
-		boolean success = false ;
-		while (!success) {
-			try {
-				//Always sleep 1200 ms to avoid reaching the limit
-				sleep(1200);
-				execute();
-				if (state == RequestState.Succeeded) {
-					success = true;
-				}
-			} catch (Exception ex) {
-				//log.debug("${ex.getMessage()} -> Sleeping for ${sleep}")
-
-				if (ex instanceof RateLimitException) {
-					int sleep = 1200;
-					int retryAfter = ((RateLimitException)ex).getRetryAfter() ;
-					if (retryAfter > 0) {
-						sleep = retryAfter * 1000;
-					}
-					log.debug(ex.getMessage() + " -> Sleeping for " + sleep);
-					try {
-						Thread.sleep(sleep);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				} else if (ex instanceof RiotApiException) {
-					RiotApiException rae = (RiotApiException)ex ;
-					log.error(object.getUrl() + ": ErrorCode="+ rae.getErrorCode() + ", Message=" + rae.getMessage());
-				} else {
-					log.error("Error: " + ex.getMessage());
-				}
-
-			}
-		}
-
+		execute();
 	}
 
 	/**
@@ -132,7 +108,7 @@ public class Request {
 	/**
 	 * Attempts to cancel the request. This attempt will fail if the request has already been completed, or could not be cancelled for some
 	 * other reason. If successful, and this request has not started when {@code cancel} is called, this request should never run.
-	 *
+	 * 
 	 * @return {@code false} if the request could not be cancelled, typically because it has already completed normally; {@code true}
 	 *         otherwise
 	 */
@@ -146,7 +122,7 @@ public class Request {
 
 	/**
 	 * Executes the request
-	 *
+	 * 
 	 * @throws RiotApiException
 	 *             If the Riot Api responds with an error code or parsing the response fails
 	 * @throws RateLimitException
@@ -155,6 +131,7 @@ public class Request {
 	protected synchronized void execute() throws RiotApiException, RateLimitException {
 		setState(RequestState.Waiting);
 		try {
+			object.checkRequirements();
 			respectRateLimit();
 			URL url = new URL(object.getUrl());
 			connection = (HttpURLConnection) url.openConnection();
@@ -174,32 +151,44 @@ public class Request {
 				dos.flush();
 				dos.close();
 			}
-
 			int responseCode = connection.getResponseCode();
+
+			// Handle rate limit
 			if (responseCode == CODE_ERROR_RATE_LIMITED) {
 				String retryAfterString = connection.getHeaderField("Retry-After");
 				String rateLimitType = connection.getHeaderField("X-Rate-Limit-Type");
-				String rateLimitCount = connection.getHeaderField("X-Rate-Limit-Count");
 				if (retryAfterString != null) {
 					int retryAfter = Integer.parseInt(retryAfterString);
 					setRetryAfter(rateLimitType, retryAfter);
-					throw new RateLimitException(retryAfter, rateLimitType, rateLimitCount);
+					throw new RateLimitException(retryAfter, rateLimitType);
 				} else {
-					throw new RateLimitException(0, rateLimitType, rateLimitCount);
+					throw new RateLimitException(0, rateLimitType);
 				}
-			} else if (responseCode < 200 || responseCode >= 300) {
-				throw new RiotApiException(responseCode);
 			}
 
+			// Get body
+			InputStream is = null;
+			if (responseCode < 400) {
+				is = connection.getInputStream();
+			} else {
+				is = connection.getErrorStream();
+			}
 			StringBuilder responseBodyBuilder = new StringBuilder();
 			if (responseCode != CODE_SUCCESS_NO_CONTENT) {
-				BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+				BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 				String line;
 				while ((line = br.readLine()) != null) {
 					responseBodyBuilder.append(line).append(System.lineSeparator());
 				}
 				br.close();
 			}
+
+			// Handle error
+			if (responseCode >= 300) {
+				RiotApiError errorDto = new Gson().fromJson(responseBodyBuilder.toString(), RiotApiError.class);
+				throw new RiotApiException(responseCode, errorDto);
+			}
+
 			setResponse(new RequestResponse(connection.getResponseCode(), responseBodyBuilder.toString(), connection.getHeaderFields()));
 			setState(RequestState.Succeeded);
 		} catch (RateLimitException e) {
@@ -239,7 +228,7 @@ public class Request {
 
 	/**
 	 * Retrieves the result of the request.
-	 *
+	 * 
 	 * @return The object returned by the api call
 	 * @throws IllegalStateException
 	 *             If this request did not complete yet or did not succeed
@@ -252,7 +241,7 @@ public class Request {
 
 	/**
 	 * Retrieves the result of the request.
-	 *
+	 * 
 	 * @param overrideStateRequirement
 	 *            If set to {@code true}, this method will not check the status of the request, and thus not throw an
 	 *            {@code IllegalStateException}
@@ -271,6 +260,10 @@ public class Request {
 			return null;
 		}
 		Type type = object.getReturnType();
+		if (type == Void.class) {
+			// The method explicitly does not want to return a result
+			return null;
+		}
 		if (type == null) {
 			throw new NullPointerException("The ApiMethod \"" + object
 					+ "\" has not set a dtoType. If this method is supposed to return something and you encounter this issue, please file a bug.");
@@ -293,7 +286,7 @@ public class Request {
 
 	/**
 	 * Returns the exception that was thrown when calling {@link #execute()}.
-	 *
+	 * 
 	 * @return The exception that was thrown when executing this request
 	 */
 	public RiotApiException getException() {
@@ -308,7 +301,7 @@ public class Request {
 
 	/**
 	 * Returns the raw response from the Riot Api
-	 *
+	 * 
 	 * @return A {@link RequestResponse} object, providing raw data of the Riot Api's response
 	 * @see RequestResponse
 	 */
@@ -319,7 +312,7 @@ public class Request {
 	/**
 	 * Initializes the request object. Child classes should call this method instead of the super constructor, if they don't want the
 	 * request to execute automatically.
-	 *
+	 * 
 	 * @param config
 	 *            ApiConfig object
 	 * @param method
@@ -334,7 +327,7 @@ public class Request {
 
 	/**
 	 * Returns {@code true} if this request was cancelled before it completed normally.
-	 *
+	 * 
 	 * @return {@code true} if this request was cancelled before it completed
 	 */
 	public boolean isCancelled() {
@@ -344,7 +337,7 @@ public class Request {
 	/**
 	 * Returns {@code true} if this request completed. Completion may be due to normal termination, an exception, cancellation or timing out
 	 * -- in all of these cases, this method will return {@code true}.
-	 *
+	 * 
 	 * @return {@code true} if this request completed
 	 */
 	public boolean isDone() {
@@ -353,7 +346,7 @@ public class Request {
 
 	/**
 	 * Returns {@code true} if this request failed.
-	 *
+	 * 
 	 * @return {@code true} if this request failed
 	 */
 	public boolean isFailed() {
@@ -362,7 +355,7 @@ public class Request {
 
 	/**
 	 * Returns {@code true} if this request is still waiting for a response from the Riot Api.
-	 *
+	 * 
 	 * @return {@code true} if this request is still waiting for a response
 	 */
 	public boolean isPending() {
@@ -370,16 +363,16 @@ public class Request {
 	}
 
 	private boolean isRateLimitExceeded() {
-		if (!rateLimitMap.containsKey(config.getKey())) {
+		if (config.getKey() == null || !rateLimitMap.containsKey(config.getKey())) {
 			return false;
 		}
 		RateLimitList rateLimitList = rateLimitMap.get(config.getKey());
-		return rateLimitList.isLimitExceeded(object.getService(), object.getRegion());
+		return rateLimitList.isLimitExceeded(object.getService(), object.getPlatform());
 	}
 
 	/**
 	 * Returns {@code true} if this request completed successfully.
-	 *
+	 * 
 	 * @return {@code true} if this request completed successfully
 	 */
 	public boolean isSuccessful() {
@@ -388,7 +381,7 @@ public class Request {
 
 	/**
 	 * Returns {@code true} if this request timed out before it completed normally.
-	 *
+	 * 
 	 * @return {@code true} if this request timed out before it completed
 	 */
 	public boolean isTimeOut() {
@@ -397,7 +390,7 @@ public class Request {
 
 	/**
 	 * Checks that the current state of this request is succeeded.
-	 *
+	 * 
 	 * @throws IllegalStateException
 	 *             If the state of this request is anything other than {@code RequestState.Succeeded}.
 	 */
@@ -416,7 +409,7 @@ public class Request {
 			return;
 		}
 		if (isRateLimitExceeded()) {
-			RateLimit rateLimit = rateLimitMap.get(config.getKey()).getRateLimit(object.getService(), object.getRegion());
+			RateLimit rateLimit = rateLimitMap.get(config.getKey()).getRateLimit(object.getService(), object.getPlatform());
 			if (rateLimit == null) {
 				return;
 			}
@@ -426,7 +419,7 @@ public class Request {
 
 	/**
 	 * Sets the Exception that was thrown when executing this request
-	 *
+	 * 
 	 * @param exception
 	 *            Exception
 	 * @see RiotApiException
@@ -444,22 +437,22 @@ public class Request {
 		if (!rateLimitMap.containsKey(key)) {
 			rateLimitMap.put(key, new RateLimitList());
 		}
-		rateLimitMap.get(key).setRateLimit(object.getService(), object.getRegion(), rateLimitType, retryAfter);
+		rateLimitMap.get(key).setRateLimit(object.getService(), object.getPlatform(), rateLimitType, retryAfter);
 	}
 
 	/**
 	 * Sets the state of this request, if the request is not already done.
-	 *
+	 * 
 	 * @param state
 	 *            State
 	 * @return {@code true} if the state has been changed
 	 * @see RequestState
 	 */
 	protected boolean setState(RequestState state) {
-		this.state = state;
 		if (isDone()) {
 			return false;
 		}
+		this.state = state;
 		return true;
 	}
 
@@ -472,7 +465,7 @@ public class Request {
 
 	/**
 	 * Sets a specified timeout value, in milliseconds, until connecting to or reading from the Riot Api times out.
-	 *
+	 * 
 	 * @param timeout
 	 *            Timeout value in milliseconds
 	 */

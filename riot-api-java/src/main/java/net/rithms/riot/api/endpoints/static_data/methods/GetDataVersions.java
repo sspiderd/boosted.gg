@@ -16,21 +16,22 @@
 
 package net.rithms.riot.api.endpoints.static_data.methods;
 
+import java.util.List;
+
 import com.google.gson.reflect.TypeToken;
+
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.endpoints.static_data.StaticDataApiMethod;
-import net.rithms.riot.constant.Region;
-
-import java.util.List;
+import net.rithms.riot.constant.Platform;
 
 public class GetDataVersions extends StaticDataApiMethod {
 
-	public GetDataVersions(ApiConfig config, Region region) {
+	public GetDataVersions(ApiConfig config, Platform platform) {
 		super(config);
-		setRegion(region);
+		setPlatform(platform);
 		setReturnType(new TypeToken<List<String>>() {
 		}.getType());
-		setUrlBase("https://global.api.pvp.net/api/lol/static-data/" + region + "/v1.2/versions");
+		setUrlBase(platform.getHost() + "/lol/static-data/v3/versions");
 		addApiKeyParameter();
 	}
 }

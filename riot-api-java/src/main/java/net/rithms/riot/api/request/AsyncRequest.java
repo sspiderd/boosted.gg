@@ -16,14 +16,18 @@
 
 package net.rithms.riot.api.request;
 
-import net.rithms.riot.api.*;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
+
+import net.rithms.riot.api.ApiConfig;
+import net.rithms.riot.api.ApiMethod;
+import net.rithms.riot.api.RiotApi;
+import net.rithms.riot.api.RiotApiAsync;
+import net.rithms.riot.api.RiotApiException;
 
 /**
  * This class is used to fire asynchronous call at the Riot Api. You should not construct these requests manually. To fire asynchronous
@@ -81,11 +85,9 @@ public class AsyncRequest extends Request implements Runnable {
 	 *             If the method is interrupted by calling {@link Thread#interrupt()}. The interrupt flag will be cleared
 	 */
 	public void await() throws InterruptedException {
-		if (!isDone()) {
+		while (!isDone()) {
 			synchronized (signal) {
-				while (!isDone()) {
-					signal.wait();
-				}
+				signal.wait();
 			}
 		}
 	}
@@ -138,11 +140,9 @@ public class AsyncRequest extends Request implements Runnable {
 	 */
 	public void await(long timeout, TimeUnit unit, boolean cancelOnTimeout) throws InterruptedException, TimeoutException {
 		final long end = System.currentTimeMillis() + unit.toMillis(timeout);
-		if (!isDone() && System.currentTimeMillis() < end) {
+		while (!isDone() && System.currentTimeMillis() < end) {
 			synchronized (signal) {
-				while (!isDone() && System.currentTimeMillis() < end) {
-					signal.wait(end - System.currentTimeMillis());
-				}
+				signal.wait(end - System.currentTimeMillis());
 			}
 		}
 		if (!isDone()) {
@@ -196,7 +196,7 @@ public class AsyncRequest extends Request implements Runnable {
 		try {
 			return super.getDto(true);
 		} catch (RiotApiException e) {
-			RiotApi.log.log(Level.FINE, "Retrieving Dto Failed", e);
+			RiotApi.log.log(Level.WARNING, "Retrieving Dto Failed", e);
 		}
 		return null;
 	}

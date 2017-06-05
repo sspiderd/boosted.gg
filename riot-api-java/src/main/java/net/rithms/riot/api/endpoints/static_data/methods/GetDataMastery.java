@@ -19,18 +19,19 @@ package net.rithms.riot.api.endpoints.static_data.methods;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.UrlParameter;
 import net.rithms.riot.api.endpoints.static_data.StaticDataApiMethod;
+import net.rithms.riot.api.endpoints.static_data.constant.Locale;
 import net.rithms.riot.api.endpoints.static_data.constant.MasteryData;
 import net.rithms.riot.api.endpoints.static_data.dto.Mastery;
-import net.rithms.riot.constant.Region;
-import net.rithms.util.Convert;
+import net.rithms.riot.constant.Platform;
+import net.rithms.util.RiotApiUtil;
 
 public class GetDataMastery extends StaticDataApiMethod {
 
-	public GetDataMastery(ApiConfig config, Region region, int id, String locale, String version, MasteryData... masteryData) {
+	public GetDataMastery(ApiConfig config, Platform platform, int id, Locale locale, String version, MasteryData... masteryData) {
 		super(config);
-		setRegion(region);
+		setPlatform(platform);
 		setReturnType(Mastery.class);
-		setUrlBase("https://global.api.pvp.net/api/lol/static-data/" + region + "/v1.2/mastery/" + id);
+		setUrlBase(platform.getHost() + "/lol/static-data/v3/masteries/" + id);
 		if (locale != null) {
 			add(new UrlParameter("locale", locale));
 		}
@@ -38,7 +39,7 @@ public class GetDataMastery extends StaticDataApiMethod {
 			add(new UrlParameter("version", version));
 		}
 		if (masteryData[0] != null) {
-			add(new UrlParameter("masteryData", Convert.joinString(",", (Object[]) masteryData)));
+			add(new UrlParameter("masteryData", RiotApiUtil.joinString(",", (Object[]) masteryData)));
 		}
 		addApiKeyParameter();
 	}

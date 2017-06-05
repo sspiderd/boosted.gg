@@ -3,14 +3,13 @@ package gg.boosted
 import gg.boosted.configuration.Configuration
 import gg.boosted.riotapi.Region
 import gg.boosted.riotapi.RiotApi
-import gg.boosted.riotapi.dtos.match.MatchDetail
+
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.time.LocalDateTime
-import java.time.Period
 import java.time.ZoneId
 
 /**

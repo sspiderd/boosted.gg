@@ -19,15 +19,15 @@ package net.rithms.riot.api.endpoints.static_data.methods;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.endpoints.static_data.StaticDataApiMethod;
 import net.rithms.riot.api.endpoints.static_data.dto.Realm;
-import net.rithms.riot.constant.Region;
+import net.rithms.riot.constant.Platform;
 
 public class GetDataRealm extends StaticDataApiMethod {
 
-	public GetDataRealm(ApiConfig config, Region region) {
+	public GetDataRealm(ApiConfig config, Platform platform) {
 		super(config);
-		setRegion(region);
+		setPlatform(platform);
 		setReturnType(Realm.class);
-		setUrlBase("https://global.api.pvp.net/api/lol/static-data/" + region + "/v1.2/realm");
+		setUrlBase(platform.getHost() + "/lol/static-data/v3/realms");
 		addApiKeyParameter();
 	}
 }

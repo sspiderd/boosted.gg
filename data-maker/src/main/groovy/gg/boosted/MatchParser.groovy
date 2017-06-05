@@ -1,8 +1,5 @@
 package gg.boosted
 
-import gg.boosted.riotapi.dtos.match.MatchDetail
-import groovy.transform.CompileStatic
-
 import java.util.regex.Matcher
 
 /**

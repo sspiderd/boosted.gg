@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Taylor Caldwell
+ * Copyright 2017 Taylor Caldwell
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package net.rithms.riot.api.endpoints.tournament.dto;
 
-import net.rithms.riot.api.Dto;
-
 import java.io.Serializable;
 import java.util.Set;
 
+import net.rithms.riot.api.Dto;
+
 public class TournamentCode extends Dto implements Serializable {
 
-	private static final long serialVersionUID = -1525318794336918321L;
+	private static final long serialVersionUID = 3527264188424565819L;
 
 	private String code;
 	private int id;

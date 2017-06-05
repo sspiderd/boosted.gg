@@ -1,4 +1,4 @@
-#[RIOT-API-JAVA](http://rithms.net/riot-api-java/)
+# [RIOT-API-JAVA](http://taycaldwell.com/riot-api-java/)
 ----------
 [![JitPack](https://img.shields.io/github/tag/rithms/riot-api-java.svg?label=maven)](https://jitpack.io/#rithms/riot-api-java/v3.9.0)
 ----------
@@ -16,7 +16,7 @@ This product is not endorsed, certified or otherwise approved in any way by Riot
 
 ## Setup
 
-[Download](https://github.com/rithms/riot-api-java/releases) the .jar file, and add it as an external library to your project.
+[Download](https://github.com/taycaldwell/riot-api-java/releases) the .jar file, and add it as an external library to your project.
 
 If you are using Eclipse, this can be done by right clicking your project, and selecting:
 
@@ -86,7 +86,7 @@ public class Example {
 ```
 
 
-It is important to be aware of your personal rate limit. Any method call from the RiotAPI is a request that counts towards your rate limit, with exceptions to the accessors/mutators of region, key, and season, as well as any requests regarding static data. The below code makes 2 requests; one request for a summoner, and another for ranked stats of a summoner.
+It is important to be aware of your personal rate limit. Any method call from the RiotAPI is a request that counts towards your rate limit, except any requests regarding static data. The below code makes 2 requests; one request for a summoner, and another for ranked stats of a summoner.
 
 
 
@@ -103,7 +103,7 @@ public class Example {
 	public static void main(String[] args) throws RiotApiException {
 		
 		RiotApi api = new RiotApi("YOUR-API-KEY-HERE", Region.NA);
-		api.setSeason(Season.FIVE);
+		api.setSeason(Season.CURRENT);
 		
 		RankedStats rankedStats = api.getRankedStats(api.getSummonerByName("rithms").getId());
 	}
@@ -113,28 +113,27 @@ public class Example {
 ```
 
 ## Documentation
-The documentation for this library can be found [here.](http://rithms.net/riot-api-java/doc/)
+The documentation for this library can be found [here.](http://taycaldwell.com/riot-api-java/doc/)
 
 ## API Versions
 The current version of this library supports the following Riot Games API versions:
-- **champion-v1.2 [BR, EUNE, EUW, JP, KR, LAN, LAS, NA, OCE, RU, TR]**
-- **championmastery [BR, EUNE, EUW, JP, KR, LAN, LAS, NA, OCE, RU, TR]**
-- **current-game-v1.0 [BR, EUNE, EUW, JP, KR, LAN, LAS, NA, OCE, PBE, RU, TR]**
-- **featured-games-v1.0 [BR, EUNE, EUW, JP, KR, LAN, LAS, NA, OCE, PBE, RU, TR]**
-- **game-v1.3 [BR, EUNE, EUW, JP, KR, LAN, LAS, NA, OCE, RU, TR]**
-- **league-v2.5 [BR, EUNE, EUW, JP, KR, LAN, LAS, NA, OCE, RU, TR]**
-- **lol-static-data-v1.2 [BR, EUNE, EUW, JP, KR, LAN, LAS, NA, OCE, PBE, RU, TR]**
-- **lol-status-v1.0 [BR, EUNE, EUW, LAN, LAS, NA, OCE, PBE, RU, TR]**
-- **match-v2.2 [BR, EUNE, EUW, JP, KR, LAN, LAS, NA, OCE, RU, TR]**
-- **matchlist-v2.2 [BR, EUNE, EUW, JP, KR, LAN, LAS, NA, OCE, RU, TR]**
-- **stats-v1.3 [BR, EUNE, EUW, JP, KR, LAN, LAS, NA, OCE, RU, TR]**
-- **summoner-v1.4 [BR, EUNE, EUW, JP, KR, LAN, LAS, NA, OCE, RU, TR]**
-- **team-v2.4 [BR, EUNE, EUW, JP, KR, LAN, LAS, NA, OCE, RU, TR]**
-- **tournament-provider-v1 [BR, EUNE, EUW, LAN, LAS, NA, OCE, RU, TR]**
+- **CHAMPION-MASTERY-V3**
+- **CHAMPION-V3**
+- **LEAGUE-V3**
+- **LOL-STATUS-V3**
+- **MASTERIES-V3**
+- **MATCH-V3**
+- **RUNES-V3**
+- **SPECTATOR-V3**
+- **STATIC-DATA-V3**
+- **STATS-V1.3** (DEPRECATED)
+- **SUMMONER-V3**
+- **TOURNAMENT-V3**
+- **TOURNAMENT-STUB-V3**
 
 ## Contributing
 All contributions are appreciated.
 If you would like to contribute to this project, please send a pull request.
 
 ## Contact
-Have a suggestion, complaint, or question? Open an [issue](https://github.com/rithms/riot-api-java/issues).
+Have a suggestion, complaint, or question? Open an [issue](https://github.com/taycaldwell/riot-api-java/issues).

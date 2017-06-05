@@ -16,15 +16,16 @@
 
 package net.rithms.riot.api.endpoints.tournament.methods;
 
-import net.rithms.riot.api.ApiConfig;
-import net.rithms.riot.api.endpoints.tournament.TournamentApiMethod;
-import net.rithms.riot.api.request.RequestMethod;
-import net.rithms.riot.constant.PickType;
-import net.rithms.riot.constant.SpectatorType;
-import net.rithms.riot.constant.TournamentMap;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import net.rithms.riot.api.ApiConfig;
+import net.rithms.riot.api.endpoints.tournament.TournamentApiMethod;
+import net.rithms.riot.api.endpoints.tournament.constant.PickType;
+import net.rithms.riot.api.endpoints.tournament.constant.SpectatorType;
+import net.rithms.riot.api.endpoints.tournament.constant.TournamentMap;
+import net.rithms.riot.api.request.RequestMethod;
+import net.rithms.riot.constant.Platform;
 
 public class UpdateTournamentCode extends TournamentApiMethod {
 
@@ -32,8 +33,10 @@ public class UpdateTournamentCode extends TournamentApiMethod {
 			long... allowedSummonerIds) {
 		super(config);
 		setMethod(RequestMethod.PUT);
-		setUrlBase("https://global.api.pvp.net/tournament/public/v1/code/" + tournamentCode);
+		setReturnType(Void.class);
+		setUrlBase(Platform.GLOBAL.getHost() + "/lol/tournament/v3/codes/" + tournamentCode);
 		addTournamentApiKeyParameter();
+
 		Map<String, Object> body = new HashMap<String, Object>();
 		if (mapType != null) {
 			body.put("mapType", mapType);
@@ -45,7 +48,9 @@ public class UpdateTournamentCode extends TournamentApiMethod {
 			body.put("spectatorType", spectatorType);
 		}
 		if (allowedSummonerIds != null && allowedSummonerIds.length > 0) {
-			body.put("allowedParticipants", allowedSummonerIds);
+			HashMap<String, Object> allowedSummonerIdsMap = new HashMap<String, Object>();
+			allowedSummonerIdsMap.put("participants", allowedSummonerIds);
+			body.put("allowedSummonerIds", allowedSummonerIdsMap);
 		}
 		buildJsonBody(body);
 	}

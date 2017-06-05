@@ -3,9 +3,8 @@ package gg.boosted
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import gg.boosted.configuration.Configuration
-import gg.boosted.riotapi.dtos.match.MatchDetail
+
 import groovy.json.JsonOutput
-import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.Jedis
