@@ -3,23 +3,22 @@ package gg.boosted.riotapi.dtos;
 /**
  * Created by ilan on 12/12/16.
  */
-public class LeagueEntry {
+public class LeaguePosition {
 
+    public boolean freshBlood;
+    public boolean hotStreak;
+    public boolean inactive;
+    public String leagueName;
     public int leaguePoints;
-    public boolean isFreshBlood;
-    public boolean isHotStreak;
-    public String division;
-    public boolean isInactive;
-    public boolean isVeteran;
     public int losses;
-    public String playerOrTeamName;
+    public MiniSeries miniSeries;
     public String playerOrTeamId;
+    public String playerOrTeamName;
+    public String queueType;
+    public String rank;
+    public String tier;
+    public boolean veteran;
     public int wins;
-
-    public String tier ;
-
-    public MiniSeries miniSeries ;
-
     public static class MiniSeries {
 
         public int losses;

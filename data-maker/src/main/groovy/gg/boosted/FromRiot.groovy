@@ -27,7 +27,7 @@ class FromRiot {
     static void main(String[] args) {
         //RedisStore.reset()
 
-        region = Region.EUNE
+        region = Region.EUN1
         riotApi = new RiotApi(region)
 
         extract()
@@ -129,7 +129,12 @@ class FromRiot {
             new JsonSlurper().parseText(riotApi.getFeaturedGames())["gameList"].each { match ->
                 match["participants"].each {participant -> summonerNames += (String)participant["summonerName"]}
             }
-            Map<String, Long> namesToIds = riotApi.getSummonerIdsByNames(summonerNames.toArray(new String[0]))
+            Map<String, Long> namesToIds = [:]
+            summonerNames.each {
+                namesToIds.put(it, riotApi.getSummonerIdsByNames(it))
+
+            }
+            riotApi.getSummonerIdsByNames(summonerNames.toArray(new String[0]))
             seed.addAll(namesToIds.values())
         }
 
