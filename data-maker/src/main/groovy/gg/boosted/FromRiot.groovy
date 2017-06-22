@@ -4,6 +4,7 @@ import gg.boosted.configuration.Configuration
 import gg.boosted.riotapi.Region
 import gg.boosted.riotapi.RiotApi
 import gg.boosted.riotapi.dtos.match.Match
+import gg.boosted.riotapi.dtos.match.MatchReference
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import org.slf4j.Logger
@@ -68,18 +69,23 @@ class FromRiot {
             Long accountId = riotApi.getSummoner(summonerId as Long).accountId
 
             //Get his matches since $gamesPlayedSince
-            List<Long> matchIds = getSummonerMatchIds(accountId, gamesPlayedSince)
+            List<MatchReference> matchList = riotApi.getMatchList(accountId, gamesPlayedSince)
+
+            //Determine who this girl mains (if any)
+            Set<Tuple2<Integer, String>> mains = getMains(matchList) ;
 
             //For each match in the summoner's matchlist:
-            matchIds.each {
+            matchList.each {
+
+                Long gameId = it.gameId
 
                 //Check that we haven't seen this match yet
                 if (!RedisStore.wasMatchProcessedAlready(region.toString(), it.toString())) {
 
-                    log.debug("Processing match ${it}")
+                    log.debug("Processing match ${gameId}")
 
                     //Get the match itself
-                    Match match = riotApi.getMatch(it)
+                    Match match = riotApi.getMatch(gameId)
 
                     //create "SummonerMatch" items for each summoner in the match
                     List<SummonerMatch> summonerMatchList = MatchParser.parseMatch(match)
@@ -108,10 +114,6 @@ class FromRiot {
 
             log.debug("Time taken to process summoner = ${(System.currentTimeMillis() - time) / 1000}S")
         }
-    }
-
-    static List<Long> getSummonerMatchIds(long accountId, long since) {
-        riotApi.getMatchList(accountId, since).collect {it.gameId}
     }
 
     static List<Long> getInitialSummonerSeed() {
@@ -150,6 +152,19 @@ class FromRiot {
         LocalDateTime backPeriod = LocalDateTime.now().minusDays(backPeriodInDays)
         ZoneId zoneId = ZoneId.of("UTC")
         return backPeriod.atZone(zoneId).toEpochSecond() * 1000
+    }
+
+    static Set<Tuple2<Integer, String>> getMains(List<MatchReference> matchList) {
+        Set<Tuple2<Integer, String>> mains = new HashSet<>()
+
+        //The key is champion-role. the value is the number of times it had appeared
+        def mainsCounter = [:]
+        matchList.each {
+            it.
+            mainsCounter.get
+        }
+
+        return mains
     }
 
 }

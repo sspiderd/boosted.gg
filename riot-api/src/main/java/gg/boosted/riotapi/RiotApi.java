@@ -8,11 +8,10 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import gg.boosted.riotapi.constants.QueueType;
 import gg.boosted.riotapi.dtos.*;
 import gg.boosted.riotapi.dtos.match.Match;
+import gg.boosted.riotapi.dtos.match.MatchReference;
 import gg.boosted.riotapi.throttlers.DistributedThrottler;
 import gg.boosted.riotapi.throttlers.IThrottler;
 import gg.boosted.riotapi.throttlers.SimpleThrottler;
-import gg.boosted.riotapi.utilities.ArrayChunker;
-import gg.boosted.riotapi.utilities.ArrayConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +22,6 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by ilan on 12/9/16.

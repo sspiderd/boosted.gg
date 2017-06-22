@@ -27,16 +27,7 @@ class MatchParser {
             //Ok, so these were easy, now the next 2 are a bit more difficult
             String lane = it.timeline.lane
             String role
-            if (lane == "TOP" || lane == "MIDDLE" || lane == "JUNGLE") {
-                role = lane
-            } else if (lane == "BOTTOM") {
-                //This is bot lane
-                if (it.timeline.role ==  "DUO_CARRY") {
-                    role = "BOTTOM"
-                } else {
-                    role = "SUPPORT"
-                }
-            } else throw new RuntimeException("I Don't know this lane ${lane} !!")
+
 
             summonerMatch.roleId = Role.valueOf(role).roleId
 
@@ -45,6 +36,21 @@ class MatchParser {
             summonerMatch.summonerId = match.participantIdentities.find {it.participantId == participantId}.player.summonerId
             summonerMatch
         }
+    }
+
+    static String normalizedRole(String lane, String role) {
+        String normalizedRole
+        if (lane == "TOP" || lane == "MIDDLE" || lane == "JUNGLE") {
+            normalizedRole = lane
+        } else if (lane == "BOTTOM") {
+            //This is bot lane
+            if (role ==  "DUO_CARRY") {
+                normalizedRole = "BOTTOM"
+            } else {
+                normalizedRole = "SUPPORT"
+            }
+        } else throw new RuntimeException("I Don't know this lane ${lane} !!")
+        return normalizedRole
     }
 
 }
