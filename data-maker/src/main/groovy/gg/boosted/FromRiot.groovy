@@ -64,12 +64,13 @@ class FromRiot {
 
             log.debug("Processing summoner ${summonerId}")
 
-            //In V3 API We need to
+            //In V3 API We need to get an account id for matchlist. for now, i'll make the call. In the future i might cache
+            Long accountId = riotApi.getSummoner(summonerId as Long).accountId
 
             //Get his matches since $gamesPlayedSince
-            List<Long> matchIds = getSummonerMatchIds(summonerId, gamesPlayedSince)
+            List<Long> matchIds = getSummonerMatchIds(accountId, gamesPlayedSince)
 
-            //For each match:
+            //For each match in the summoner's matchlist:
             matchIds.each {
 
                 //Check that we haven't seen this match yet
@@ -79,7 +80,6 @@ class FromRiot {
 
                     //Get the match itself
                     Match match = riotApi.getMatch(it)
-                    //def match = RiotAPIMy.getMatch(it, region.toLowerCase())
 
                     //create "SummonerMatch" items for each summoner in the match
                     List<SummonerMatch> summonerMatchList = MatchParser.parseMatch(match)
@@ -110,8 +110,8 @@ class FromRiot {
         }
     }
 
-    static List<Long> getSummonerMatchIds(String summonerId, long since) {
-        riotApi.getMatchList(summonerId as long, since).collect {it.gameId}
+    static List<Long> getSummonerMatchIds(long accountId, long since) {
+        riotApi.getMatchList(accountId, since).collect {it.gameId}
     }
 
     static List<Long> getInitialSummonerSeed() {
