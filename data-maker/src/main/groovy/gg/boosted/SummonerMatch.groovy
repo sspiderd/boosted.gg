@@ -10,10 +10,10 @@ class SummonerMatch {
 
     Integer championId
     Integer roleId
-    Long matchId
+    Long gameId
     Long summonerId
     Integer winner
-    String region
+    String platformId
     Long creationDate
     Integer patchMajorVersion
     Integer patchMinorVersion

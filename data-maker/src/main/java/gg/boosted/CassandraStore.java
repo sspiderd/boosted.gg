@@ -40,17 +40,17 @@ public class CassandraStore {
                                 "  match_id," +
                                 "  summoner_id," +
                                 "  winner," +
-                                "  region," +
+                                "  platform_id," +
                                 "  patch_major_version," +
                                 "  patch_minor_version) " +
                 "VALUES (%d, %d, %s, %d, %d, %d, %s, %d, %d)",
                         sm.getChampionId(),
                         sm.getRoleId(),
                         sm.getCreationDate(),
-                        sm.getMatchId(),
+                        sm.getGameId(),
                         sm.getSummonerId(),
                         sm.getWinner(),
-                        "'" + sm.getRegion() + "'",
+                        "'" + sm.getPlatformId() + "'",
                         sm.getPatchMajorVersion(),
                         sm.getPatchMinorVersion())
         );

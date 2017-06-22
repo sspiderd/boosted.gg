@@ -187,7 +187,7 @@ public class RiotApi {
         return callApiJson(endpoint) ;
     }
 
-    public Summoner getSummonersByName(String name) throws IOException {
+    public Summoner getSummonerByName(String name) throws IOException {
         String endpoint = regionEndpoint + "/summoner/v3/summoners/by-name/" + name ;
         return callApi(endpoint, Summoner.class) ;
     }

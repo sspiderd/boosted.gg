@@ -3,7 +3,7 @@ package gg.boosted
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import gg.boosted.configuration.Configuration
-
+import gg.boosted.riotapi.dtos.match.Match
 import groovy.json.JsonOutput
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -43,12 +43,12 @@ class FromFile {
             while (iter.hasNext()) {
                 matchCounter++
                 //new JsonSlurper().parseText(matchesText)['matches'].each { match ->
-                MatchDetail md = om.readValue(iter.next().toString(), MatchDetail.class)
+                Match md = om.readValue(iter.next().toString(), Match.class)
 
                 putInRedis(md)
 
                 List<SummonerMatch> matchDetails = MatchParser.parseMatch(md)
-                log.debug("Sending match details for match ${md.matchId}")
+                log.debug("Sending match details for match ${md.gameId}")
                 matchDetails.each {
                     counter++
                     KafkaSummonerMatchProducer.send(it)
@@ -60,7 +60,7 @@ class FromFile {
         println ("Sent total ${counter} summoner matches for ${matchCounter} matches")
     }
 
-    static void putInRedis(MatchDetail md) {
+    static void putInRedis(Match md) {
         jedis.setex("fullMatch:${md.region}:${md.matchId}", 6000, new ObjectMapper().writeValueAsString(md))
     }
 

@@ -1,5 +1,7 @@
 package gg.boosted
 
+import gg.boosted.riotapi.dtos.match.Match
+
 import java.util.regex.Matcher
 
 /**
@@ -7,17 +9,17 @@ import java.util.regex.Matcher
  */
 class MatchParser {
 
-    static List<SummonerMatch> parseMatch(MatchDetail match) {
+    static List<SummonerMatch> parseMatch(Match match) {
 
         if (!match) return new LinkedList<SummonerMatch>()
-        Matcher patch = (match.matchVersion =~ /(\d+)\.(\d+).*/)
+        Matcher patch = (match.gameVersion =~ /(\d+)\.(\d+).*/)
         match.participants.collect {
             SummonerMatch summonerMatch = new SummonerMatch()
             summonerMatch.championId = it.championId
-            summonerMatch.winner = it.stats.winner ? 1 : 0
-            summonerMatch.matchId = match.matchId
-            summonerMatch.region = match.region.toString()
-            summonerMatch.creationDate = match.matchCreation
+            summonerMatch.winner = it.stats.win ? 1 : 0
+            summonerMatch.gameId = match.gameId
+            summonerMatch.platformId = match.platformId.toString()
+            summonerMatch.creationDate = match.gameCreation
 
             summonerMatch.patchMajorVersion = patch[0][1].toInteger()
             summonerMatch.patchMinorVersion = patch[0][2].toInteger()

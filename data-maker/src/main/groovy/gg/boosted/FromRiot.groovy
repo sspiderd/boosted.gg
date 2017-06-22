@@ -3,7 +3,7 @@ package gg.boosted
 import gg.boosted.configuration.Configuration
 import gg.boosted.riotapi.Region
 import gg.boosted.riotapi.RiotApi
-
+import gg.boosted.riotapi.dtos.match.Match
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import org.slf4j.Logger
@@ -38,6 +38,7 @@ class FromRiot {
 
         //Forget that summoners and matches were ever processed
         //Remove all summoners and matches from redis
+        RedisStore.reset()
 
         //Create an empty set of summonerIds.. This is the queue to which we add new summoners that we find
         //Get an initial seed of summoners
@@ -63,6 +64,8 @@ class FromRiot {
 
             log.debug("Processing summoner ${summonerId}")
 
+            //In V3 API We need to
+
             //Get his matches since $gamesPlayedSince
             List<Long> matchIds = getSummonerMatchIds(summonerId, gamesPlayedSince)
 
@@ -75,7 +78,7 @@ class FromRiot {
                     log.debug("Processing match ${it}")
 
                     //Get the match itself
-                    MatchDetail match = riotApi.getMatch(it, false)
+                    Match match = riotApi.getMatch(it)
                     //def match = RiotAPIMy.getMatch(it, region.toLowerCase())
 
                     //create "SummonerMatch" items for each summoner in the match
@@ -83,7 +86,7 @@ class FromRiot {
 
                     //Send them all to the broker
                     //Disregard matches that are shorter than 20 minutes
-                    if (match.matchDuration >= 1200) {
+                    if (match.gameDuration >= 1200) {
                         summonerMatchList.each {
                             CassandraStore.saveMatch(it)
                             //KafkaSummonerMatchProducer.send(it)
@@ -108,7 +111,7 @@ class FromRiot {
     }
 
     static List<Long> getSummonerMatchIds(String summonerId, long since) {
-        riotApi.getMatchList(summonerId as long, since).collect {it.matchId}
+        riotApi.getMatchList(summonerId as long, since).collect {it.gameId}
     }
 
     static List<Long> getInitialSummonerSeed() {
@@ -131,10 +134,9 @@ class FromRiot {
             }
             Map<String, Long> namesToIds = [:]
             summonerNames.each {
-                namesToIds.put(it, riotApi.getSummonerIdsByNames(it))
+                namesToIds.put(it, riotApi.getSummonerByName(it).id)
 
             }
-            riotApi.getSummonerIdsByNames(summonerNames.toArray(new String[0]))
             seed.addAll(namesToIds.values())
         }
 
