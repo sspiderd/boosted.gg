@@ -379,45 +379,7 @@ public class RiotApi {
     }
 
 
-
-   //TODO: Make real tests
-    public static void test1() throws IOException {
-        RiotApi r = new RiotApi(Region.EUW1) ;
-        r.throttler = new SimpleThrottler(10, 500) ;
-        Long challenger = r.getChallengersIds().get(0) ;
-        System.out.println("Challenger id found: " + challenger);
-        Summoner s = r.getSummoner(challenger) ;
-        System.out.println("Account for summoner " + challenger + " is " + s.accountId);
-        List<MatchReference> matches = r.getMatchList(s.accountId, 11);
-        r.getMatch(matches.get(0).gameId) ;
-    }
-
-    public static void test2() throws IOException {
-        RiotApi r = new RiotApi(Region.EUW1) ;
-        r.throttler = new SimpleThrottler(10, 500) ;
-        Long challenger = r.getChallengersIds().get(0) ;
-        System.out.println("Challenger id found: " + challenger);
-        Summoner s = r.getSummoner(challenger) ;
-        System.out.println("Account for summoner " + challenger + " is " + s.accountId);
-        List<MatchReference> matches = r.getMatchList(s.accountId, 11);
-
-        int i = 1;
-    }
-
     public static void main(String[] args) throws IOException {
-        //new RiotApi(Region.EUW).getChampionsList() ;
-        //new RiotApi(Region.KR).getMatchList(2035958L, 1) ;
-//        for (String s : new RiotApi(Region.EUW).getMastersIds()) {
-//            System.out.println(s);
-//        }
-//        for (String s : new RiotApi(Region.EUW).getChallengersIds()) {
-//            System.out.println(s);
-//        }
-
-        //new RiotApi(Region.EUW).getMatch(2969769203L, false) ;
-        //new RiotApi(Region.EUNE).getSummonerMatchDetails(1585972833L) ;
-       //new RiotApi(Region.EUW1).getChallengersIds() ;
-        test1();
 
     }
 
