@@ -8,7 +8,6 @@
       <module fileurl="file://$PROJECT_DIR$/parent.iml" filepath="$PROJECT_DIR$/parent.iml" />
       <module fileurl="file://$PROJECT_DIR$/riot-api/riot-api.iml" filepath="$PROJECT_DIR$/riot-api/riot-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/riot-api-java/riot-api-java.iml" filepath="$PROJECT_DIR$/riot-api-java/riot-api-java.iml" />
-      <module fileurl="file://E:\workspaces\boosted.gg\riot-api-java\riot-api-java.iml" filepath="E:\workspaces\boosted.gg\riot-api-java\riot-api-java.iml" />
     </modules>
   </component>
 </project>

@@ -7,17 +7,19 @@
 # you're doing.
 Vagrant.configure(2) do |config|
   
-  config.vm.box = "ubuntu/xenial64"
+  #config.vm.box = "ubuntu/xenial64"
 
   #config.vm.box = "ubuntu/xenial-cloud"
   #config.vm.box_url = "http://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-vagrant.box"
 
   #config.vm.box_version = "20160830.0.0"
 
+  config.vm.box = "bento/ubuntu-16.04"
+
   config.vm.provider "virtualbox" do |v|
    #v.customize ["modifyvm", :id, "--nictype1", "virtio"]
    v.customize ["modifyvm", :id, "--cpuexecutioncap", "80"]
-   v.memory = 2048
+   v.memory = 1024
    v.cpus = 1
   end
 

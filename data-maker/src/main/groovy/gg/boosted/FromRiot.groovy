@@ -3,7 +3,8 @@ package gg.boosted
 import gg.boosted.configuration.Configuration
 import gg.boosted.riotapi.Region
 import gg.boosted.riotapi.RiotApi
-
+import gg.boosted.riotapi.dtos.match.Match
+import gg.boosted.riotapi.dtos.match.MatchReference
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import org.slf4j.Logger
@@ -27,7 +28,7 @@ class FromRiot {
     static void main(String[] args) {
         //RedisStore.reset()
 
-        region = Region.EUNE
+        region = Region.EUN1
         riotApi = new RiotApi(region)
 
         extract()
@@ -38,6 +39,7 @@ class FromRiot {
 
         //Forget that summoners and matches were ever processed
         //Remove all summoners and matches from redis
+        RedisStore.reset()
 
         //Create an empty set of summonerIds.. This is the queue to which we add new summoners that we find
         //Get an initial seed of summoners
@@ -63,27 +65,34 @@ class FromRiot {
 
             log.debug("Processing summoner ${summonerId}")
 
-            //Get his matches since $gamesPlayedSince
-            List<Long> matchIds = getSummonerMatchIds(summonerId, gamesPlayedSince)
+            //In V3 API We need to get an account id for matchlist. for now, i'll make the call. In the future i might cache
+            Long accountId = riotApi.getSummoner(summonerId as Long).accountId
 
-            //For each match:
-            matchIds.each {
+            //Get his matches since $gamesPlayedSince
+            List<MatchReference> matchList = riotApi.getMatchList(accountId, gamesPlayedSince)
+
+            //Determine who this girl mains (if any)
+            Set<Tuple2<Integer, String>> mains = getMains(matchList) ;
+
+            //For each match in the summoner's matchlist:
+            matchList.each {
+
+                Long gameId = it.gameId
 
                 //Check that we haven't seen this match yet
                 if (!RedisStore.wasMatchProcessedAlready(region.toString(), it.toString())) {
 
-                    log.debug("Processing match ${it}")
+                    log.debug("Processing match ${gameId}")
 
                     //Get the match itself
-                    MatchDetail match = riotApi.getMatch(it, false)
-                    //def match = RiotAPIMy.getMatch(it, region.toLowerCase())
+                    Match match = riotApi.getMatch(gameId)
 
                     //create "SummonerMatch" items for each summoner in the match
                     List<SummonerMatch> summonerMatchList = MatchParser.parseMatch(match)
 
                     //Send them all to the broker
                     //Disregard matches that are shorter than 20 minutes
-                    if (match.matchDuration >= 1200) {
+                    if (match.gameDuration >= 1200) {
                         summonerMatchList.each {
                             CassandraStore.saveMatch(it)
                             //KafkaSummonerMatchProducer.send(it)
@@ -107,10 +116,6 @@ class FromRiot {
         }
     }
 
-    static List<Long> getSummonerMatchIds(String summonerId, long since) {
-        riotApi.getMatchList(summonerId as long, since).collect {it.matchId}
-    }
-
     static List<Long> getInitialSummonerSeed() {
         List<Long> seed = []
 
@@ -129,7 +134,11 @@ class FromRiot {
             new JsonSlurper().parseText(riotApi.getFeaturedGames())["gameList"].each { match ->
                 match["participants"].each {participant -> summonerNames += (String)participant["summonerName"]}
             }
-            Map<String, Long> namesToIds = riotApi.getSummonerIdsByNames(summonerNames.toArray(new String[0]))
+            Map<String, Long> namesToIds = [:]
+            summonerNames.each {
+                namesToIds.put(it, riotApi.getSummonerByName(it).id)
+
+            }
             seed.addAll(namesToIds.values())
         }
 
@@ -143,6 +152,19 @@ class FromRiot {
         LocalDateTime backPeriod = LocalDateTime.now().minusDays(backPeriodInDays)
         ZoneId zoneId = ZoneId.of("UTC")
         return backPeriod.atZone(zoneId).toEpochSecond() * 1000
+    }
+
+    static Set<Tuple2<Integer, String>> getMains(List<MatchReference> matchList) {
+        Set<Tuple2<Integer, String>> mains = new HashSet<>()
+
+        //The key is champion-role. the value is the number of times it had appeared
+        def mainsCounter = [:]
+        matchList.each {
+            it.
+            mainsCounter.get
+        }
+
+        return mains
     }
 
 }

@@ -8,11 +8,10 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import gg.boosted.riotapi.constants.QueueType;
 import gg.boosted.riotapi.dtos.*;
 import gg.boosted.riotapi.dtos.match.Match;
+import gg.boosted.riotapi.dtos.match.MatchReference;
 import gg.boosted.riotapi.throttlers.DistributedThrottler;
 import gg.boosted.riotapi.throttlers.IThrottler;
 import gg.boosted.riotapi.throttlers.SimpleThrottler;
-import gg.boosted.riotapi.utilities.ArrayChunker;
-import gg.boosted.riotapi.utilities.ArrayConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +22,6 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by ilan on 12/9/16.
@@ -187,45 +185,11 @@ public class RiotApi {
         return callApiJson(endpoint) ;
     }
 
-    public Map<String, Long> getSummonerIdsByNames(String... names) throws IOException {
-        Map<String, Long> map = new HashMap<>() ;
-        //We can get 40 names for each call, so
-        int chunkSize = 40;
-        List<String[]> chunkedArray = ArrayChunker.split(names, chunkSize) ;
-
-        for (String[] array : chunkedArray) {
-            String endpoint = regionEndpoint +
-                    "/v1.4/summoner/by-name/" ;
-            endpoint += Arrays.stream(array).collect(Collectors.joining(",")) ;
-            endpoint += "?api_key=" + riotApiKey ;
-            JsonNode rootNode = callApi(endpoint) ;
-            //Riot has made this api a little silly, so i need to be silly to get the data
-            Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields() ;
-            while (it.hasNext()) {
-                JsonNode node = it.next().getValue() ;
-                map.put(node.get("name").asText(), node.get("id").asLong()) ;
-            }
-        }
-        return map ;
+    public Summoner getSummonerByName(String name) throws IOException {
+        String endpoint = regionEndpoint + "/summoner/v3/summoners/by-name/" + name ;
+        return callApi(endpoint, Summoner.class) ;
     }
 
-    public Map<Long, String> getSummonerNamesByIds(Long... ids) {
-        Map<Long, String> map = new HashMap<>() ;
-        List<Long[]> chunkedArray = ArrayChunker.split(ids, 40) ;
-        for (Long[] array : chunkedArray) {
-
-            String endpoint = String.format("%s/v1.4/summoner/", regionEndpoint) ;
-            endpoint += Arrays.stream(ArrayConverter.convertLongToString(array)).collect(Collectors.joining(",")) ;
-            JsonNode rootNode = callApi(endpoint) ;
-            //Riot has made this api a little silly, so i need to be silly to get the data
-            Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields() ;
-            while (it.hasNext()) {
-                JsonNode node = it.next().getValue() ;
-                map.put(node.get("id").asLong(), node.get("name").asText()) ;
-            }
-        }
-        return map;
-    }
 
     public List<Long> getChallengersIds() {
         List<Long> challengerIds = new LinkedList<>() ;
@@ -261,51 +225,19 @@ public class RiotApi {
         return callApi(endpoint, Match.class);
     }
 
-    public Map<Long, LeagueEntry> getLeagueEntries(Long... summonerIds) {
-        Map<Long, LeagueEntry> map = new HashMap<>() ;
-
-        Set<Long> found = new HashSet<>();
-        Set<Long> all = new HashSet<>() ;
-
-        int chunkSize = 10;
-        List<Long[]> chunkedArray = ArrayChunker.split(summonerIds, chunkSize) ;
-        for (Long[] array : chunkedArray) {
-            String endpoint = regionEndpoint +
-                    "/v2.5/league/by-summoner/" ;
-            endpoint += Arrays.stream(ArrayConverter.convertLongToString(array)).collect(Collectors.joining(",")) ;
-            JsonNode rootNode = callApi(endpoint) ;
-
-            //Riot has made this api a little silly, so i need to be silly to get the data
-            Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields() ;
-            while (it.hasNext()) {
-                JsonNode node = it.next().getValue().elements().next() ;
-                JsonNode entry = node.get("entries").elements().next();
-                try {
-                    LeagueEntry leagueEntry = om.treeToValue(entry, LeagueEntry.class) ;
-                    leagueEntry.tier = node.get("tier").asText();
-                    Long summonerId = Long.parseLong(leagueEntry.playerOrTeamId) ;
-                    map.put(summonerId, leagueEntry) ;
-                    found.add(summonerId) ;
-                } catch (JsonProcessingException e) {
-                    log.error("Processing exception", e);
-                    throw new RuntimeException(e) ;
-                }
+    public LeaguePosition getLeaguePosition(Long summonerId) throws JsonProcessingException {
+        String endpoint = regionEndpoint + "/league/v3/positions/by-summoner/" + summonerId ;
+        JsonNode rootNode = callApi(endpoint);
+        Iterator<JsonNode> it = rootNode.elements() ;
+        while (it.hasNext()) {
+            JsonNode node = it.next();
+            if (node.get("queueType").asText().equals("RANKED_SOLO_5x5")) {
+                return om.treeToValue(node, LeaguePosition.class) ;
             }
         }
-
-        //For all of those not found (this means that they are unranked) add an unranked league entry
-        all.removeAll(found) ;
-        for (Long unknown : all) {
-            LeagueEntry unranked = new LeagueEntry();
-            unranked.playerOrTeamId = String.valueOf(unknown);
-            unranked.tier = "UNRANKED";
-            unranked.division = "U";
-            map.put(unknown, unranked) ;
-
-        }
-
-        return map ;
+        return null ;
     }
+
 
     /**
      * I'm really only interested in the gold, so i'm not bringing everything back
@@ -379,7 +311,51 @@ public class RiotApi {
     }
 
 
+
+   //TODO: Make real tests
+    public static void test1() throws IOException {
+        RiotApi r = new RiotApi(Region.EUW1) ;
+        r.throttler = new SimpleThrottler(10, 500) ;
+        Long challenger = r.getChallengersIds().get(0) ;
+        System.out.println("Challenger id found: " + challenger);
+        Summoner s = r.getSummoner(challenger) ;
+        System.out.println("Account for summoner " + challenger + " is " + s.accountId);
+        List<MatchReference> matches = r.getMatchList(s.accountId, 11);
+        r.getMatch(matches.get(0).gameId) ;
+    }
+
+    public static void test2() throws IOException {
+        RiotApi r = new RiotApi(Region.EUW1) ;
+        r.throttler = new SimpleThrottler(10, 500) ;
+        Long challenger = r.getChallengersIds().get(0) ;
+        System.out.println("Challenger id found: " + challenger);
+        Summoner s = r.getSummoner(challenger) ;
+        System.out.println("Account for summoner " + challenger + " is " + s.accountId);
+        List<MatchReference> matches = r.getMatchList(s.accountId, 11);
+
+        int i = 1;
+    }
+
+    public static void test3() throws JsonProcessingException {
+        RiotApi r = new RiotApi(Region.EUW1) ;
+        r.throttler = new SimpleThrottler(10, 500) ;
+        r.getLeaguePosition(81198228L) ;
+    }
+
     public static void main(String[] args) throws IOException {
+        //new RiotApi(Region.EUW).getChampionsList() ;
+        //new RiotApi(Region.KR).getMatchList(2035958L, 1) ;
+//        for (String s : new RiotApi(Region.EUW).getMastersIds()) {
+//            System.out.println(s);
+//        }
+//        for (String s : new RiotApi(Region.EUW).getChallengersIds()) {
+//            System.out.println(s);
+//        }
+
+        //new RiotApi(Region.EUW).getMatch(2969769203L, false) ;
+        //new RiotApi(Region.EUNE).getSummonerMatchDetails(1585972833L) ;
+       //new RiotApi(Region.EUW1).getChallengersIds() ;
+        test3();
 
     }
 

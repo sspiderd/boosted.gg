@@ -26,7 +26,7 @@ CREATE TABLE BoostedGG.SUMMONER_MATCHES (
   match_id bigint,
   summoner_id bigint,
   winner int,
-  region varchar,
+  platform_id varchar,
   patch_major_version int,
   patch_minor_version int,
   PRIMARY KEY ((champion_id, role_id), creation_date)
