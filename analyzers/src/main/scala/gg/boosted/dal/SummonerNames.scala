@@ -1,7 +1,7 @@
 package gg.boosted.dal
 
 import gg.boosted.posos.{BoostedSummoner, SummonerId}
-import gg.boosted.riotapi.{Region, RiotApi}
+import gg.boosted.riotapi.{Platform, RiotApi}
 import org.apache.spark.sql.Dataset
 
 import scala.collection.JavaConverters._
@@ -17,7 +17,7 @@ object SummonerNames {
 
             //Run over all the records and get the summonerId field of each one
             var allSummonerIds = Set[SummonerId]()
-            partitionOfRecords.foreach(row => allSummonerIds += SummonerId(row.summonerId, Region.valueOf(row.region)))
+            partitionOfRecords.foreach(row => allSummonerIds += SummonerId(row.summonerId, Platform.valueOf(row.region)))
 
             //Find names and scores that we don't know yet
             var unknownNames = Set[SummonerId]()
@@ -38,7 +38,7 @@ object SummonerNames {
     }
 
     def get(summonerId:Long, region:String):String = {
-        get(SummonerId(summonerId, Region.valueOf(region)))
+        get(SummonerId(summonerId, Platform.valueOf(region)))
     }
 
     def get(summonerId: SummonerId):String = {

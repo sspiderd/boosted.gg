@@ -2,7 +2,7 @@ package gg.boosted.maps
 
 import gg.boosted.Application
 import gg.boosted.riotapi.dtos.Item
-import gg.boosted.riotapi.{Region, RiotApi}
+import gg.boosted.riotapi.{Platform, RiotApi}
 import org.apache.spark.broadcast.Broadcast
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -24,7 +24,7 @@ object Items {
 
     def populateAndBroadcast():Unit = {
         import collection.JavaConverters._
-        val items = new RiotApi(Region.EUW).getItems.asScala.toMap
+        val items = new RiotApi(Platform.EUW).getItems.asScala.toMap
         itemsBr = Application.session.sparkContext.broadcast(items)
     }
 

@@ -1,7 +1,7 @@
 package gg.boosted
 
 import gg.boosted.configuration.Configuration
-import gg.boosted.riotapi.Region
+import gg.boosted.riotapi.Platform
 import gg.boosted.riotapi.RiotApi
 import gg.boosted.riotapi.dtos.match.Match
 import gg.boosted.riotapi.dtos.match.MatchReference
@@ -23,13 +23,13 @@ class FromRiot {
 
     static RiotApi riotApi
 
-    static Region region
+    static Platform platform
 
     static void main(String[] args) {
         //RedisStore.reset()
 
-        region = Region.EUN1
-        riotApi = new RiotApi(region)
+        platform = Platform.EUW1
+        riotApi = new RiotApi(platform)
 
         extract()
     }
@@ -44,7 +44,7 @@ class FromRiot {
         //Create an empty set of summonerIds.. This is the queue to which we add new summoners that we find
         //Get an initial seed of summoners
         List<Long> summonerQueue = getInitialSummonerSeed()
-        RedisStore.addSummonersToQueue(region.toString(), summonerQueue as String[])
+        RedisStore.addSummonersToQueue(platform.toString(), summonerQueue as String[])
 
         //get the time at which we want to look matches from then on
         long gamesPlayedSince = getDateToLookForwardFrom()
@@ -52,11 +52,11 @@ class FromRiot {
 
         //While the queue is not empty
         String summonerId
-        while ((summonerId = RedisStore.popSummonerFromQueue(region.toString())) != null) {
+        while ((summonerId = RedisStore.popSummonerFromQueue(platform.toString())) != null) {
             //Get the next summoner (it's in summonerId)
 
             //Check that we haven't seen him yet
-            if (RedisStore.wasSummonerProcessedAlready(region.toString(), summonerId)) {
+            if (RedisStore.wasSummonerProcessedAlready(platform.toString(), summonerId)) {
                 log.debug("Summoner ${summonerId} was already processed...")
                 continue
             }
@@ -72,7 +72,12 @@ class FromRiot {
             List<MatchReference> matchList = riotApi.getMatchList(accountId, gamesPlayedSince)
 
             //Determine who this girl mains (if any)
-            Set<Tuple2<Integer, String>> mains = getMains(matchList) ;
+            Set<Tuple2<Integer, String>> mains = getMains(matchList)
+            if (log.debugEnabled) {
+                StringBuilder sb = new StringBuilder();
+                mains.each {sb.append(it).append(",")}
+                log.debug("Found ${mains.size()} main for ${summonerId} (${sb.toString()}")
+            }
 
             //For each match in the summoner's matchlist:
             matchList.each {
@@ -80,7 +85,7 @@ class FromRiot {
                 Long gameId = it.gameId
 
                 //Check that we haven't seen this match yet
-                if (!RedisStore.wasMatchProcessedAlready(region.toString(), it.toString())) {
+                if (!RedisStore.wasMatchProcessedAlready(platform.toString(), it.toString())) {
 
                     log.debug("Processing match ${gameId}")
 
@@ -94,23 +99,28 @@ class FromRiot {
                     //Disregard matches that are shorter than 20 minutes
                     if (match.gameDuration >= 1200) {
                         summonerMatchList.each {
-                            CassandraStore.saveMatch(it)
-                            //KafkaSummonerMatchProducer.send(it)
+                            //We save a lot of space by saving only the mains to cassandra
+                            if (it.summonerId == summonerId &&
+                                mains.contains(new Tuple2(it.championId, it.role.toString()))) {
+                                CassandraStore.saveMatch(it)
+                                //KafkaSummonerMatchProducer.send(it)
+                            }
+
                         }
                     }
 
                     //Add the match to "seen matches"
-                    RedisStore.addMatchToProcessedMatches(region.toString(), it.toString())
+                    RedisStore.addMatchToProcessedMatches(platform.toString(), it.toString())
 
                     //Add all the summoners to the summoner queue
-                    summonerMatchList.each {RedisStore.addSummonersToQueue(region.toString(), it.summonerId.toString())}
+                    summonerMatchList.each {RedisStore.addSummonersToQueue(platform.toString(), it.summonerId.toString())}
                 } else {
                     log.debug("Match ${it} was already processed...")
                 }
             }
 
             //The summoner is now processed. Add her to the queue
-            RedisStore.addSummonersProcessed(region.toString(), summonerId)
+            RedisStore.addSummonersProcessed(platform.toString(), summonerId)
 
             log.debug("Time taken to process summoner = ${(System.currentTimeMillis() - time) / 1000}S")
         }
@@ -158,12 +168,17 @@ class FromRiot {
         Set<Tuple2<Integer, String>> mains = new HashSet<>()
 
         //The key is champion-role. the value is the number of times it had appeared
-        def mainsCounter = [:]
+        Map<Tuple2<Integer, String>, Integer> mainsCounter = [:]
         matchList.each {
-            it.
-            mainsCounter.get
+            Tuple2 chrole = new Tuple2(it.champion, MatchParser.normalizedRole(it.lane, it.role))
+            int counter = mainsCounter.getOrDefault(chrole, 0)
+            counter++
+            mainsCounter.put(chrole, counter)
         }
 
+        mainsCounter.each {k, v -> if (v >= Configuration.getInt("min.games.played.with.chrole")) {
+            mains.add(k)
+        }}
         return mains
     }
 

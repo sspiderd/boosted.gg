@@ -9,7 +9,7 @@ import groovy.transform.CompileStatic
 class SummonerMatch {
 
     Integer championId
-    Integer roleId
+    Role role
     Long gameId
     Long summonerId
     Integer winner

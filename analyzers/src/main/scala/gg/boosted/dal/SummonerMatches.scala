@@ -1,7 +1,7 @@
 package gg.boosted.dal
 
 import gg.boosted.posos.{SummonerMatchId, SummonerMatchSummary}
-import gg.boosted.riotapi.{Region, RiotApi}
+import gg.boosted.riotapi.{Platform, RiotApi}
 import gg.boosted.utils.JsonUtil
 import org.apache.spark.sql.DataFrame
 import org.slf4j.LoggerFactory
@@ -32,7 +32,7 @@ object SummonerMatches {
                 val _matches = row.getSeq[Long](1)
                 val _region = row.getString(2)
                 _matches.foreach(
-                    _match => allSummonerMatchIds += SummonerMatchId(summonerId, _match, Region.valueOf(_region)))
+                    _match => allSummonerMatchIds += SummonerMatchId(summonerId, _match, Platform.valueOf(_region)))
             })
 
             //Get all unknown matches
@@ -68,7 +68,7 @@ object SummonerMatches {
     }
 
     def get(summonerId:Long, _matchId: Long, region: String): SummonerMatchSummary  =
-        get(SummonerMatchId(summonerId, _matchId, Region.valueOf(region)))
+        get(SummonerMatchId(summonerId, _matchId, Platform.valueOf(region)))
 
     def get(summonerMatch: SummonerMatchId): SummonerMatchSummary = {
         RedisStore.getSummonerMatch(summonerMatch) match {

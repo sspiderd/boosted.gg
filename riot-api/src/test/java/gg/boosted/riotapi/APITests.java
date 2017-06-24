@@ -1,7 +1,7 @@
 package gg.boosted.riotapi;
 
-import gg.boosted.riotapi.dtos.MatchReference;
 import gg.boosted.riotapi.dtos.Summoner;
+import gg.boosted.riotapi.dtos.match.MatchReference;
 import gg.boosted.riotapi.throttlers.SimpleThrottler;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +18,7 @@ public class APITests {
 
     Logger log = LoggerFactory.getLogger(APITests.class) ;
 
-    RiotApi api = new RiotApi(Region.EUW1) ;
+    RiotApi api = new RiotApi(Platform.EUW1) ;
 
     @Before
     public void before() {
@@ -36,7 +36,7 @@ public class APITests {
     }
 
     public void test2() throws IOException {
-        RiotApi r = new RiotApi(Region.EUW1) ;
+        RiotApi r = new RiotApi(Platform.EUW1) ;
         r.throttler = new SimpleThrottler(10, 500) ;
         Long challenger = r.getChallengersIds().get(0) ;
         log.info("Challenger id found: " + challenger);

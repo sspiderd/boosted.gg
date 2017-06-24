@@ -30,7 +30,7 @@ public class RiotApi {
 
     private static Logger log = LoggerFactory.getLogger(RiotApi.class) ;
 
-    private Region region ;
+    private Platform platform;
     private String riotApiKey ;
     private String regionEndpoint;
     private String staticEndpoint;
@@ -38,20 +38,20 @@ public class RiotApi {
     ObjectMapper om = new ObjectMapper() ;
     IThrottler throttler ;
 
-    public RiotApi(Region region) {
-        this.region = region ;
+    public RiotApi(Platform platform) {
+        this.platform = platform;
         riotApiKey = System.getenv("RIOT_API_KEY") ;
         if (riotApiKey == null) {
             throw new RuntimeException("You need to set environment variable \"RIOT_API_KEY\" with your riot api key") ;
         }
         regionEndpoint = "https://" +
-                region.toString().toLowerCase() +
+                platform.toString().toLowerCase() +
                 ".api.riotgames.com/lol" ;
 
         staticEndpoint = "https://" +
-                region.toString().toLowerCase() +
+                platform.toString().toLowerCase() +
                 ".api.riotgames.com/lol/static-data/v3" ;
-        throttler = new DistributedThrottler(10, 500, region) ;
+        throttler = new DistributedThrottler(10, 500, platform) ;
     }
 
     private String callApiJson(String endpoint) {
@@ -314,7 +314,7 @@ public class RiotApi {
 
    //TODO: Make real tests
     public static void test1() throws IOException {
-        RiotApi r = new RiotApi(Region.EUW1) ;
+        RiotApi r = new RiotApi(Platform.EUW1) ;
         r.throttler = new SimpleThrottler(10, 500) ;
         Long challenger = r.getChallengersIds().get(0) ;
         System.out.println("Challenger id found: " + challenger);
@@ -325,7 +325,7 @@ public class RiotApi {
     }
 
     public static void test2() throws IOException {
-        RiotApi r = new RiotApi(Region.EUW1) ;
+        RiotApi r = new RiotApi(Platform.EUW1) ;
         r.throttler = new SimpleThrottler(10, 500) ;
         Long challenger = r.getChallengersIds().get(0) ;
         System.out.println("Challenger id found: " + challenger);
@@ -337,24 +337,24 @@ public class RiotApi {
     }
 
     public static void test3() throws JsonProcessingException {
-        RiotApi r = new RiotApi(Region.EUW1) ;
+        RiotApi r = new RiotApi(Platform.EUW1) ;
         r.throttler = new SimpleThrottler(10, 500) ;
         r.getLeaguePosition(81198228L) ;
     }
 
     public static void main(String[] args) throws IOException {
-        //new RiotApi(Region.EUW).getChampionsList() ;
-        //new RiotApi(Region.KR).getMatchList(2035958L, 1) ;
-//        for (String s : new RiotApi(Region.EUW).getMastersIds()) {
+        //new RiotApi(Platform.EUW).getChampionsList() ;
+        //new RiotApi(Platform.KR).getMatchList(2035958L, 1) ;
+//        for (String s : new RiotApi(Platform.EUW).getMastersIds()) {
 //            System.out.println(s);
 //        }
-//        for (String s : new RiotApi(Region.EUW).getChallengersIds()) {
+//        for (String s : new RiotApi(Platform.EUW).getChallengersIds()) {
 //            System.out.println(s);
 //        }
 
-        //new RiotApi(Region.EUW).getMatch(2969769203L, false) ;
-        //new RiotApi(Region.EUNE).getSummonerMatchDetails(1585972833L) ;
-       //new RiotApi(Region.EUW1).getChallengersIds() ;
+        //new RiotApi(Platform.EUW).getMatch(2969769203L, false) ;
+        //new RiotApi(Platform.EUNE).getSummonerMatchDetails(1585972833L) ;
+       //new RiotApi(Platform.EUW1).getChallengersIds() ;
         test3();
 
     }

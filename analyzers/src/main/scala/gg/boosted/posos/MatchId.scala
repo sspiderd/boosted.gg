@@ -1,6 +1,6 @@
 package gg.boosted.posos
 
-import gg.boosted.riotapi.Region
+import gg.boosted.riotapi.Platform
 
 /**
   *
@@ -8,4 +8,4 @@ import gg.boosted.riotapi.Region
   *
   * Created by ilan on 12/12/16.
   */
-case class MatchId(id: Long, region: Region)
+case class MatchId(id: Long, region: Platform)

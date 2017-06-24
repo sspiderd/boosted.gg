@@ -45,7 +45,7 @@ public class CassandraStore {
                                 "  patch_minor_version) " +
                 "VALUES (%d, %d, %s, %d, %d, %d, %s, %d, %d)",
                         sm.getChampionId(),
-                        sm.getRoleId(),
+                        sm.getRole().roleId,
                         sm.getCreationDate(),
                         sm.getGameId(),
                         sm.getSummonerId(),

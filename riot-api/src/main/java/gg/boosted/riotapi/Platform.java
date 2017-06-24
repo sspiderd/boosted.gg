@@ -3,7 +3,7 @@ package gg.boosted.riotapi;
 /**
  * Created by ilan on 12/9/16.
  */
-public enum Region {
+public enum Platform {
     RU,
     KR,
     BR1,

@@ -24,7 +24,7 @@ object AnalyzerService {
 
     val maxRank = Configuration.getInt("maxrank")
 
-    val minGamesPlayed = Configuration.getInt("min.games.played")
+    val minGamesPlayed = Configuration.getInt("min.games.played.with.chrole")
 
     def analyze(stream:DStream[SummonerMatch]):Unit = {
 

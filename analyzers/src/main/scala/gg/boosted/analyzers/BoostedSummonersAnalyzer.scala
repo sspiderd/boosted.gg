@@ -45,7 +45,7 @@ object BoostedSummonersAnalyzer {
 //        import Application.session.implicits._
 //        val mapWithNames = boostedSummoners.map(
 //            r => {
-//                val summonerId = SummonerId(r.summonerId, Region.valueOf(r.region))
+//                val summonerId = SummonerId(r.summonerId, Platform.valueOf(r.region))
 //                val summonerName = RedisStore.getSummonerName(summonerId)
 //                val lolScore = RedisStore.getSummonerLOLScore(summonerId).getOrElse(LoLScore("UNKNOWN", "U", 0))
 //                val champion = Champions.byId(r.championId)

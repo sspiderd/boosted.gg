@@ -2,7 +2,7 @@ package gg.boosted.maps
 
 import gg.boosted.Application
 import gg.boosted.riotapi.dtos.RuneDef
-import gg.boosted.riotapi.{Region, RiotApi}
+import gg.boosted.riotapi.{Platform, RiotApi}
 import org.apache.spark.broadcast.Broadcast
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -14,7 +14,7 @@ object Runes {
 
     var runesBr:Broadcast[Map[String,RuneDef]] = _
 
-    val riotApi = new RiotApi(Region.EUW)
+    val riotApi = new RiotApi(Platform.EUW)
 
     def populateAndBroadcast():Unit = {
         import collection.JavaConverters._

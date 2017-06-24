@@ -1,6 +1,6 @@
 package gg.boosted.riotapi.throttlers;
 
-import gg.boosted.riotapi.Region;
+import gg.boosted.riotapi.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -38,18 +38,18 @@ public class DistributedThrottler implements IThrottler{
 
     private long lastTimeCalled = 0;
 
-    private Region region ;
+    private Platform platform;
 
-    public DistributedThrottler(int requestsPer10Seconds, int requestsPer10Minutes, Region region) {
+    public DistributedThrottler(int requestsPer10Seconds, int requestsPer10Minutes, Platform platform) {
         millisBetweenRequests = Double.valueOf(Math.max(10.0/requestsPer10Seconds, 600.0/requestsPer10Minutes) * 1000).longValue();
-        this.region = region;
+        this.platform = platform;
     }
 
     @Override
     public void waitFor() {
         //Generate a random value to store as a lockRes
         randomValue = random.nextLong() ;
-        String regionLock = lockRes + ":" + region.toString() ;
+        String regionLock = lockRes + ":" + platform.toString() ;
         String result ;
         try (Jedis jedis = jedisPool.getResource()) {
             result = jedis.set(regionLock, randomValue.toString(), "NX", "EX", lockExpirationInSeconds);
@@ -96,7 +96,7 @@ public class DistributedThrottler implements IThrottler{
     }
 
     public void releaseLock(long lastTimeCalled) {
-        String regionLock = lockRes + ":" + region.toString() ;
+        String regionLock = lockRes + ":" + platform.toString() ;
         try (Jedis jedis = jedisPool.getResource()) {
             String lockValue = jedis.get(regionLock);
             if (lockValue != null && Long.parseLong(lockValue) == randomValue) {
@@ -112,7 +112,7 @@ public class DistributedThrottler implements IThrottler{
     }
 
     public static void main(String[] args) {
-        DistributedThrottler dt = new DistributedThrottler(10, 500, Region.EUW1) ;
+        DistributedThrottler dt = new DistributedThrottler(10, 500, Platform.EUW1) ;
         while (true) {
             dt.waitFor();
             log.debug("Called API");

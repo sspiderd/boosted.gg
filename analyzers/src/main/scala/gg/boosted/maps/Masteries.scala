@@ -1,7 +1,7 @@
 package gg.boosted.maps
 
 import gg.boosted.Application
-import gg.boosted.riotapi.{Region, RiotApi}
+import gg.boosted.riotapi.{Platform, RiotApi}
 import gg.boosted.riotapi.dtos.{Mastery, RuneDef}
 import org.apache.spark.broadcast.Broadcast
 import org.slf4j.{Logger, LoggerFactory}
@@ -15,7 +15,7 @@ object Masteries {
 
   var masteriesBr:Broadcast[Map[String, Mastery]] = _
 
-  val riotApi = new RiotApi(Region.EUW)
+  val riotApi = new RiotApi(Platform.EUW)
 
   def populateAndBroadcast():Unit = {
     import collection.JavaConverters._

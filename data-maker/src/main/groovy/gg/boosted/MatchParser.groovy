@@ -24,12 +24,9 @@ class MatchParser {
             summonerMatch.patchMajorVersion = patch[0][1].toInteger()
             summonerMatch.patchMinorVersion = patch[0][2].toInteger()
 
-            //Ok, so these were easy, now the next 2 are a bit more difficult
-            String lane = it.timeline.lane
-            String role
+            String role = normalizedRole(it.timeline.lane, it.timeline.role)
 
-
-            summonerMatch.roleId = Role.valueOf(role).roleId
+            summonerMatch.role = Role.valueOf(role)
 
             //And finally we extract The summonerId
             Integer participantId = it.participantId

@@ -1,6 +1,6 @@
 package gg.boosted.maps
 
-import gg.boosted.riotapi.{Region, RiotApi}
+import gg.boosted.riotapi.{Platform, RiotApi}
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
@@ -12,7 +12,7 @@ object Champions {
 
     var champions = collection.mutable.HashMap.empty[Int, String]
 
-    val riotApi = new RiotApi(Region.EUW)
+    val riotApi = new RiotApi(Platform.EUW)
 
     def populateMap(): Unit = {
         import collection.JavaConverters._
