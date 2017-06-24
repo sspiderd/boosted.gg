@@ -76,7 +76,7 @@ class FromRiot {
             if (log.debugEnabled) {
                 StringBuilder sb = new StringBuilder();
                 mains.each {sb.append(it).append(",")}
-                log.debug("Found ${mains.size()} main for ${summonerId} (${sb.toString()}")
+                log.debug("Found ${mains.size()} main for ${summonerId} (${sb.toString()})")
             }
 
             //For each match in the summoner's matchlist:

@@ -37,6 +37,7 @@ class MatchParser {
 
     static String normalizedRole(String lane, String role) {
         String normalizedRole
+        if (lane ==  "MID") lane = "MIDDLE"
         if (lane == "TOP" || lane == "MIDDLE" || lane == "JUNGLE") {
             normalizedRole = lane
         } else if (lane == "BOTTOM") {

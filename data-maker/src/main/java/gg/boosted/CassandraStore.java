@@ -32,7 +32,7 @@ public class CassandraStore {
     }
 
     public static void saveMatch(SummonerMatch sm) {
-        ResultSetFuture future = session.executeAsync(
+        ResultSet future = session.execute(
                 String.format("INSERT INTO BoostedGG.SUMMONER_MATCHES " +
                         "(champion_id," +
                                 "  role_id," +
@@ -54,18 +54,18 @@ public class CassandraStore {
                         sm.getPatchMajorVersion(),
                         sm.getPatchMinorVersion())
         );
-        Futures.addCallback(future,
-                new FutureCallback<ResultSet>() {
-                    @Override public void onSuccess(ResultSet result) {
-                        log.debug("Success inserting to cassandra");
-                    }
-
-                    @Override public void onFailure(Throwable t) {
-                        log.error("", t);
-                    }
-                },
-                MoreExecutors.directExecutor()
-        );
+//        Futures.addCallback(future,
+//                new FutureCallback<ResultSet>() {
+//                    @Override public void onSuccess(ResultSet result) {
+//                        log.debug("Success inserting to cassandra");
+//                    }
+//
+//                    @Override public void onFailure(Throwable t) {
+//                        log.error("", t);
+//                    }
+//                },
+//                MoreExecutors.directExecutor()
+//        );
     }
 
 }
