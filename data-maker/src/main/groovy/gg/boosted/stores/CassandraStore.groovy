@@ -1,16 +1,11 @@
-package gg.boosted;
+package gg.boosted.stores;
 
 import com.datastax.driver.core.*;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
+import gg.boosted.SummonerMatch;
 import gg.boosted.configuration.Configuration;
 import groovy.transform.CompileStatic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ExecutionException;
 
 /**
  * Created by ilan on 3/20/17.

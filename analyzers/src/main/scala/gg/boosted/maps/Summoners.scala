@@ -46,7 +46,6 @@ object Summoners {
         unknowns.groupBy(_.platform).foreach { case(region, ids) => {
             val api = new RiotApi(region)
 
-            //Yes, fucking scala is forcing me the stupid unreadable line below
             import collection.JavaConverters._
             val idsToNamesMap = api.getSummonerNamesByIds(ids.map(_.id).map(Long.box):_*).asScala
 

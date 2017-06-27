@@ -27,7 +27,7 @@ object SummonerMatches {
         _matches.foreachPartition(partitionOfRecords => {
             var allSummonerMatchIds = Set[SummonerMatchId]()
 
-            partitionOfRecords.forEachRemaining(row => {
+            partitionOfRecords.foreach(row => {
                 val summonerId = row.getLong(0)
                 val _matches = row.getSeq[Long](1)
                 val _region = row.getString(2)

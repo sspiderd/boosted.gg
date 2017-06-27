@@ -24,7 +24,7 @@ object Items {
 
     def populateAndBroadcast():Unit = {
         import collection.JavaConverters._
-        val items = new RiotApi(Platform.EUW).getItems.asScala.toMap
+        val items = new RiotApi(Platform.EUW1).getItems.asScala.toMap
         itemsBr = Application.session.sparkContext.broadcast(items)
     }
 

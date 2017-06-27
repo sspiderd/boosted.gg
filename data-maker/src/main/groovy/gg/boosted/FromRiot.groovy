@@ -5,6 +5,8 @@ import gg.boosted.riotapi.Platform
 import gg.boosted.riotapi.RiotApi
 import gg.boosted.riotapi.dtos.match.Match
 import gg.boosted.riotapi.dtos.match.MatchReference
+import gg.boosted.stores.CassandraStore
+import gg.boosted.stores.RedisStore
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import org.slf4j.Logger
@@ -66,6 +68,7 @@ class FromRiot {
             log.debug("Processing summoner ${summonerId}")
 
             //In V3 API We need to get an account id for matchlist. for now, i'll make the call. In the future i might cache
+            RedisStore.
             Long accountId = riotApi.getSummoner(summonerId as Long).accountId
 
             //Get his matches since $gamesPlayedSince

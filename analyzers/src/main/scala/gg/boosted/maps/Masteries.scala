@@ -15,7 +15,7 @@ object Masteries {
 
   var masteriesBr:Broadcast[Map[String, Mastery]] = _
 
-  val riotApi = new RiotApi(Platform.EUW)
+  val riotApi = new RiotApi(Platform.EUW1)
 
   def populateAndBroadcast():Unit = {
     import collection.JavaConverters._

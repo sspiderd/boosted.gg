@@ -31,13 +31,9 @@ object LoLScores {
                 val api = new RiotApi(platform)
 
                 ids.map(_.id).foreach { id =>
-                  api.getLeaguePosition(id)
+                  val position = api.getLeaguePosition(id)
+                  val lolScore = LoLScore(position.tier, position.rank, position.leaguePoints)
                 }
-                api.getLeaguePosition(ids.map(_.id).toList.map(Long.box)).asScala.foreach(
-                    mapping => {
-                        val lolScore = LoLScore(mapping._2.tier, mapping._2.division, mapping._2.leaguePoints)
-                        RedisStore.addSummonerLOLScore(SummonerId(mapping._1, region), lolScore)
-                    })
             })
         })
     }
