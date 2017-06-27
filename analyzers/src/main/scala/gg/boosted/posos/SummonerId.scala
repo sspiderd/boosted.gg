@@ -8,4 +8,4 @@ import gg.boosted.riotapi.Platform
   *
   * Created by ilan on 12/12/16.
   */
-case class SummonerId(id: Long, region: Platform)
+case class SummonerId(id: Long, platform: Platform)

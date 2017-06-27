@@ -1,6 +1,6 @@
 package gg.boosted.posos
 
-import gg.boosted.riotapi.{Platform, Region}
+import gg.boosted.riotapi.Platform
 
 /**
   * Created by ilan on 1/17/17.

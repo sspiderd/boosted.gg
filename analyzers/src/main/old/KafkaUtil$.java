@@ -1,12 +1,4 @@
-package gg.boosted.utils
-
-import gg.boosted.configuration.Configuration
-import kafka.serializer.{DefaultDecoder, StringDecoder}
-import org.apache.spark.streaming.StreamingContext
-import org.apache.spark.streaming.dstream.DStream
-import org.apache.spark.streaming.kafka.KafkaUtils
-import org.msgpack.core.MessagePack
-import org.slf4j.LoggerFactory
+package gg.boosted.utils;
 
 /**
   * Created by ilan on 8/16/16.

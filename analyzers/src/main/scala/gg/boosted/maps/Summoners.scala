@@ -43,7 +43,7 @@ object Summoners {
         log.debug("Found {} summoner names already in store", map.size)
 
         //Group by region and retrieve the names
-        unknowns.groupBy(_.region).foreach { case(region, ids) => {
+        unknowns.groupBy(_.platform).foreach { case(region, ids) => {
             val api = new RiotApi(region)
 
             //Yes, fucking scala is forcing me the stupid unreadable line below
@@ -86,7 +86,7 @@ object Summoners {
         log.debug("Found {} summoner lol scores already in store", map.size)
 
         //Group by region and retrieve the names
-        unknowns.groupBy(_.region).foreach { case(region, ids) => {
+        unknowns.groupBy(_.platform).foreach { case(region, ids) => {
             val api = new RiotApi(region)
 
             //Yes, fucking scala is forcing me the stupid unreadable line below

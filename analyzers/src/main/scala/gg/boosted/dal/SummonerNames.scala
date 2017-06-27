@@ -27,7 +27,7 @@ object SummonerNames {
             )
 
             //group by regions and call their apis
-            unknownNames.groupBy(_.region).par.foreach(tuple => {
+            unknownNames.groupBy(_.platform).par.foreach(tuple => {
                 val region = tuple._1
                 val ids = tuple._2
                 val api = new RiotApi(region)
@@ -44,7 +44,7 @@ object SummonerNames {
     def get(summonerId: SummonerId):String = {
         RedisStore.getSummonerName(summonerId) match {
             case Some(x) => x
-            case None => throw new RuntimeException(s"The name for ${summonerId.id} at ${summonerId.region.toString} is unaccounted for. did you populateAndBroadcast first?")
+            case None => throw new RuntimeException(s"The name for ${summonerId.id} at ${summonerId.platform.toString} is unaccounted for. did you populateAndBroadcast first?")
         }
     }
 

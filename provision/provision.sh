@@ -25,7 +25,7 @@ add-apt-repository \
    stable"
 apt-get update
 apt-get install -y docker-ce
-usermod ubuntu -a -G docker
+usermod vagrant -a -G docker
 
 
 sed -i 's/\"set background=dark/set background=dark/' /etc/vim/vimrc

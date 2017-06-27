@@ -9,6 +9,7 @@ import gg.boosted.riotapi.constants.QueueType;
 import gg.boosted.riotapi.dtos.*;
 import gg.boosted.riotapi.dtos.match.Match;
 import gg.boosted.riotapi.dtos.match.MatchReference;
+import gg.boosted.riotapi.dtos.match.MatchTimeline;
 import gg.boosted.riotapi.throttlers.DistributedThrottler;
 import gg.boosted.riotapi.throttlers.IThrottler;
 import gg.boosted.riotapi.throttlers.SimpleThrottler;
@@ -223,6 +224,11 @@ public class RiotApi {
     public Match getMatch(long matchId) {
         String endpoint = String.format("%s/match/v3/matches/%s", regionEndpoint, matchId) ;
         return callApi(endpoint, Match.class);
+    }
+
+    public MatchTimeline getMatchTimeline(long matchId) {
+        String endpoint = String.format("%s/match/v3/timelines/by-match/%s", regionEndpoint, matchId) ;
+        return callApi(endpoint, MatchTimeline.class);
     }
 
     public LeaguePosition getLeaguePosition(Long summonerId) throws JsonProcessingException {

@@ -27,7 +27,7 @@ object SummonerMatches {
         _matches.foreachPartition(partitionOfRecords => {
             var allSummonerMatchIds = Set[SummonerMatchId]()
 
-            partitionOfRecords.foreach(row => {
+            partitionOfRecords.forEachRemaining(row => {
                 val summonerId = row.getLong(0)
                 val _matches = row.getSeq[Long](1)
                 val _region = row.getString(2)
@@ -56,7 +56,7 @@ object SummonerMatches {
                     val summonerIds = tuple._2.map(_.summonerId)
                     val region = regionGroup._1
                     val api = new RiotApi(region)
-                    val fullMatch = api.getMatch(matchId, true)
+                    val fullMatch = api.getMatchTimeline(matchId)
 
                     summonerIds.foreach(summoner => {
                         val sms = SummonerMatchSummary(summoner, fullMatch)

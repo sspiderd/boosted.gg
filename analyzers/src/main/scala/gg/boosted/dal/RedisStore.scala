@@ -25,11 +25,11 @@ object RedisStore {
     val summonerMatchIdTTL = Configuration.getInt("summoner.match.retention.period.seconds")
 
     def getSummonerName(id:SummonerId):Option[String] = {
-        pool.withClient { _.get(s"$summonerIdToNameKey:${id.region}:${id.id}")}
+        pool.withClient { _.get(s"$summonerIdToNameKey:${id.platform}:${id.id}")}
     }
 
     def addSummonerName(id:SummonerId, summonerName:String):Unit = {
-        pool.withClient { _.setex(s"$summonerIdToNameKey:${id.region}:${id.id}", summonerNameTTL, summonerName) }
+        pool.withClient { _.setex(s"$summonerIdToNameKey:${id.platform}:${id.id}", summonerNameTTL, summonerName) }
     }
 
     /**
@@ -39,9 +39,9 @@ object RedisStore {
       */
     def getSummonerLOLScore(id:SummonerId):Option[LoLScore] = {
         pool.withClient ( client => {
-            val tier = client.get(s"$summonerIdToLOLScoreKey:${id.region}:${id.id}:tier").getOrElse(return None)
-            val division = client.get(s"$summonerIdToLOLScoreKey:${id.region}:${id.id}:division").getOrElse(return None)
-            val leaguePoints = client.get(s"$summonerIdToLOLScoreKey:${id.region}:${id.id}:leaguePoints").getOrElse(return None)
+            val tier = client.get(s"$summonerIdToLOLScoreKey:${id.platform}:${id.id}:tier").getOrElse(return None)
+            val division = client.get(s"$summonerIdToLOLScoreKey:${id.platform}:${id.id}:division").getOrElse(return None)
+            val leaguePoints = client.get(s"$summonerIdToLOLScoreKey:${id.platform}:${id.id}:leaguePoints").getOrElse(return None)
             return Some(LoLScore(tier, division, leaguePoints.toInt))
         })
         return None
@@ -49,9 +49,9 @@ object RedisStore {
 
     def addSummonerLOLScore(id:SummonerId, lolScore:LoLScore):Unit = {
         pool.withClient ( client => {
-            client.setex(s"$summonerIdToLOLScoreKey:${id.region}:${id.id}:tier", summonerLOLScoreTTL, lolScore.tier)
-            client.setex(s"$summonerIdToLOLScoreKey:${id.region}:${id.id}:division", summonerLOLScoreTTL, lolScore.division)
-            client.setex(s"$summonerIdToLOLScoreKey:${id.region}:${id.id}:leaguePoints", summonerLOLScoreTTL, lolScore.leaguePoints.toString)
+            client.setex(s"$summonerIdToLOLScoreKey:${id.platform}:${id.id}:tier", summonerLOLScoreTTL, lolScore.tier)
+            client.setex(s"$summonerIdToLOLScoreKey:${id.platform}:${id.id}:division", summonerLOLScoreTTL, lolScore.division)
+            client.setex(s"$summonerIdToLOLScoreKey:${id.platform}:${id.id}:leaguePoints", summonerLOLScoreTTL, lolScore.leaguePoints.toString)
         })
     }
 

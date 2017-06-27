@@ -74,9 +74,19 @@ class FromRiot {
             //Determine who this girl mains (if any)
             Set<Tuple2<Integer, String>> mains = getMains(matchList)
             if (log.debugEnabled) {
-                StringBuilder sb = new StringBuilder();
-                mains.each {sb.append(it).append(",")}
-                log.debug("Found ${mains.size()} main for ${summonerId} (${sb.toString()})")
+                StringBuilder sb = new StringBuilder()
+                mains.each { main ->
+
+                    sb.append(main).append(" matches(")
+                    matchList.each { match ->
+                        String role = MatchParser.normalizedRole(match.lane, match.role)
+                        if (match.champion == main.first && role == main.second) {
+                            sb.append(match.gameId).append(",")
+                        }
+                    }
+                    sb.append("),")
+                }
+                log.debug("Found ${mains.size()} mains for ${summonerId} (${sb.toString()})")
             }
 
             //For each match in the summoner's matchlist:
@@ -100,9 +110,11 @@ class FromRiot {
                     if (match.gameDuration >= 1200) {
                         summonerMatchList.each {
                             //We save a lot of space by saving only the mains to cassandra
-                            if (it.summonerId == summonerId &&
+                            if (mains.size() > 0 &&
+                                    it.summonerId as String == summonerId &&
                                 mains.contains(new Tuple2(it.championId, it.role.toString()))) {
                                 CassandraStore.saveMatch(it)
+                                log.debug("Saved match ${summonerId} to boostedgg.summoner_matches")
                                 //KafkaSummonerMatchProducer.send(it)
                             }
 

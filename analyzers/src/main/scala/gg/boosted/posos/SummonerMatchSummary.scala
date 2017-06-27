@@ -1,6 +1,6 @@
 package gg.boosted.posos
 
-import gg.boosted.riotapi.dtos.`match`.{MatchDetail, Participant}
+import gg.boosted.riotapi.dtos.`match`.{Match, MatchTimeline, Participant}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
@@ -37,7 +37,7 @@ case class MatchParticipant(championId: Int, role: String)
 
 object SummonerMatchSummary {
 
-    def apply(summonerId: Long, md: MatchDetail): SummonerMatchSummary = {
+    def apply(summonerId: Long, md: MatchTimeline): SummonerMatchSummary = {
         val participantIdentity = md.participantIdentities.asScala.filter(_.player.summonerId == summonerId).head
         val participant = md.participants.asScala.filter(_.participantId == participantIdentity.participantId).head
         val participantId = participantIdentity.participantId
